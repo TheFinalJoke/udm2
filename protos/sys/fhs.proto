@@ -1,0 +1,18 @@
+// Fluid Handling System
+// Defines all the types and attributes for flow regulators
+// This is a generic abstraction for each type of flud regulator
+syntax = "proto3";
+package fhs;
+
+enum RegulatorType {
+    VALVE = 0;
+    PUMP = 1;
+    TAP = 2;
+}
+
+message FluidHandler {
+    int64 id = 1;
+    string name = 2;
+    RegulatorType regulator_type = 3;
+    optional string description = 4;
+}
