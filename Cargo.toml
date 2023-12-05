@@ -7,10 +7,16 @@ edition = "2021"
 name = "sys-server"
 path = "sys/src/main.rs"
 
+[lib]
+name = "lib"
+path = "sys/src/lib/lib.rs"
+
 [dependencies]
 tonic = "0.10.2"
 prost = "0.12.3"
 tokio = { version = "1.34.0", features = ["macros", "rt-multi-thread"] }
+log = "0.4.20"
+env_logger ={ version = "0.10.1"}
 
 [build-dependencies]
 tonic-build = "0.10.2"
