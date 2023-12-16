@@ -1,0 +1,95 @@
+syntax = "proto3";
+package service;
+
+import "recipe.proto";
+import "fhs.proto";
+
+message Config {
+    int64 port = 0;
+}
+
+message AddReceipeRequest {
+    Recipe recipe = 1;
+}
+
+message AddReceipeResponse {
+    int64 receipe_id = 1;
+}
+
+message GetRecipeRequest {
+    int64 recipe_id = 1;
+}
+
+message GetRecipeResponse {
+    Recipe recipe = 1;
+}
+
+message ModifyRecipeRequest {
+    Recipe recipe = 1;
+}
+
+message ModifyRecipeResponse {
+    int64 recipe_id = 1;
+}
+
+message AddInstructionRequest {
+    Instruction instruction = 1;
+}
+
+message AddInstructionResponse {
+    int64 instruction_id = 1;
+}
+
+message GetInstructionRequest {
+    int64 instruction_id = 1;
+}
+
+message GetInstructionResponse {
+    Instruction instruction = 1;
+}
+
+message ModifyInstructionRequest {
+    Instruction instruction = 1;
+}
+
+message ModifyInstructionResponse {
+    int64 instruction_id = 1;
+}
+
+message ModifyFluidRegulatorRequest {
+    Fluid fluid_id = 1;
+}
+
+message ModifyFluidRegulatorResponse {
+    int64 fluid_id = 1;
+}
+
+message ModifyIngredientRequest {
+    Ingredient ingredien = 1;
+}
+
+message ModifyIngredientResponse {
+    int64 ingredient_id = 1;
+}
+
+message AddIngredientRequest {
+    Ingredient ingredien = 1;
+}
+
+message AddIngredientResponse {
+    int64 ingredient_id = 1;
+}
+
+message RemoveIngredientResponse {}
+
+message RemoveIngredientRequest {
+    int64 ingredient_id = 1;
+}
+
+message GetIngredientRequest {
+    int64 ingredient_id = 1;
+}
+
+message GetIngredientResponse {
+    Ingredient ingredien = 1;
+}

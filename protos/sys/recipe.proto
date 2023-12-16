@@ -1,0 +1,42 @@
+syntax = "proto3";
+package recipe;
+
+import "fhs.proto";
+
+enum IngredientType {
+    UNKNOWN = 0;
+    FLUID = 1;
+    EATABLES = 2;
+}
+
+enum DrinkSize {
+    SMALL = 0;
+    MEDIUM = 1;
+    PINT = 2;
+    LARGE = 3;
+    EXTRA_LARGE = 4;
+}
+message Ingredient {
+    int64 id = 1;
+    string name = 2;
+    bool is_active = 3;
+    bool is_alcoholic = 4;
+    optional FluidRegulator regulator = 5;
+    oneof amount {
+        string custom_amount = 6;
+        float fluid_oz = 7;
+    };
+    string description = 8;
+    IngredientType ingredient_type = 9;
+}
+message Instruction {
+    int64 id = 1;
+    string instruction_detail = 2;
+    optional Ingredient ingredient = 3;
+}
+message Recipe {
+    int64 id = 1;
+    string name = 2;
+    DrinkSize size = 3;
+    map<int32, Instruction> instructions = 4;
+}

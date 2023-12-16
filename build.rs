@@ -1,7 +1,8 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let protos = &[
-        "protos/test/test.proto",
-        "protos/sys/fhs.proto"
+        "protos/sys/recipe.proto",
+        "protos/sys/fhs.proto",
+        "protos/sys/service.proto",
     ];
     // compile protocol buffer using protoc
     tonic_build::configure()
