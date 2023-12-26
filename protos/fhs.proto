@@ -1,4 +1,5 @@
 syntax = "proto3";
+package fhs_types;
 
 enum RegulatorType {
     UNKNOWN = 0;

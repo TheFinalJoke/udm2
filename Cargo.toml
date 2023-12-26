@@ -4,12 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "sys-server"
-path = "sys/src/main.rs"
+name = "sys-service"
+path = "src/main.rs"
 
 [lib]
 name = "lib"
-path = "sys/src/lib/lib.rs"
+path = "src/lib/lib.rs"
 
 [dependencies]
 tonic = "0.10.2"

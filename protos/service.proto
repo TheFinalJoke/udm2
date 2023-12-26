@@ -1,15 +1,15 @@
 syntax = "proto3";
-package service;
+package service_types;
 
 import "recipe.proto";
 import "fhs.proto";
 
 message Config {
-    int64 port = 0;
+    int64 port = 1;
 }
 
 message AddReceipeRequest {
-    Recipe recipe = 1;
+    recipe_types.Recipe recipe = 1;
 }
 
 message AddReceipeResponse {
@@ -21,11 +21,11 @@ message GetRecipeRequest {
 }
 
 message GetRecipeResponse {
-    Recipe recipe = 1;
+    recipe_types.Recipe recipe = 1;
 }
 
 message ModifyRecipeRequest {
-    Recipe recipe = 1;
+    recipe_types.Recipe recipe = 1;
 }
 
 message ModifyRecipeResponse {
@@ -33,7 +33,7 @@ message ModifyRecipeResponse {
 }
 
 message AddInstructionRequest {
-    Instruction instruction = 1;
+    recipe_types.Instruction instruction = 1;
 }
 
 message AddInstructionResponse {
@@ -45,11 +45,11 @@ message GetInstructionRequest {
 }
 
 message GetInstructionResponse {
-    Instruction instruction = 1;
+    recipe_types.Instruction instruction = 1;
 }
 
 message ModifyInstructionRequest {
-    Instruction instruction = 1;
+    recipe_types.Instruction instruction = 1;
 }
 
 message ModifyInstructionResponse {
@@ -57,15 +57,15 @@ message ModifyInstructionResponse {
 }
 
 message ModifyFluidRegulatorRequest {
-    Fluid fluid_id = 1;
+    int64 fu_id = 1;
 }
 
 message ModifyFluidRegulatorResponse {
-    int64 fluid_id = 1;
+    fhs_types.FluidRegulator fluid = 1;
 }
 
 message ModifyIngredientRequest {
-    Ingredient ingredien = 1;
+    recipe_types.Ingredient ingredient = 1;
 }
 
 message ModifyIngredientResponse {
@@ -73,7 +73,7 @@ message ModifyIngredientResponse {
 }
 
 message AddIngredientRequest {
-    Ingredient ingredien = 1;
+    recipe_types.Ingredient ingredient = 1;
 }
 
 message AddIngredientResponse {
@@ -91,5 +91,5 @@ message GetIngredientRequest {
 }
 
 message GetIngredientResponse {
-    Ingredient ingredien = 1;
+    recipe_types.Ingredient ingredient = 1;
 }

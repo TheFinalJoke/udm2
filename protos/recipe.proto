@@ -1,5 +1,5 @@
 syntax = "proto3";
-package recipe;
+package recipe_types;
 
 import "fhs.proto";
 
@@ -21,7 +21,7 @@ message Ingredient {
     string name = 2;
     bool is_active = 3;
     bool is_alcoholic = 4;
-    optional FluidRegulator regulator = 5;
+    optional fhs_types.FluidRegulator regulator = 5;
     oneof amount {
         string custom_amount = 6;
         float fluid_oz = 7;
