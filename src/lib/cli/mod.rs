@@ -1,6 +1,5 @@
-use clap::{Parser, Subcommand, Args};
+use clap::{Args, Parser, Subcommand};
 use std::path::PathBuf;
-
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -8,48 +7,46 @@ pub struct Cli {
     /// Turn debugging information on
     #[arg(short, long, action = clap::ArgAction::Count, help="Turn on debugging, the more (d)s more verbose")]
     debug: u8,
-    
-    #[arg(short, long, value_name = "FILE", help="Path to Config File")]
+
+    #[arg(short, long, value_name = "FILE", help = "Path to Config File")]
     config_file: Option<PathBuf>,
 
     #[command(subcommand)]
     command: Option<UdmCommands>,
-
 }
 
 #[derive(Subcommand)]
-enum UdmCommands{
-    #[command(about="To interact with recipes")]
+enum UdmCommands {
+    #[command(about = "To interact with recipes")]
     Recipe(RecipeCommands),
-    #[command(about="To interact with ingredients")]
+    #[command(about = "To interact with ingredients")]
     Ingredient(IngredientCommands),
-    #[command(about="To interact with instructions")]
+    #[command(about = "To interact with instructions")]
     Instruction(InstructionCommands),
-    #[command(about="To interact with fluid")]
+    #[command(about = "To interact with fluid")]
     Fluid(FluidCommands),
 }
-
 
 #[derive(Args)]
 struct RecipeCommands {
     #[arg(short, long)]
-    recipe_id: Option<i64>
+    recipe_id: Option<i64>,
 }
 
 #[derive(Args)]
 struct IngredientCommands {
     #[arg(short, long)]
-    ingredient_id: Option<i64>
+    ingredient_id: Option<i64>,
 }
 
 #[derive(Args)]
 struct InstructionCommands {
     #[arg(short, long)]
-    instruction_id: Option<i64>
+    instruction_id: Option<i64>,
 }
 
 #[derive(Args)]
 struct FluidCommands {
     #[arg(short, long)]
-    fr_id: Option<i64>
+    fr_id: Option<i64>,
 }

@@ -10,9 +10,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .proto_path("protos/")
         .protoc_arg("--experimental_allow_proto3_optional")
         // .type_attribute(".", "#[derive(Debug)]")
-        .compile(
-            protos,
-            &["protos/"],
-        )?;
+        .compile(protos, &["protos/"])?;
     Ok(())
 }
