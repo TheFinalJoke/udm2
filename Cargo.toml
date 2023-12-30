@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "sys-service"
+name = "udm-service"
 path = "src/main.rs"
 
 [lib]
@@ -21,6 +21,9 @@ rusqlite = { version = "0.30.0", features = ["bundled"] }
 mockall = "0.12.1"
 config = "0.13.4"
 clap = { version = "4.4.11", features = ["derive"] }
+sql_query_builder = { version = "2.1.0", features = ["sqlite"] }
+itertools = "0.12.0"
+struct_iterable = "0.1.1"
 
 [build-dependencies]
 tonic-build = "0.10.2"

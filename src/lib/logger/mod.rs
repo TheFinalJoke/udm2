@@ -1,5 +1,5 @@
 use env_logger::filter::{Builder, Filter};
-use log::{Log, Metadata, Record, SetLoggerError};
+use log::{LevelFilter, Log, Metadata, Record, SetLoggerError};
 
 const FILTER_ENV: &str = "RUST_LOG";
 
@@ -8,14 +8,18 @@ pub struct MyLogger {
 }
 
 impl MyLogger {
-    pub fn new() -> MyLogger {
-        let mut builder = Builder::from_env(FILTER_ENV);
-        MyLogger {
-            inner: builder.build(),
+    pub fn new(level: Option<LevelFilter>) -> MyLogger {
+        let mut build = Builder::from_env(FILTER_ENV);
+        if level.is_some() | level.is_some() && level.unwrap() != LevelFilter::Off {
+            build.filter_level(level.unwrap());
         }
+        let logger = MyLogger {
+            inner: build.build(),
+        };
+        logger
     }
-    pub fn init() -> Result<(), SetLoggerError> {
-        let logger = Self::new();
+    pub fn init(level: LevelFilter) -> Result<(), SetLoggerError> {
+        let logger = Self::new(Some(level));
 
         log::set_max_level(logger.inner.filter());
         log::set_boxed_logger(Box::new(logger))
@@ -23,7 +27,7 @@ impl MyLogger {
 }
 impl Default for MyLogger {
     fn default() -> Self {
-        Self::new()
+        Self::new(None)
     }
 }
 impl Log for MyLogger {
@@ -39,4 +43,15 @@ impl Log for MyLogger {
     }
 
     fn flush(&self) {}
+}
+
+pub fn get_log_level(debug_cli: u8) -> LevelFilter {
+    match debug_cli {
+        1 => log::LevelFilter::Error,
+        2 => log::LevelFilter::Warn,
+        3 => log::LevelFilter::Info,
+        4 => log::LevelFilter::Debug,
+        5 => log::LevelFilter::Trace,
+        _ => log::LevelFilter::Off,
+    }
 }

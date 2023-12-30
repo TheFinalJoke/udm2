@@ -1,21 +1,21 @@
 use clap::{Args, Parser, Subcommand};
 use std::path::PathBuf;
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
     /// Turn debugging information on
     #[arg(short, long, action = clap::ArgAction::Count, help="Turn on debugging, the more (d)s more verbose")]
-    debug: u8,
+    pub debug: u8,
 
     #[arg(short, long, value_name = "FILE", help = "Path to Config File")]
-    config_file: Option<PathBuf>,
+    pub config_file: Option<PathBuf>,
 
     #[command(subcommand)]
     command: Option<UdmCommands>,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum UdmCommands {
     #[command(about = "To interact with recipes")]
     Recipe(RecipeCommands),
@@ -27,25 +27,25 @@ enum UdmCommands {
     Fluid(FluidCommands),
 }
 
-#[derive(Args)]
+#[derive(Args, Debug)]
 struct RecipeCommands {
     #[arg(short, long)]
     recipe_id: Option<i64>,
 }
 
-#[derive(Args)]
+#[derive(Args, Debug)]
 struct IngredientCommands {
     #[arg(short, long)]
     ingredient_id: Option<i64>,
 }
 
-#[derive(Args)]
+#[derive(Args, Debug)]
 struct InstructionCommands {
     #[arg(short, long)]
     instruction_id: Option<i64>,
 }
 
-#[derive(Args)]
+#[derive(Args, Debug)]
 struct FluidCommands {
     #[arg(short, long)]
     fr_id: Option<i64>,

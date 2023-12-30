@@ -2,12 +2,22 @@ extern crate log;
 use config::{Config, File, FileFormat};
 
 pub mod cli;
+pub mod db;
 pub mod logger;
 pub mod rpc_types;
 
-pub mod traits {
+pub mod udm_traits {
+    use std::io::Error;
+
     pub trait Retrieval<T: 'static> {
         fn retreieve<I: 'static>(self) -> Option<T>;
+    }
+    pub trait SqlOperations<T> {
+        fn add(&self) -> Result<i64, Error>;
+        fn modify(&self) -> Result<i64, Error>;
+        fn pop(id: i64) -> Result<T, Error>;
+        fn drop(id: i64) -> Result<(), Error>;
+        fn get(id: i64) -> Result<T, Error>;
     }
 }
 
@@ -23,7 +33,7 @@ impl std::ops::Deref for FileRetrieve {
         &self.path
     }
 }
-impl traits::Retrieval<Config> for FileRetrieve {
+impl udm_traits::Retrieval<Config> for FileRetrieve {
     fn retreieve<FileRetrieve>(self) -> Option<Config> {
         log::info!("Using Path {} to build a config", &self.path);
         let file_format = if self.path.as_str().ends_with(".toml") {
