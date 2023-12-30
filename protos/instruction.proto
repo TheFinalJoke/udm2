@@ -1,0 +1,18 @@
+syntax = "proto3";
+package instruction_types;
+
+import "fhs.proto";
+import "recipe.proto";
+
+message Instruction {
+    int64 id = 1;
+    string instruction_detail = 2;
+    optional recipe_types.Ingredient ingredient = 3;
+}
+
+
+enum InstructionSchema {
+    ID = 0;
+    INSTRUCTION_DETAIL = 1;
+    INSTRUCTION_NAME = 2;
+}

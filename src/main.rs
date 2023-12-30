@@ -18,6 +18,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         gpio_pin: 2,
         regulator_type: 2,
     };
-    fr.modify();
+    // fr.modify();
     Ok(())
 }

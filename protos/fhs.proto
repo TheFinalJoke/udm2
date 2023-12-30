@@ -12,3 +12,9 @@ message FluidRegulator {
     int32 gpio_pin = 2;
     RegulatorType regulator_type = 3;
 }
+
+enum FluidRegulationSchema {
+    ID = 0; // Primary Key
+    GPIO_PIN = 1;
+    REGULATOR_TYPE = 2;
+}

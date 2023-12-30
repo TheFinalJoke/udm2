@@ -32,75 +32,87 @@ use sql_query_builder;
 
 // Implement Cached Statements for all recipes and stuff
 
+
+// using query_builder
 // struct SqliteOperations {
 //     connection: Option<Connection>,
 //     data: Option<String>,
 //     bulk_data: Option<Vec<String>>,
 // }
 
-pub(crate) fn insert_transaction_sql_generator(
-    table_name: &str,
-    columns: &str,
-    values: &str,
-) -> String {
-    log::trace!(
-        "Entered Insert Transaction Query Builder on {:?}",
-        table_name
-    );
-    let insert_statement = sql_query_builder::Insert::new()
-        .insert_into(
-            format!(
-                "({table_name} {columns})",
-                table_name = table_name,
-                columns = columns
-            )
-            .as_str(),
-        )
-        .values(values);
-    log::debug!(
-        "Inserting to {} with {}",
-        table_name,
-        &insert_statement.clone().debug()
-    );
-    insert_statement.as_string()
-}
+// pub(crate) fn insert_transaction_sql_generator(
+//     table_name: &str,
+//     columns: &str,
+//     values: &str,
+// ) -> String {
+//     log::trace!(
+//         "Entered Insert Transaction Query Builder on {:?}",
+//         table_name
+//     );
+//     let insert_statement = sql_query_builder::Insert::new()
+//         .insert_into(
+//             format!(
+//                 "({table_name} {columns})",
+//                 table_name = table_name,
+//                 columns = columns
+//             )
+//             .as_str(),
+//         )
+//         .values(values);
+//     log::debug!(
+//         "Inserting to {} with {}",
+//         table_name,
+//         &insert_statement.clone().debug()
+//     );
+//     insert_statement.as_string()
+// }
 
-pub(crate) fn update_transaction_sql_generator(
-    table: &str,
-    set_values: &str,
-    where_clause: &str,
-) -> String {
-    log::trace!(
-        "Entered Update Transaction Query Builder on {table} with set values {:?} and where {:?}",
-        set_values,
-        where_clause,
-    );
-    let update_statement = sql_query_builder::Update::new()
-        .update(table)
-        .where_clause(format!("{}", where_clause).as_str())
-        .set(set_values);
+// pub(crate) fn update_transaction_sql_generator(
+//     table: &str,
+//     set_values: &str,
+//     where_clause: &str,
+// ) -> String {
+//     log::trace!(
+//         "Entered Update Transaction Query Builder on {table} with set values {:?} and where {:?}",
+//         set_values,
+//         where_clause,
+//     );
+//     let update_statement = sql_query_builder::Update::new()
+//         .update(table)
+//         .where_clause(format!("{}", where_clause).as_str())
+//         .set(set_values);
 
-    log::debug!(
-        "updating to {} with {}",
-        &table,
-        &update_statement.clone().debug()
-    );
-    update_statement.as_string()
-}
+//     log::debug!(
+//         "Updating to {} with {}",
+//         &table,
+//         &update_statement.clone().debug()
+//     );
+//     update_statement.as_string()
+// }
 
-pub(crate) fn delete_transaction_sql_generator(table: &str, where_clause: &str) -> String {
-    log::trace!(
-        "Entered Delete Transaction Query Builder on {:?} with where_clause {:?}",
-        table,
-        where_clause
-    );
-    let delete_statement = sql_query_builder::Delete::new()
-        .delete_from(table)
-        .where_clause(where_clause);
-    log::debug!(
-        "Inserting to {} with {}",
-        &table,
-        &delete_statement.clone().debug()
-    );
-    delete_statement.as_string()
-}
+// pub(crate) fn delete_transaction_sql_generator(table: &str, where_clause: &str) -> String {
+//     log::trace!(
+//         "Entered Delete Transaction Query Builder on {:?} with where_clause {:?}",
+//         table,
+//         where_clause
+//     );
+//     let delete_statement = sql_query_builder::Delete::new()
+//         .delete_from(table)
+//         .where_clause(where_clause);
+//     log::debug!(
+//         "Deleting {} with {}",
+//         &table,
+//         &delete_statement.clone().debug()
+//     );
+//     delete_statement.as_string()
+// }
+
+// pub(crate) fn get_transaction_sql_generator(table: &str, columns: &str, where_clause: &str) -> String {
+//     log::trace!(
+//         "Entered Get Transaction Query Builder on {:?} with where_clause {:?}",
+//         table,
+//         where_clause
+//     );
+//     let select_statement = sql_query_builder::Select::new()
+//         .
+// }

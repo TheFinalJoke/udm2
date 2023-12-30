@@ -2,7 +2,7 @@ syntax = "proto3";
 package recipe_types;
 
 import "fhs.proto";
-
+import "instruction.proto"
 enum IngredientType {
     UNKNOWN = 0;
     FLUID = 1;
@@ -16,6 +16,7 @@ enum DrinkSize {
     LARGE = 3;
     EXTRA_LARGE = 4;
 }
+
 message Ingredient {
     int64 id = 1;
     string name = 2;
@@ -29,14 +30,35 @@ message Ingredient {
     string description = 8;
     IngredientType ingredient_type = 9;
 }
-message Instruction {
-    int64 id = 1;
-    string instruction_detail = 2;
-    optional Ingredient ingredient = 3;
+
+enum IngredientSchema {
+    NAME = 0;
+    ALCOHOLIC = 1;
+    DESCRIPTION = 2;
+    IS_ACTIVE = 3;
+    FR_ID = 4; // Foreign Key
+    AMOUNT = 5;
+    INGREDIENT_TYPE = 6;
+    INSTRUCTION_ID = 7; // Foriegn Key 
 }
+
 message Recipe {
     int64 id = 1;
     string name = 2;
     DrinkSize size = 3;
     map<int32, Instruction> instructions = 4;
+}
+
+enum InstructionToRecipeSchema {
+    RECIPE_ID = 1; // Forigen Key
+    INSTRUCTION_ID = 2; // Forigen Key
+    INSTRUCTION_ORDER = 3;
+}
+
+enum RecipeSchema {
+    ID = 0;
+    NAME = 1; 
+    USER_INPUT = 2;
+    DRINK_SIZE = 3;
+    DESCRIPTION = 4;
 }
