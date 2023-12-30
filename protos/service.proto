@@ -2,7 +2,6 @@ syntax = "proto3";
 package service_types;
 
 import "recipe.proto";
-import "instruction.proto";
 import "fhs.proto";
 
 message Config {
@@ -34,7 +33,7 @@ message ModifyRecipeResponse {
 }
 
 message AddInstructionRequest {
-    instruction_types.Instruction instruction = 1;
+    recipe_types.Instruction instruction = 1;
 }
 
 message AddInstructionResponse {
@@ -46,11 +45,11 @@ message GetInstructionRequest {
 }
 
 message GetInstructionResponse {
-    instruction_types.Instruction instruction = 1;
+    recipe_types.Instruction instruction = 1;
 }
 
 message ModifyInstructionRequest {
-    instruction_types.Instruction instruction = 1;
+    recipe_types.Instruction instruction = 1;
 }
 
 message ModifyInstructionResponse {
