@@ -17,6 +17,8 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum UdmCommands {
+    #[command(about = "Initiaize database and factory resets")]
+    Init(InitCommands),
     #[command(about = "To interact with recipes")]
     Recipe(RecipeCommands),
     #[command(about = "To interact with ingredients")]
@@ -26,6 +28,9 @@ enum UdmCommands {
     #[command(about = "To interact with fluid")]
     Fluid(FluidCommands),
 }
+
+#[derive(Args, Debug)]
+struct InitCommands{}
 
 #[derive(Args, Debug)]
 struct RecipeCommands {

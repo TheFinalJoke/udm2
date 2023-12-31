@@ -1,5 +1,4 @@
 use crate::db::{sqlite, SqlTransactions};
-
 tonic::include_proto!("fhs_types");
 const TABLE_NAME: &str = "FluidRegulation";
 

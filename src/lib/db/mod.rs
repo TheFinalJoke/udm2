@@ -1,4 +1,7 @@
 use std::fmt;
+use sea_query::Iden;
+use crate::cli::Cli;
+use std::rc::Rc;
 
 pub mod sqlite;
 
@@ -14,39 +17,49 @@ impl fmt::Display for SqlError {
     }
 }
 // Defines the Schema
-enum FluidRegulationSchema {
-    Id = 0, // Primary Key
-    GpioPin = 1,
-    RegulatorType = 2,
+#[derive(Iden)]
+pub enum FluidRegulationSchema {
+    Table,
+    Id, // Primary Key
+    GpioPin,
+    RegulatorType,
+}
+#[derive(Iden)]
+pub enum IngredientSchema {
+    Table,
+    Id,
+    Name,
+    Alcoholic,
+    Description,
+    IsActive,
+    FrId, // Foreign Key
+    Amount,
+    IngredientType,
+    InstructionId, // Foriegn Key
 }
 
-enum IngredientSchema {
-    Name = 0,
-    Alcoholic = 1,
-    Description = 2,
-    IsActive = 3,
-    FrId = 4, // Foreign Key
-    Amount = 5,
-    IngredientType = 6,
-    InstructionId = 7, // Foriegn Key
+#[derive(Iden)]
+pub enum InstructionSchema {
+    Table,
+    Id,
+    InstructionDetail,
+    InstructionName,
 }
-enum InstructionSchema {
-    Id = 0,
-    InstructionDetail = 1,
-    InstructionName = 2,
+#[derive(Iden)]
+pub enum InstructionToRecipeSchema {
+    Table,
+    RecipeId,      // Forigen Key
+    InstructionId, // Forigen Key
+    InstructionOrder,
 }
-enum InstructionToRecipeSchema {
-    RecipeId = 1,      // Forigen Key
-    InstructionId = 2, // Forigen Key
-    InstructionOrder = 3,
-}
-
-enum RecipeSchema {
-    Id = 0,
-    Name = 1,
-    UserInput = 2,
-    DrinkSize = 3,
-    Description = 4,
+#[derive(Iden)]
+pub enum RecipeSchema {
+    Table,
+    Id,
+    Name,
+    UserInput,
+    DrinkSize,
+    Description,
 }
 // This represents the table operations itself.
 // Connection and Manipulation will be handled into a different struct
@@ -55,4 +68,9 @@ pub trait SqlTransactions {
     fn modify(&self) -> String;
     fn drop(&self) -> String;
     fn get(&self) -> String;
+}
+
+pub fn create_or_check_database() -> Result<(), rusqlite::Error> {
+
+    Ok(())
 }
