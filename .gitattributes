@@ -1,2 +1,2 @@
-config/config.yml
-config/config.toml
+config/config.yml export-ignore
+config/config.toml export-ignore
