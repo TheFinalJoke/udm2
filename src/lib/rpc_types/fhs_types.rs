@@ -1,6 +1,6 @@
-use crate::db::{sqlite, SqlTransactions};
+// use crate::db::{sqlite, SqlTransactions};
 tonic::include_proto!("fhs_types");
-const TABLE_NAME: &str = "FluidRegulation";
+// const TABLE_NAME: &str = "FluidRegulation";
 
 // impl SqlTransactions for FluidRegulator {
 //     fn add(&self) -> String {

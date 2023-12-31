@@ -1,7 +1,7 @@
-use std::fmt;
 use sea_query::Iden;
-use crate::cli::Cli;
-use std::rc::Rc;
+use std::fmt;
+// use crate::cli::Cli;
+// use std::rc::Rc;
 
 pub mod sqlite;
 
@@ -71,6 +71,5 @@ pub trait SqlTransactions {
 }
 
 pub fn create_or_check_database() -> Result<(), rusqlite::Error> {
-
     Ok(())
 }
