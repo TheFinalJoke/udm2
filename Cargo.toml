@@ -5,7 +5,11 @@ edition = "2021"
 
 [[bin]]
 name = "udm-service"
-path = "src/main.rs"
+path = "src/daemon/main.rs"
+
+[[bin]]
+name = "udm"
+path = "src/bin/main.rs"
 
 [lib]
 name = "lib"

@@ -1,17 +1,17 @@
-// use lib::rpc_types::fhs_types;
 extern crate log;
 use clap::Parser;
-use lib::Retrieval;
-// use clap::{Arg, Command};
-use lib::cli;
-// use lib::db;
-use lib::logger;
-// use lib::rpc_types;
-// use sea_query::Iden;
+
+use lib::{Retrieval, logger};
 use std::error::Error;
+// use sea_query::Iden;
+// use lib::rpc_types;
+
+pub mod cli;
+
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let cli_opts = cli::Cli::parse();
+    let cli_opts = cli::DaemonCli::parse();
     let debug_level = logger::get_log_level(cli_opts.debug);
     logger::MyLogger::init(debug_level).unwrap();
     log::info!(

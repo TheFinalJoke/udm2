@@ -1,7 +1,6 @@
 extern crate log;
 use config::{Config, File, FileFormat};
 use std::path::PathBuf;
-pub mod cli;
 pub mod db;
 pub mod logger;
 pub mod rpc_types;
