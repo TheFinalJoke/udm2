@@ -1,7 +1,7 @@
 extern crate log;
-use std::error::Error;
 use clap::Parser;
 use lib::{logger, Retrieval};
+use std::error::Error;
 pub mod cli;
 
 #[tokio::main]
