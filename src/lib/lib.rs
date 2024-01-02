@@ -1,9 +1,9 @@
 extern crate log;
 use config::{Config, File, FileFormat};
 use std::path::PathBuf;
-pub mod cli;
 pub mod db;
 pub mod logger;
+pub mod parsers;
 pub mod rpc_types;
 
 pub trait Retrieval<T: 'static> {
@@ -40,5 +40,3 @@ impl Retrieval<Config> for FileRetrieve {
         Ok(settings.unwrap_or_else(|error| panic!("Failed to get Config {}", error)))
     }
 }
-
-// pub fn collect_config_file(config_path) ->

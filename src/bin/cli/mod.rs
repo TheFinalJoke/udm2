@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
-pub struct Cli {
+pub struct UdmCli {
     /// Turn debugging information on
     #[arg(short, long, action = clap::ArgAction::Count, help="Turn on debugging, the more (d)s more verbose")]
     pub debug: u8,
@@ -23,7 +23,7 @@ pub struct Cli {
     #[command(subcommand)]
     command: Option<UdmCommands>,
 }
-impl Default for Cli {
+impl Default for UdmCli {
     fn default() -> Self {
         Self {
             debug: 0,
@@ -34,7 +34,7 @@ impl Default for Cli {
     }
 }
 
-impl Cli {
+impl UdmCli {
     pub fn new(debug: u8, config_file: &str, daemon: bool) -> Self {
         Self {
             debug: debug,
