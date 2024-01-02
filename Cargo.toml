@@ -31,6 +31,7 @@ struct_iterable = "0.1.1"
 libsqlite3-sys = { version = "0.27.0", features = ["bundled"] }
 sea-query = "0.30.5"
 serde = "1.0.193"
+tokio-stream = { version = "0.1.14", features = ["net"] }
 
 [build-dependencies]
 tonic-build = "0.10.2"

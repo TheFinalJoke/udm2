@@ -63,7 +63,12 @@ message ModifyFluidRegulatorRequest {
 message ModifyFluidRegulatorResponse {
     fhs_types.FluidRegulator fluid = 1;
 }
-
+message AddFluidRegulatorRequest {
+    fhs_types.FluidRegulator fluid = 1;
+}
+message AddFluidRegulatorResponse {
+    int64 fu_id = 1;
+}
 message ModifyIngredientRequest {
     recipe_types.Ingredient ingredient = 1;
 }
@@ -92,4 +97,8 @@ message GetIngredientRequest {
 
 message GetIngredientResponse {
     recipe_types.Ingredient ingredient = 1;
+}
+
+service UdmService {
+    rpc Send (AddFluidRegulatorRequest) returns (AddFluidRegulatorResponse);
 }

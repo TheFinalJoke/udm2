@@ -3,8 +3,10 @@ use serde::Deserialize;
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct UdmConfigurer {
     udm: Configurer,
-    daemon: Option<DaemonConfigurer>,
-    command: Option<CommandConfigurer>,
+    #[serde(default)]
+    daemon: DaemonConfigurer,
+    #[serde(default)]
+    command: CommandConfigurer,
 }
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -13,9 +15,30 @@ pub struct Configurer {
 }
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct DaemonConfigurer {
-    db_path: Option<String>,
+    #[serde(default="default_daemon_db_path")]
+    db_path: String,
 }
-
+impl Default for DaemonConfigurer {
+    fn default() -> Self {
+        Self {
+            db_path: default_daemon_db_path(),
+        }
+    }
+}
 #[warn(dead_code)]
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct CommandConfigurer {}
+
+impl Default for CommandConfigurer {
+    fn default() -> Self {
+        Self {
+
+        }
+    }
+}
+
+// Defaults Funcs
+
+fn default_daemon_db_path() -> String {
+    String::from("/etc/udm/udm.db")
+}

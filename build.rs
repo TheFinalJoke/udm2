@@ -9,6 +9,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build_server(true)
         .proto_path("protos/")
         .protoc_arg("--experimental_allow_proto3_optional")
+        .build_client(true)
+        .build_server(true)
         .compile(protos, &["protos/"])?;
     Ok(())
 }
