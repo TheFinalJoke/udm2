@@ -1,18 +1,22 @@
 use serde::Deserialize;
+// use std::fmt::Display;
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct UdmConfigurer {
-    udm: Configurer,
+    pub udm: Configurer,
     #[serde(default)]
-    daemon: DaemonConfigurer,
+    pub daemon: DaemonConfigurer,
     #[serde(default)]
-    command: CommandConfigurer,
+    pub command: CommandConfigurer,
 }
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Configurer {
-    port: i64,
+    pub port: i64,
 }
+// impl Configurer {
+//     pub fn collect_port(&self) -> 
+// }
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct DaemonConfigurer {
     #[serde(default="default_daemon_db_path")]

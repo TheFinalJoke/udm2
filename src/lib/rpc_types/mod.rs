@@ -2,3 +2,4 @@
 pub mod fhs_types;
 pub mod recipe_types;
 pub mod service_types;
+pub mod server;

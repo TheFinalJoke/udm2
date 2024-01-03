@@ -98,7 +98,3 @@ message GetIngredientRequest {
 message GetIngredientResponse {
     recipe_types.Ingredient ingredient = 1;
 }
-
-service UdmService {
-    rpc Send (AddFluidRegulatorRequest) returns (AddFluidRegulatorResponse);
-}
