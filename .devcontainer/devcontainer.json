@@ -27,7 +27,7 @@
 			// VSCode Settings independently
 			"settings": {
 				"rust-analyzer.cargo.buildScripts.enable": true,
-				"rust-analyzer.rustc.source": "/workspaces/udm2/Cargo.toml",
+				"rust-analyzer.rustc.source": "${workspaceFolder}/Cargo.toml",
 				"protoc": {
 					"path": "/usr/bin/protoc",
 					"options": [
