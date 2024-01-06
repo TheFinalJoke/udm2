@@ -1,9 +1,25 @@
-use sea_query::Iden;
+use sea_query::{Iden, IntoIden};
+use sea_query::{Table, ColumnDef, ForeignKey, Value, backend::SqliteQueryBuilder, Query, SimpleExpr};
 use std::fmt;
-// use crate::cli::Cli;
-// use std::rc::Rc;
 
 pub mod sqlite;
+
+// This represents the table operations itself.
+// Connection and Manipulation will be handled into a different struct
+pub trait SqlTransactions {
+    fn create_table(&self) -> String;
+    fn alter_table(&self, column_def: &mut ColumnDef) -> String;
+    fn insert(&self) -> String;
+    fn select(&self, columns: Vec<Self>) -> String;
+    fn update(&self) -> String;
+    fn drop(&self) -> String;
+    fn drop_table(&self) -> String;
+}
+
+pub trait SqlQueryExecutor {
+    fn gen_query(&self) -> Box<dyn SqlTransactions>;
+    fn execute<T>(&self) ->Result<T, SqlError>;
+}
 
 #[derive(Debug)]
 pub enum SqlError {
@@ -16,13 +32,55 @@ impl fmt::Display for SqlError {
         }
     }
 }
-// Defines the Schema
+
+// Defines the Schema and how we interact with the DB. 
+// The structs generated in RPC Frameworks
+// We will Transform different types
 #[derive(Iden)]
 pub enum FluidRegulationSchema {
     Table,
     Id, // Primary Key
     GpioPin,
     RegulatorType,
+}
+
+impl SqlTransactions for FluidRegulationSchema {
+    fn create_table(&self) -> String {
+        Table::create()
+            .table(Self::Table)
+            .if_not_exists()
+            .col(ColumnDef::new(Self::Id).integer().auto_increment().not_null().primary_key())
+            .col(ColumnDef::new(Self::RegulatorType).integer().not_null())
+            .col(ColumnDef::new(Self::GpioPin).integer())
+            .build(SqliteQueryBuilder)
+    }       
+
+    fn alter_table(&self, column_def: &mut ColumnDef) -> String {
+        Table::alter()
+            .table(Self::Table)
+            .add_column(column_def)
+            .build(SqliteQueryBuilder)
+    }
+
+    fn select(&self, columns: Vec<Self>, ) -> String {
+        todo!()
+    }
+
+    fn insert(&self) -> String {
+        todo!()
+    }
+
+    fn update(&self) -> String {
+        todo!()
+    }
+
+    fn drop(&self) -> String {
+        todo!()
+    }
+
+    fn drop_table(&self) -> String {
+        todo!()
+    }
 }
 #[derive(Iden)]
 pub enum IngredientSchema {
@@ -60,16 +118,4 @@ pub enum RecipeSchema {
     UserInput,
     DrinkSize,
     Description,
-}
-// This represents the table operations itself.
-// Connection and Manipulation will be handled into a different struct
-pub trait SqlTransactions {
-    fn add(&self) -> String;
-    fn modify(&self) -> String;
-    fn drop(&self) -> String;
-    fn get(&self) -> String;
-}
-
-pub fn create_or_check_database() -> Result<(), rusqlite::Error> {
-    Ok(())
 }
