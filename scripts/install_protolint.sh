@@ -1,7 +1,19 @@
+#!/bin/bash
+set -eu pipefail
+
 PROTOLINT_VERSION="0.47.4"
 
-packageurl="https://github.com/yoheimuta/protolint/releases/download/v$PROTOLINT_VERSION/protolint_$PROTOLINT_VERSION_linux_amd64.tar.gz"
+ARCH=$(uname -m)
+if [[ $ARCH == "x86_64" ]] || [[ $ARCH == "amd64" ]]
+then
+    ARCH="amd64"
+fi
+FILENAME="protolint_"${PROTOLINT_VERSION}"_linux_"${ARCH}".tar.gz"
+URL="https://github.com/yoheimuta/protolint/releases/download/v"${PROTOLINT_VERSION}"/$FILENAME"
 
-wget -O /tmp/ $packageurl
+echo "Using $URL"
+wget -O /tmp/$FILENAME $URL
 
-tar -zxvf /tmp/
+tar -zxvf /tmp/$FILENAME -C /usr/local/bin/
+
+exit 0
