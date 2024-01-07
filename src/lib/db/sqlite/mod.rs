@@ -27,8 +27,8 @@ impl db::SqlTransactionsFactory for FluidRegulationSchema {
         }
     }
     fn from_str(value: &'static str) -> Option<Self> {
-        match value.to_lowercase().as_str() {
-            "fluidRegulation" => Some(FluidRegulationSchema::Table),
+        match value {
+            "FluidRegulation" => Some(FluidRegulationSchema::Table),
             "id" => Some(FluidRegulationSchema::Id),
             "gpio_pin" => Some(FluidRegulationSchema::GpioPin),
             "regulator_type" => Some(FluidRegulationSchema::RegulatorType),
@@ -147,8 +147,8 @@ impl db::SqlTransactionsFactory for IngredientSchema {
         }
     }
     fn from_str(value: &'static str) -> Option<Self> {
-        match value.to_lowercase().as_str() {
-            "ingredient" => Some(Self::Table),
+        match value {
+            "Ingredient" => Some(Self::Table),
             "id" => Some(Self::Id),
             "name" => Some(Self::Name),
             "alcoholic" => Some(Self::Alcoholic),
@@ -235,8 +235,8 @@ impl SqlTransactionsFactory for InstructionToRecipeSchema {
         }
     }
     fn from_str(value: &'static str) -> Option<Self> {
-        match value.to_lowercase().as_str() {
-            "instructiontorecipe" => Some(Self::Table),
+        match value {
+            "InstructionToRecipe" => Some(Self::Table),
             "recipe_id" => Some(Self::RecipeId),
             "instruction_id" => Some(Self::InstructionId),
             "instruction_order" => Some(Self::InstructionOrder),
@@ -298,7 +298,7 @@ impl SqlTransactionsFactory for RecipeSchema {
         }
     }
     fn from_str(value: &'static str) -> Option<Self> {
-        match value.to_lowercase().as_str() {
+        match value {
             "Recipe" => Some(Self::Table),
             "id" => Some(Self::Id),
             "name" => Some(Self::Name),

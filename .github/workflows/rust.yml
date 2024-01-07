@@ -27,7 +27,8 @@ jobs:
     steps:
     - name: Install Protoc
       uses: arduino/setup-protoc@v2
-  
+      env: 
+        ACTIONS_STEP_DEBUG: true
     - name: Checkout Code
       uses: actions/checkout@v3
 

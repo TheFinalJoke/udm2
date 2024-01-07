@@ -1,5 +1,4 @@
 use std::{env, path::PathBuf};
-use tonic_build;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let protos = &[

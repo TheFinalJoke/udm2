@@ -30,14 +30,8 @@ impl Default for DaemonConfigurer {
     }
 }
 #[warn(dead_code)]
-#[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Debug, Clone, PartialEq, Eq, Default)]
 pub struct CommandConfigurer {}
-
-impl Default for CommandConfigurer {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 // Defaults Funcs
 

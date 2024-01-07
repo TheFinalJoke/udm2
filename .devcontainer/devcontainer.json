@@ -12,12 +12,13 @@
 		"ghcr.io/lee-orr/rusty-dev-containers/cargo-watch:0": {},
 		"ghcr.io/devcontainers-contrib/features/gh-cli:1": {}
 	},
-	"postCreateCommand": "sudo apt update && sudo apt install -y protobuf-compiler libprotobuf-dev && sudo bash scripts/install_protolint.sh",
+	"postCreateCommand": "sudo apt update && sudo apt install -y protobuf-compiler libprotobuf-dev shellcheck && sudo bash scripts/install_protolint.sh",
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"zxh404.vscode-proto3",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"timonwong.shellcheck"
 			],
 			"settings": {
 				"rust-analyzer.cargo.buildScripts.enable": true,
