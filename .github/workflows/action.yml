@@ -1,4 +1,4 @@
-name: Rust
+name: UDM Actions
 
 on:
   push:
@@ -25,10 +25,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Install Protoc
-      uses: arduino/setup-protoc@v2
-      env: 
-        ACTIONS_STEP_DEBUG: true
+    - name: Install Ubuntu pre-requirements
+      run: |
+        sudo apt install -y protobuf-compiler libprotobuf-dev 
+      shell: bash
     - name: Checkout Code
       uses: actions/checkout@v3
 
