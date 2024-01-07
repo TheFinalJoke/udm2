@@ -1,15 +1,14 @@
+use super::{SqlTableTransactionsFactory, SqlTransactionsFactory};
 use crate::db;
 use sea_query::backend::SqliteQueryBuilder;
 use sea_query::foreign_key::{ForeignKeyAction, ForeignKeyCreateStatement};
 use sea_query::value::Value;
 use sea_query::{ColumnDef, Iden, Table};
 
-use super::{SqlTableTransactionsFactory, SqlTransactionsFactory};
-
 // Defines the Schema and how we interact with the DB.
 // The structs generated in RPC Frameworks
 // We will Transform different types
-#[derive(Iden)]
+#[derive(Iden, Eq, PartialEq, Debug)]
 #[iden = "FluidRegulation"]
 pub enum FluidRegulationSchema {
     Table,
@@ -38,7 +37,7 @@ impl db::SqlTransactionsFactory for FluidRegulationSchema {
 }
 
 impl db::SqlTableTransactionsFactory for FluidRegulationSchema {
-    fn create_table(&self) -> String {
+    fn create_table() -> String {
         Table::create()
             .table(Self::Table)
             .if_not_exists()
@@ -54,14 +53,14 @@ impl db::SqlTableTransactionsFactory for FluidRegulationSchema {
             .build(SqliteQueryBuilder)
     }
 
-    fn alter_table(&self, column_def: &mut ColumnDef) -> String {
+    fn alter_table(column_def: &mut ColumnDef) -> String {
         Table::alter()
             .table(Self::Table)
             .add_column(column_def)
             .build(SqliteQueryBuilder)
     }
 }
-#[derive(Iden)]
+#[derive(Iden, Eq, PartialEq, Debug)]
 #[iden = "Ingredient"]
 pub enum IngredientSchema {
     Table,
@@ -76,7 +75,7 @@ pub enum IngredientSchema {
     InstructionId, // Foriegn Key
 }
 
-#[derive(Iden)]
+#[derive(Iden, Eq, PartialEq, Debug)]
 #[iden = "Instruction"]
 pub enum InstructionSchema {
     Table,
@@ -108,7 +107,7 @@ impl SqlTransactionsFactory for InstructionSchema {
     }
 }
 impl SqlTableTransactionsFactory for InstructionSchema {
-    fn create_table(&self) -> String {
+    fn create_table() -> String {
         Table::create()
             .table(Self::Table)
             .if_not_exists()
@@ -124,7 +123,7 @@ impl SqlTableTransactionsFactory for InstructionSchema {
             .build(SqliteQueryBuilder)
     }
 
-    fn alter_table(&self, column_def: &mut ColumnDef) -> String {
+    fn alter_table(column_def: &mut ColumnDef) -> String {
         Table::alter()
             .table(Self::Table)
             .add_column(column_def)
@@ -164,7 +163,7 @@ impl db::SqlTransactionsFactory for IngredientSchema {
 }
 
 impl db::SqlTableTransactionsFactory for IngredientSchema {
-    fn create_table(&self) -> String {
+    fn create_table() -> String {
         Table::create()
             .table(Self::Table)
             .if_not_exists()
@@ -210,14 +209,14 @@ impl db::SqlTableTransactionsFactory for IngredientSchema {
             .build(SqliteQueryBuilder)
     }
 
-    fn alter_table(&self, column_def: &mut ColumnDef) -> String {
+    fn alter_table(column_def: &mut ColumnDef) -> String {
         Table::alter()
             .table(Self::Table)
             .add_column(column_def)
             .build(SqliteQueryBuilder)
     }
 }
-#[derive(Iden)]
+#[derive(Iden, Eq, PartialEq, Debug)]
 #[iden = "InstructionToRecipe"]
 pub enum InstructionToRecipeSchema {
     Table,
@@ -245,7 +244,7 @@ impl SqlTransactionsFactory for InstructionToRecipeSchema {
     }
 }
 impl SqlTableTransactionsFactory for InstructionToRecipeSchema {
-    fn create_table(&self) -> String {
+    fn create_table() -> String {
         Table::create()
             .table(Self::Table)
             .if_not_exists()
@@ -269,14 +268,14 @@ impl SqlTableTransactionsFactory for InstructionToRecipeSchema {
             .build(SqliteQueryBuilder)
     }
 
-    fn alter_table(&self, column_def: &mut ColumnDef) -> String {
+    fn alter_table(column_def: &mut ColumnDef) -> String {
         Table::alter()
             .table(Self::Table)
             .add_column(column_def)
             .build(SqliteQueryBuilder)
     }
 }
-#[derive(Iden)]
+#[derive(Iden, Eq, PartialEq, Debug)]
 #[iden = "Recipe"]
 pub enum RecipeSchema {
     Table,
@@ -310,7 +309,7 @@ impl SqlTransactionsFactory for RecipeSchema {
     }
 }
 impl SqlTableTransactionsFactory for RecipeSchema {
-    fn create_table(&self) -> String {
+    fn create_table() -> String {
         Table::create()
             .table(Self::Table)
             .if_not_exists()
@@ -343,10 +342,30 @@ impl SqlTableTransactionsFactory for RecipeSchema {
             .build(SqliteQueryBuilder)
     }
 
-    fn alter_table(&self, column_def: &mut ColumnDef) -> String {
+    fn alter_table(column_def: &mut ColumnDef) -> String {
         Table::alter()
             .table(Self::Table)
             .add_column(column_def)
             .build(SqliteQueryBuilder)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn column_to_str() {
+        let fr = FluidRegulationSchema::GpioPin;
+        assert_eq!(fr.column_to_str(), "gpio_pin")
+    }
+
+    #[test]
+    fn str_to_column() {
+        let fr_str = "gpio_pin";
+        assert_eq!(
+            FluidRegulationSchema::from_str(fr_str),
+            Some(FluidRegulationSchema::GpioPin)
+        )
     }
 }

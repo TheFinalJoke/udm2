@@ -11,8 +11,8 @@ pub trait SqlTransactionsFactory {
         Self: Sized;
 }
 pub trait SqlTableTransactionsFactory: SqlTransactionsFactory {
-    fn create_table(&self) -> String;
-    fn alter_table(&self, column_def: &mut ColumnDef) -> String;
+    fn create_table() -> String;
+    fn alter_table(column_def: &mut ColumnDef) -> String;
 }
 
 pub trait SqlQueryExecutor {

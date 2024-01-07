@@ -14,9 +14,7 @@ pub struct UdmConfigurer {
 pub struct Configurer {
     pub port: i64,
 }
-// impl Configurer {
-//     pub fn collect_port(&self) ->
-// }
+
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct DaemonConfigurer {
     #[serde(default = "default_daemon_db_path")]
