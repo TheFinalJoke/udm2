@@ -1,0 +1,51 @@
+name: UDM Actions
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: ["*"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  formatting:
+    name: cargo fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Ensure rustfmt is installed and setup problem matcher
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt
+      - name: Rustfmt Check
+        uses: actions-rust-lang/rustfmt@v1
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install Ubuntu pre-requirements
+      run: |
+        sudo apt install -y protobuf-compiler libprotobuf-dev 
+      shell: bash
+    - name: Checkout Code
+      uses: actions/checkout@v3
+    - name: Linting the Code Base
+      uses: super-linter/super-linter@v5.7.2
+      env:
+        DEFAULT_BRANCH: main
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VALIDATE_MARKDOWN: false
+        VALIDATE_JSCPD: false
+        VALIDATE_RUST_2018: false
+        VALIDATE_RUST_2015: false
+        VALIDATE_RUST_CLIPPY: false
+        
+    - name: Build
+      run: cargo build --verbose
+      env: 
+        PROTOC: "/usr/bin/protoc"
+    - name: Run tests
+      run: cargo test --verbose
+

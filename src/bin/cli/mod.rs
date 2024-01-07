@@ -37,9 +37,9 @@ impl Default for UdmCli {
 impl UdmCli {
     pub fn new(debug: u8, config_file: &str, daemon: bool) -> Self {
         Self {
-            debug: debug,
+            debug,
             config_file: Path::new(config_file).to_path_buf(),
-            daemon: daemon,
+            daemon,
             command: None,
         }
     }

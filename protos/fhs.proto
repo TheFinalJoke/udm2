@@ -2,13 +2,13 @@ syntax = "proto3";
 package fhs_types;
 
 enum RegulatorType {
-    UNKNOWN = 0;
-    VALVE = 1;
-    PUMP = 2;
-    TAP = 3;
+  REGULATOR_TYPE_UNSPECIFIED = 0;
+  REGULATOR_TYPE_VALVE = 1;
+  REGULATOR_TYPE_PUMP = 2;
+  REGULATOR_TYPE_TAP = 3;
 }
 message FluidRegulator {
-    int64 fr_id = 1;
-    int32 gpio_pin = 2;
-    RegulatorType regulator_type = 3;
+  int64 fr_id = 1;
+  int32 gpio_pin = 2;
+  RegulatorType regulator_type = 3;
 }

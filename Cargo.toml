@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "udm-service"
+name = "daemon"
 path = "src/daemon/main.rs"
 
 [[bin]]
@@ -25,12 +25,12 @@ rusqlite = { version = "0.30.0", features = ["bundled"] }
 mockall = "0.12.1"
 config = "0.13.4"
 clap = { version = "4.4.11", features = ["derive"] }
-sql_query_builder = { version = "2.1.0", features = ["sqlite"] }
 itertools = "0.12.0"
-struct_iterable = "0.1.1"
 libsqlite3-sys = { version = "0.27.0", features = ["bundled"] }
 sea-query = "0.30.5"
 serde = "1.0.193"
+tokio-stream = { version = "0.1.14", features = ["net"] }
+tonic-reflection = "0.10.2"
 
 [build-dependencies]
 tonic-build = "0.10.2"
