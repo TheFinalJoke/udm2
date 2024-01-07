@@ -38,7 +38,8 @@ fn ingredient_table_create() {
         r#"("id") ON DELETE CASCADE ON UPDATE CASCADE,"#,
         r#"FOREIGN KEY ("instruction_id") REFERENCES "Instruction""#,
         r#"("id") ON DELETE CASCADE ON UPDATE CASCADE )"#,
-    ].join(" ");
+    ]
+    .join(" ");
     assert_eq!(sqlite::IngredientSchema::create_table().to_string(), query);
 }
 
@@ -57,7 +58,8 @@ fn instruction_table_create() {
         r#"( "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
         r#""instruction_detail" text,"#,
         r#""instruction_name" text NOT NULL )"#,
-    ].join(" ");
+    ]
+    .join(" ");
     assert_eq!(sqlite::InstructionSchema::create_table().to_string(), query);
 }
 
@@ -77,7 +79,10 @@ fn instruction_to_recipe_table_create() {
         r#"FOREIGN KEY ("recipe_id") REFERENCES "Recipe" ("id") ON DELETE CASCADE ON UPDATE CASCADE,"#,
         r#"FOREIGN KEY ("instruction_id") REFERENCES "Instruction" ("id") ON DELETE CASCADE ON UPDATE CASCADE )"#
     ].join(" ");
-    assert_eq!(sqlite::InstructionToRecipeSchema::create_table().to_string(), query);
+    assert_eq!(
+        sqlite::InstructionToRecipeSchema::create_table().to_string(),
+        query
+    );
 }
 
 #[test]
@@ -85,7 +90,10 @@ fn instruction_to_recipe_alter() {
     let query = r#"ALTER TABLE "InstructionToRecipe" ADD COLUMN "recipe_id" text"#;
     let mut binding = sea_query::ColumnDef::new(sqlite::InstructionToRecipeSchema::RecipeId);
     let binding = binding.text();
-    assert_eq!(sqlite::InstructionToRecipeSchema::alter_table(binding), query);
+    assert_eq!(
+        sqlite::InstructionToRecipeSchema::alter_table(binding),
+        query
+    );
 }
 
 #[test]
@@ -97,7 +105,8 @@ fn recipe_table_create() {
         r#""user_input" boolean NOT NULL DEFAULT FALSE,"#,
         r#""drink_size" integer NOT NULL DEFAULT 0,"#,
         r#""description" text NOT NULL UNIQUE )"#,
-    ].join(" ");
+    ]
+    .join(" ");
     assert_eq!(sqlite::RecipeSchema::create_table().to_string(), query);
 }
 
@@ -108,4 +117,3 @@ fn recipe_alter() {
     let binding = binding.text();
     assert_eq!(sqlite::RecipeSchema::alter_table(binding), query);
 }
-
