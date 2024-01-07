@@ -74,62 +74,6 @@ pub enum IngredientSchema {
     IngredientType,
     InstructionId, // Foriegn Key
 }
-
-#[derive(Iden, Eq, PartialEq, Debug)]
-#[iden = "Instruction"]
-pub enum InstructionSchema {
-    Table,
-    Id,
-    InstructionDetail,
-    InstructionName,
-}
-impl SqlTransactionsFactory for InstructionSchema {
-    fn column_to_str(&self) -> &'static str {
-        match self {
-            Self::Table => "Instruction",
-            Self::Id => "id",
-            Self::InstructionDetail => "instruction_detail",
-            Self::InstructionName => "instruction_name",
-        }
-    }
-
-    fn from_str(value: &'static str) -> Option<Self>
-    where
-        Self: Sized,
-    {
-        match value.to_lowercase().as_str() {
-            "instruction" => Some(Self::Table),
-            "id" => Some(Self::Id),
-            "instruction_detail" => Some(Self::InstructionDetail),
-            "instruction_name" => Some(Self::InstructionName),
-            _ => None,
-        }
-    }
-}
-impl SqlTableTransactionsFactory for InstructionSchema {
-    fn create_table() -> String {
-        Table::create()
-            .table(Self::Table)
-            .if_not_exists()
-            .col(
-                ColumnDef::new(Self::Id)
-                    .integer()
-                    .auto_increment()
-                    .not_null()
-                    .primary_key(),
-            )
-            .col(ColumnDef::new(Self::InstructionDetail).text())
-            .col(ColumnDef::new(Self::InstructionName).text().not_null())
-            .build(SqliteQueryBuilder)
-    }
-
-    fn alter_table(column_def: &mut ColumnDef) -> String {
-        Table::alter()
-            .table(Self::Table)
-            .add_column(column_def)
-            .build(SqliteQueryBuilder)
-    }
-}
 impl db::SqlTransactionsFactory for IngredientSchema {
     fn column_to_str(&self) -> &'static str {
         match self {
@@ -216,6 +160,63 @@ impl db::SqlTableTransactionsFactory for IngredientSchema {
             .build(SqliteQueryBuilder)
     }
 }
+
+#[derive(Iden, Eq, PartialEq, Debug)]
+#[iden = "Instruction"]
+pub enum InstructionSchema {
+    Table,
+    Id,
+    InstructionDetail,
+    InstructionName,
+}
+impl SqlTransactionsFactory for InstructionSchema {
+    fn column_to_str(&self) -> &'static str {
+        match self {
+            Self::Table => "Instruction",
+            Self::Id => "id",
+            Self::InstructionDetail => "instruction_detail",
+            Self::InstructionName => "instruction_name",
+        }
+    }
+
+    fn from_str(value: &'static str) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        match value.to_lowercase().as_str() {
+            "instruction" => Some(Self::Table),
+            "id" => Some(Self::Id),
+            "instruction_detail" => Some(Self::InstructionDetail),
+            "instruction_name" => Some(Self::InstructionName),
+            _ => None,
+        }
+    }
+}
+impl SqlTableTransactionsFactory for InstructionSchema {
+    fn create_table() -> String {
+        Table::create()
+            .table(Self::Table)
+            .if_not_exists()
+            .col(
+                ColumnDef::new(Self::Id)
+                    .integer()
+                    .auto_increment()
+                    .not_null()
+                    .primary_key(),
+            )
+            .col(ColumnDef::new(Self::InstructionDetail).text())
+            .col(ColumnDef::new(Self::InstructionName).text().not_null())
+            .build(SqliteQueryBuilder)
+    }
+
+    fn alter_table(column_def: &mut ColumnDef) -> String {
+        Table::alter()
+            .table(Self::Table)
+            .add_column(column_def)
+            .build(SqliteQueryBuilder)
+    }
+}
+
 #[derive(Iden, Eq, PartialEq, Debug)]
 #[iden = "InstructionToRecipe"]
 pub enum InstructionToRecipeSchema {

@@ -16,6 +16,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     );
     let config_file = lib::FileRetrieve::new(cli_opts.config_file).retreieve::<config::Config>();
     println!("{:?}", config_file);
-    dbg!(sqlite::FluidRegulationSchema::create_table());
+    dbg!(sqlite::RecipeSchema::create_table());
     Ok(())
 }
