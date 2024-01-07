@@ -13,10 +13,9 @@ impl MyLogger {
         if level.is_some() | level.is_some() && level.unwrap() != LevelFilter::Off {
             build.filter_level(level.unwrap());
         }
-        let logger = MyLogger {
+        MyLogger {
             inner: build.build(),
-        };
-        logger
+        }
     }
     pub fn init(level: LevelFilter) -> Result<(), SetLoggerError> {
         let logger = Self::new(Some(level));

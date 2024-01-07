@@ -33,7 +33,7 @@ impl Default for DaemonCli {
 impl DaemonCli {
     pub fn new(debug: u8, config_file: &str) -> Self {
         Self {
-            debug: debug,
+            debug,
             config_file: Path::new(config_file).to_path_buf(),
             command: None,
         }

@@ -1,5 +1,6 @@
 extern crate log;
 use clap::Parser;
+use lib::db::{sqlite, SqlTableTransactionsFactory};
 use lib::{logger, Retrieval};
 use std::error::Error;
 pub mod cli;
@@ -15,5 +16,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     );
     let config_file = lib::FileRetrieve::new(cli_opts.config_file).retreieve::<config::Config>();
     println!("{:?}", config_file);
+    dbg!(sqlite::RecipeSchema::create_table());
     Ok(())
 }

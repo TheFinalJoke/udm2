@@ -1,117 +1,372 @@
-// use std::io::Error;
+use super::{SqlTableTransactionsFactory, SqlTransactionsFactory};
+use crate::db;
+use sea_query::backend::SqliteQueryBuilder;
+use sea_query::foreign_key::{ForeignKeyAction, ForeignKeyCreateStatement};
+use sea_query::value::Value;
+use sea_query::{ColumnDef, Iden, Table};
 
-// use crate::rpc_types;
-// use crate::udm_traits;
-// use itertools::Itertools;
-// use log;
-// use rusqlite::Connection;
-// use sql_query_builder;
-// use std::path::Path;
-// Open or create file
+// Defines the Schema and how we interact with the DB.
+// The structs generated in RPC Frameworks
+// We will Transform different types
+#[derive(Iden, Eq, PartialEq, Debug)]
+#[iden = "FluidRegulation"]
+pub enum FluidRegulationSchema {
+    Table,
+    Id, // Primary Key
+    GpioPin,
+    RegulatorType,
+}
+impl db::SqlTransactionsFactory for FluidRegulationSchema {
+    fn column_to_str(&self) -> &'static str {
+        match self {
+            Self::Table => "FluidRegulation",
+            Self::Id => "id",
+            Self::GpioPin => "gpio_pin",
+            Self::RegulatorType => "regulator_type",
+        }
+    }
+    fn from_str(value: &'static str) -> Option<Self> {
+        match value {
+            "FluidRegulation" => Some(FluidRegulationSchema::Table),
+            "id" => Some(FluidRegulationSchema::Id),
+            "gpio_pin" => Some(FluidRegulationSchema::GpioPin),
+            "regulator_type" => Some(FluidRegulationSchema::RegulatorType),
+            _ => None,
+        }
+    }
+}
 
-// --Create --
-// Create file
-// Create Database
+impl db::SqlTableTransactionsFactory for FluidRegulationSchema {
+    fn create_table() -> String {
+        Table::create()
+            .table(Self::Table)
+            .if_not_exists()
+            .col(
+                ColumnDef::new(Self::Id)
+                    .integer()
+                    .auto_increment()
+                    .not_null()
+                    .primary_key(),
+            )
+            .col(ColumnDef::new(Self::RegulatorType).integer().not_null())
+            .col(ColumnDef::new(Self::GpioPin).integer())
+            .build(SqliteQueryBuilder)
+    }
 
-// Open
-// Make sure db exists
-// if no db Exists
-// Create DB
+    fn alter_table(column_def: &mut ColumnDef) -> String {
+        Table::alter()
+            .table(Self::Table)
+            .add_column(column_def)
+            .build(SqliteQueryBuilder)
+    }
+}
+#[derive(Iden, Eq, PartialEq, Debug)]
+#[iden = "Ingredient"]
+pub enum IngredientSchema {
+    Table,
+    Id,
+    Name,
+    Alcoholic,
+    Description,
+    IsActive,
+    FrId, // Foreign Key
+    Amount,
+    IngredientType,
+    InstructionId, // Foriegn Key
+}
+impl db::SqlTransactionsFactory for IngredientSchema {
+    fn column_to_str(&self) -> &'static str {
+        match self {
+            Self::Table => "Ingredient",
+            Self::Id => "id",
+            Self::Name => "name",
+            Self::Alcoholic => "alcoholic",
+            Self::Description => "description",
+            Self::IsActive => "is_active",
+            Self::FrId => "fr_id",
+            Self::Amount => "amount",
+            Self::IngredientType => "amount",
+            Self::InstructionId => "instruction_id",
+        }
+    }
+    fn from_str(value: &'static str) -> Option<Self> {
+        match value {
+            "Ingredient" => Some(Self::Table),
+            "id" => Some(Self::Id),
+            "name" => Some(Self::Name),
+            "alcoholic" => Some(Self::Alcoholic),
+            "description" => Some(Self::Description),
+            "is_active" => Some(Self::IsActive),
+            "amount" => Some(Self::Amount),
+            "ingredient_type" => Some(Self::IngredientType),
+            "fr_id" => Some(Self::FrId),
+            "instruction_id" => Some(Self::InstructionId),
+            _ => None,
+        }
+    }
+}
 
-// Since we are going to not relying on the db very often
-// Times we need to DB
-// modify, creation, and reading on first time(will cache DB in memory)
+impl db::SqlTableTransactionsFactory for IngredientSchema {
+    fn create_table() -> String {
+        Table::create()
+            .table(Self::Table)
+            .if_not_exists()
+            .col(
+                ColumnDef::new(Self::Id)
+                    .integer()
+                    .auto_increment()
+                    .not_null()
+                    .primary_key(),
+            )
+            .col(ColumnDef::new(Self::Name).text().not_null())
+            .col(
+                ColumnDef::new(Self::Alcoholic)
+                    .boolean()
+                    .not_null()
+                    .default(Value::Bool(Some(false))),
+            )
+            .col(ColumnDef::new(Self::Description).text())
+            .col(
+                ColumnDef::new(Self::IsActive)
+                    .boolean()
+                    .not_null()
+                    .default(Value::Bool(Some(false))),
+            )
+            .col(ColumnDef::new(Self::Amount).float())
+            .col(ColumnDef::new(Self::IngredientType).integer().not_null())
+            .foreign_key(
+                ForeignKeyCreateStatement::new()
+                    .name("fr_id")
+                    .from(Self::Table, Self::FrId)
+                    .to(FluidRegulationSchema::Table, FluidRegulationSchema::Id)
+                    .on_delete(ForeignKeyAction::Cascade)
+                    .on_update(ForeignKeyAction::Cascade),
+            )
+            .foreign_key(
+                ForeignKeyCreateStatement::new()
+                    .name("instruction_id")
+                    .from(Self::Table, Self::InstructionId)
+                    .to(InstructionSchema::Table, InstructionSchema::Id)
+                    .on_delete(ForeignKeyAction::Cascade)
+                    .on_update(ForeignKeyAction::Cascade),
+            )
+            .build(SqliteQueryBuilder)
+    }
 
-// The front end will write, and utilize write back cache for optimzation
+    fn alter_table(column_def: &mut ColumnDef) -> String {
+        Table::alter()
+            .table(Self::Table)
+            .add_column(column_def)
+            .build(SqliteQueryBuilder)
+    }
+}
 
-// Maybe implement some callbacks??
-// On executing changes to DB
-// https://docs.rs/rusqlite/latest/rusqlite/hooks/index.html
+#[derive(Iden, Eq, PartialEq, Debug)]
+#[iden = "Instruction"]
+pub enum InstructionSchema {
+    Table,
+    Id,
+    InstructionDetail,
+    InstructionName,
+}
+impl SqlTransactionsFactory for InstructionSchema {
+    fn column_to_str(&self) -> &'static str {
+        match self {
+            Self::Table => "Instruction",
+            Self::Id => "id",
+            Self::InstructionDetail => "instruction_detail",
+            Self::InstructionName => "instruction_name",
+        }
+    }
 
-// Implement Config log
+    fn from_str(value: &'static str) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        match value.to_lowercase().as_str() {
+            "instruction" => Some(Self::Table),
+            "id" => Some(Self::Id),
+            "instruction_detail" => Some(Self::InstructionDetail),
+            "instruction_name" => Some(Self::InstructionName),
+            _ => None,
+        }
+    }
+}
+impl SqlTableTransactionsFactory for InstructionSchema {
+    fn create_table() -> String {
+        Table::create()
+            .table(Self::Table)
+            .if_not_exists()
+            .col(
+                ColumnDef::new(Self::Id)
+                    .integer()
+                    .auto_increment()
+                    .not_null()
+                    .primary_key(),
+            )
+            .col(ColumnDef::new(Self::InstructionDetail).text())
+            .col(ColumnDef::new(Self::InstructionName).text().not_null())
+            .build(SqliteQueryBuilder)
+    }
 
-// Implement Cached Statements for all recipes and stuff
+    fn alter_table(column_def: &mut ColumnDef) -> String {
+        Table::alter()
+            .table(Self::Table)
+            .add_column(column_def)
+            .build(SqliteQueryBuilder)
+    }
+}
 
-// using query_builder
-// struct SqliteOperations {
-//     connection: Option<Connection>,
-//     data: Option<String>,
-//     bulk_data: Option<Vec<String>>,
-// }
+#[derive(Iden, Eq, PartialEq, Debug)]
+#[iden = "InstructionToRecipe"]
+pub enum InstructionToRecipeSchema {
+    Table,
+    RecipeId,
+    InstructionId,
+    InstructionOrder,
+}
+impl SqlTransactionsFactory for InstructionToRecipeSchema {
+    fn column_to_str(&self) -> &'static str {
+        match self {
+            Self::Table => "InstructionToRecipe",
+            Self::RecipeId => "recipe_id",
+            Self::InstructionId => "instruction_id",
+            Self::InstructionOrder => "instruction_order",
+        }
+    }
+    fn from_str(value: &'static str) -> Option<Self> {
+        match value {
+            "InstructionToRecipe" => Some(Self::Table),
+            "recipe_id" => Some(Self::RecipeId),
+            "instruction_id" => Some(Self::InstructionId),
+            "instruction_order" => Some(Self::InstructionOrder),
+            _ => None,
+        }
+    }
+}
+impl SqlTableTransactionsFactory for InstructionToRecipeSchema {
+    fn create_table() -> String {
+        Table::create()
+            .table(Self::Table)
+            .if_not_exists()
+            .foreign_key(
+                ForeignKeyCreateStatement::new()
+                    .name("recipe_id")
+                    .from(Self::Table, Self::RecipeId)
+                    .to(RecipeSchema::Table, RecipeSchema::Id)
+                    .on_delete(ForeignKeyAction::Cascade)
+                    .on_update(ForeignKeyAction::Cascade),
+            )
+            .foreign_key(
+                ForeignKeyCreateStatement::new()
+                    .name("instruction_id")
+                    .from(Self::Table, Self::InstructionId)
+                    .to(InstructionSchema::Table, InstructionSchema::Id)
+                    .on_delete(ForeignKeyAction::Cascade)
+                    .on_update(ForeignKeyAction::Cascade),
+            )
+            .col(ColumnDef::new(Self::InstructionOrder).integer().not_null())
+            .build(SqliteQueryBuilder)
+    }
 
-// pub(crate) fn insert_transaction_sql_generator(
-//     table_name: &str,
-//     columns: &str,
-//     values: &str,
-// ) -> String {
-//     log::trace!(
-//         "Entered Insert Transaction Query Builder on {:?}",
-//         table_name
-//     );
-//     let insert_statement = sql_query_builder::Insert::new()
-//         .insert_into(
-//             format!(
-//                 "({table_name} {columns})",
-//                 table_name = table_name,
-//                 columns = columns
-//             )
-//             .as_str(),
-//         )
-//         .values(values);
-//     log::debug!(
-//         "Inserting to {} with {}",
-//         table_name,
-//         &insert_statement.clone().debug()
-//     );
-//     insert_statement.as_string()
-// }
+    fn alter_table(column_def: &mut ColumnDef) -> String {
+        Table::alter()
+            .table(Self::Table)
+            .add_column(column_def)
+            .build(SqliteQueryBuilder)
+    }
+}
+#[derive(Iden, Eq, PartialEq, Debug)]
+#[iden = "Recipe"]
+pub enum RecipeSchema {
+    Table,
+    Id,
+    Name,
+    UserInput,
+    DrinkSize,
+    Description,
+}
+impl SqlTransactionsFactory for RecipeSchema {
+    fn column_to_str(&self) -> &'static str {
+        match self {
+            Self::Table => "Recipe",
+            Self::Id => "id",
+            Self::Name => "name",
+            Self::UserInput => "user_input",
+            Self::DrinkSize => "drink_size",
+            Self::Description => "description",
+        }
+    }
+    fn from_str(value: &'static str) -> Option<Self> {
+        match value {
+            "Recipe" => Some(Self::Table),
+            "id" => Some(Self::Id),
+            "name" => Some(Self::Name),
+            "user_input" => Some(Self::UserInput),
+            "drink_size" => Some(Self::DrinkSize),
+            "description" => Some(Self::Description),
+            _ => None,
+        }
+    }
+}
+impl SqlTableTransactionsFactory for RecipeSchema {
+    fn create_table() -> String {
+        Table::create()
+            .table(Self::Table)
+            .if_not_exists()
+            .col(
+                ColumnDef::new(Self::Id)
+                    .integer()
+                    .auto_increment()
+                    .not_null()
+                    .primary_key(),
+            )
+            .col(ColumnDef::new(Self::Name).text().not_null().unique_key())
+            .col(
+                ColumnDef::new(Self::UserInput)
+                    .boolean()
+                    .not_null()
+                    .default(Value::Bool(Some(false))),
+            )
+            .col(
+                ColumnDef::new(Self::DrinkSize)
+                    .integer()
+                    .not_null()
+                    .default(Value::Int(Some(0))),
+            )
+            .col(
+                ColumnDef::new(Self::Description)
+                    .text()
+                    .not_null()
+                    .unique_key(),
+            )
+            .build(SqliteQueryBuilder)
+    }
 
-// pub(crate) fn update_transaction_sql_generator(
-//     table: &str,
-//     set_values: &str,
-//     where_clause: &str,
-// ) -> String {
-//     log::trace!(
-//         "Entered Update Transaction Query Builder on {table} with set values {:?} and where {:?}",
-//         set_values,
-//         where_clause,
-//     );
-//     let update_statement = sql_query_builder::Update::new()
-//         .update(table)
-//         .where_clause(format!("{}", where_clause).as_str())
-//         .set(set_values);
+    fn alter_table(column_def: &mut ColumnDef) -> String {
+        Table::alter()
+            .table(Self::Table)
+            .add_column(column_def)
+            .build(SqliteQueryBuilder)
+    }
+}
 
-//     log::debug!(
-//         "Updating to {} with {}",
-//         &table,
-//         &update_statement.clone().debug()
-//     );
-//     update_statement.as_string()
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-// pub(crate) fn delete_transaction_sql_generator(table: &str, where_clause: &str) -> String {
-//     log::trace!(
-//         "Entered Delete Transaction Query Builder on {:?} with where_clause {:?}",
-//         table,
-//         where_clause
-//     );
-//     let delete_statement = sql_query_builder::Delete::new()
-//         .delete_from(table)
-//         .where_clause(where_clause);
-//     log::debug!(
-//         "Deleting {} with {}",
-//         &table,
-//         &delete_statement.clone().debug()
-//     );
-//     delete_statement.as_string()
-// }
+    #[test]
+    fn column_to_str() {
+        let fr = FluidRegulationSchema::GpioPin;
+        assert_eq!(fr.column_to_str(), "gpio_pin")
+    }
 
-// pub(crate) fn get_transaction_sql_generator(table: &str, columns: &str, where_clause: &str) -> String {
-//     log::trace!(
-//         "Entered Get Transaction Query Builder on {:?} with where_clause {:?}",
-//         table,
-//         where_clause
-//     );
-//     let select_statement = sql_query_builder::Select::new()
-//         .
-// }
+    #[test]
+    fn str_to_column() {
+        let fr_str = "gpio_pin";
+        assert_eq!(
+            FluidRegulationSchema::from_str(fr_str),
+            Some(FluidRegulationSchema::GpioPin)
+        )
+    }
+}
