@@ -28,12 +28,12 @@ jobs:
     - name: Install Ubuntu pre-requirements
       run: |
         sudo apt install -y protobuf-compiler libprotobuf-dev 
-        sudo which protoc
-        sudo ls /usr/bin/
       shell: bash
     - name: Checkout Code
       uses: actions/checkout@v3
-
+    - name: See if protoc
+      run: |
+        ls -l /usr/bin/ | grep -iE protoc
     - name: Linting the Code Base
       uses: super-linter/super-linter@v5.7.2
       env:
