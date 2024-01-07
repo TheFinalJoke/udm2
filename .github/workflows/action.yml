@@ -41,6 +41,7 @@ jobs:
         VALIDATE_JSCPD: false
         VALIDATE_RUST_2018: false
         VALIDATE_RUST_2015: false
+        PROTOC: "/usr/bin/protoc"
         
     - name: Build
       run: cargo build --verbose

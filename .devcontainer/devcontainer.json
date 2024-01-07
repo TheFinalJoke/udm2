@@ -10,7 +10,10 @@
 		"ghcr.io/lee-orr/rusty-dev-containers/cargo-expand:0": {},
 		"ghcr.io/lee-orr/rusty-dev-containers/cargo-make:0": {},
 		"ghcr.io/lee-orr/rusty-dev-containers/cargo-watch:0": {},
-		"ghcr.io/devcontainers-contrib/features/gh-cli:1": {}
+		"ghcr.io/devcontainers-contrib/features/gh-cli:1": {},
+		"ghcr.io/devcontainers-contrib/features/actionlint:1": {},
+		"ghcr.io/devcontainers-contrib/features/actions-runner:1": {}
+
 	},
 	"postCreateCommand": "sudo apt update && sudo apt install -y protobuf-compiler libprotobuf-dev shellcheck && sudo bash scripts/install_protolint.sh",
 	"customizations": {
