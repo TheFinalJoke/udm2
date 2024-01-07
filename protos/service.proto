@@ -1,100 +1,102 @@
 syntax = "proto3";
 package service_types;
 
-import "recipe.proto";
 import "fhs.proto";
+import "recipe.proto";
 
 message Config {
-    int64 port = 1;
+  int64 port = 1;
 }
 
 message AddReceipeRequest {
-    recipe_types.Recipe recipe = 1;
+  recipe_types.Recipe recipe = 1;
 }
 
 message AddReceipeResponse {
-    int64 receipe_id = 1;
+  int64 receipe_id = 1;
 }
 
 message GetRecipeRequest {
-    int64 recipe_id = 1;
+  int64 recipe_id = 1;
 }
 
 message GetRecipeResponse {
-    recipe_types.Recipe recipe = 1;
+  recipe_types.Recipe recipe = 1;
 }
 
 message ModifyRecipeRequest {
-    recipe_types.Recipe recipe = 1;
+  recipe_types.Recipe recipe = 1;
 }
 
 message ModifyRecipeResponse {
-    int64 recipe_id = 1;
+  int64 recipe_id = 1;
 }
 
 message AddInstructionRequest {
-    recipe_types.Instruction instruction = 1;
+  recipe_types.Instruction instruction = 1;
 }
 
 message AddInstructionResponse {
-    int64 instruction_id = 1;
+  int64 instruction_id = 1;
 }
 
 message GetInstructionRequest {
-    int64 instruction_id = 1;
+  int64 instruction_id = 1;
 }
 
 message GetInstructionResponse {
-    recipe_types.Instruction instruction = 1;
+  recipe_types.Instruction instruction = 1;
 }
 
 message ModifyInstructionRequest {
-    recipe_types.Instruction instruction = 1;
+  recipe_types.Instruction instruction = 1;
 }
 
 message ModifyInstructionResponse {
-    int64 instruction_id = 1;
+  int64 instruction_id = 1;
 }
 
 message ModifyFluidRegulatorRequest {
-    int64 fu_id = 1;
+  int64 fu_id = 1;
 }
 
 message ModifyFluidRegulatorResponse {
-    fhs_types.FluidRegulator fluid = 1;
+  fhs_types.FluidRegulator fluid = 1;
 }
 message AddFluidRegulatorRequest {
-    fhs_types.FluidRegulator fluid = 1;
+  fhs_types.FluidRegulator fluid = 1;
 }
 message AddFluidRegulatorResponse {
-    int64 fu_id = 1;
+  int64 fu_id = 1;
 }
 message ModifyIngredientRequest {
-    recipe_types.Ingredient ingredient = 1;
+  recipe_types.Ingredient ingredient = 1;
 }
 
 message ModifyIngredientResponse {
-    int64 ingredient_id = 1;
+  int64 ingredient_id = 1;
 }
 
 message AddIngredientRequest {
-    recipe_types.Ingredient ingredient = 1;
+  recipe_types.Ingredient ingredient = 1;
 }
 
 message AddIngredientResponse {
-    int64 ingredient_id = 1;
+  int64 ingredient_id = 1;
 }
 
-message RemoveIngredientResponse {}
+message RemoveIngredientResponse {
+
+}
 
 message RemoveIngredientRequest {
-    int64 ingredient_id = 1;
+  int64 ingredient_id = 1;
 }
 
 message GetIngredientRequest {
-    int64 ingredient_id = 1;
+  int64 ingredient_id = 1;
 }
 
 message GetIngredientResponse {
-    recipe_types.Ingredient ingredient = 1;
+  recipe_types.Ingredient ingredient = 1;
 }

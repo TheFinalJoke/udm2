@@ -22,7 +22,6 @@
 			// Local Extentions for vscode
 			"extensions": [
 				"zxh404.vscode-proto3",
-				"trunkflow.trunk-flow",
 				"github.vscode-github-actions"
 			],
 			// VSCode Settings independently
