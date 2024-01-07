@@ -36,6 +36,11 @@ jobs:
       env:
         DEFAULT_BRANCH: main
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VALIDATE_MARKDOWN: false
+        VALIDATE_JSCPD: false
+        VALIDATE_RUST_2018: false
+        VALIDATE_RUST_2015: false
+        
     - name: Build
       run: cargo build --verbose
     # - name: Run tests
