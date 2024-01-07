@@ -15,11 +15,11 @@ pub struct Configurer {
     pub port: i64,
 }
 // impl Configurer {
-//     pub fn collect_port(&self) -> 
+//     pub fn collect_port(&self) ->
 // }
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct DaemonConfigurer {
-    #[serde(default="default_daemon_db_path")]
+    #[serde(default = "default_daemon_db_path")]
     db_path: String,
 }
 impl Default for DaemonConfigurer {
@@ -35,9 +35,7 @@ pub struct CommandConfigurer {}
 
 impl Default for CommandConfigurer {
     fn default() -> Self {
-        Self {
-
-        }
+        Self {}
     }
 }
 
