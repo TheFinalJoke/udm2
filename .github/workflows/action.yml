@@ -28,6 +28,8 @@ jobs:
     - name: Install Ubuntu pre-requirements
       run: |
         sudo apt install -y protobuf-compiler libprotobuf-dev 
+        sudo which protoc
+        sudo ls /usr/bin/
       shell: bash
     - name: Checkout Code
       uses: actions/checkout@v3
