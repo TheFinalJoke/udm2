@@ -46,6 +46,6 @@ jobs:
       run: cargo build --verbose
       env: 
         PROTOC: "/usr/bin/protoc"
-    # - name: Run tests
-    #   run: cargo test --verbose
+    - name: Run tests
+      run: cargo test --verbose
 
