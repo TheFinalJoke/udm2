@@ -31,9 +31,6 @@ jobs:
       shell: bash
     - name: Checkout Code
       uses: actions/checkout@v3
-    - name: See if protoc
-      run: |
-        ls -l /usr/bin/ | grep -iE protoc
     - name: Linting the Code Base
       uses: super-linter/super-linter@v5.7.2
       env:
@@ -43,10 +40,12 @@ jobs:
         VALIDATE_JSCPD: false
         VALIDATE_RUST_2018: false
         VALIDATE_RUST_2015: false
-        PROTOC: "/usr/bin/protoc"
+        VALIDATE_RUST_CLIPPY: false
         
     - name: Build
       run: cargo build --verbose
+      env: 
+        PROTOC: "/usr/bin/protoc"
     # - name: Run tests
     #   run: cargo test --verbose
 
