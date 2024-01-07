@@ -5,7 +5,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let protos = &[
         "protos/fhs.proto",
         "protos/recipe.proto",
-        "protos/service.proto"
+        "protos/service.proto",
     ];
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     // compile protocol buffer using protoc

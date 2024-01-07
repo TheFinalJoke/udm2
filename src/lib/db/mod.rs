@@ -2,13 +2,13 @@ use sea_query::ColumnDef;
 use std::fmt;
 pub mod sqlite;
 
-
-
 // This represents the table operations itself.
 // Connection and Manipulation will be handled into a different struct
 pub trait SqlTransactionsFactory {
     fn column_to_str(&self) -> &'static str;
-    fn from_str(value: &'static str) -> Option<Self> where Self: Sized;
+    fn from_str(value: &'static str) -> Option<Self>
+    where
+        Self: Sized;
 }
 pub trait SqlTableTransactionsFactory: SqlTransactionsFactory {
     fn create_table(&self) -> String;
@@ -17,9 +17,8 @@ pub trait SqlTableTransactionsFactory: SqlTransactionsFactory {
 
 pub trait SqlQueryExecutor {
     fn gen_query(&self) -> Box<dyn SqlTransactionsFactory>;
-    fn execute<T>(&self) ->Result<T, SqlError>;
+    fn execute<T>(&self) -> Result<T, SqlError>;
 }
-
 
 #[derive(Debug)]
 pub enum SqlError {

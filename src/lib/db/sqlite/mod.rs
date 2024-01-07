@@ -1,12 +1,12 @@
-use sea_query::{Table, ColumnDef, Iden};
-use sea_query::backend::SqliteQueryBuilder;
-use sea_query::value::Value;
-use sea_query::foreign_key::{ForeignKeyCreateStatement, ForeignKeyAction};
 use crate::db;
+use sea_query::backend::SqliteQueryBuilder;
+use sea_query::foreign_key::{ForeignKeyAction, ForeignKeyCreateStatement};
+use sea_query::value::Value;
+use sea_query::{ColumnDef, Iden, Table};
 
-use super::{SqlTransactionsFactory, SqlTableTransactionsFactory};
+use super::{SqlTableTransactionsFactory, SqlTransactionsFactory};
 
-// Defines the Schema and how we interact with the DB. 
+// Defines the Schema and how we interact with the DB.
 // The structs generated in RPC Frameworks
 // We will Transform different types
 #[derive(Iden)]
@@ -17,22 +17,22 @@ pub enum FluidRegulationSchema {
     GpioPin,
     RegulatorType,
 }
-impl db::SqlTransactionsFactory for FluidRegulationSchema{
+impl db::SqlTransactionsFactory for FluidRegulationSchema {
     fn column_to_str(&self) -> &'static str {
         match self {
             Self::Table => "FluidRegulation",
             Self::Id => "id",
             Self::GpioPin => "gpio_pin",
-            Self::RegulatorType => "regulator_type"
-        }   
+            Self::RegulatorType => "regulator_type",
+        }
     }
     fn from_str(value: &'static str) -> Option<Self> {
-        match value.to_lowercase().as_str(){
+        match value.to_lowercase().as_str() {
             "fluidRegulation" => Some(FluidRegulationSchema::Table),
             "id" => Some(FluidRegulationSchema::Id),
             "gpio_pin" => Some(FluidRegulationSchema::GpioPin),
             "regulator_type" => Some(FluidRegulationSchema::RegulatorType),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -42,11 +42,17 @@ impl db::SqlTableTransactionsFactory for FluidRegulationSchema {
         Table::create()
             .table(Self::Table)
             .if_not_exists()
-            .col(ColumnDef::new(Self::Id).integer().auto_increment().not_null().primary_key())
+            .col(
+                ColumnDef::new(Self::Id)
+                    .integer()
+                    .auto_increment()
+                    .not_null()
+                    .primary_key(),
+            )
             .col(ColumnDef::new(Self::RegulatorType).integer().not_null())
             .col(ColumnDef::new(Self::GpioPin).integer())
             .build(SqliteQueryBuilder)
-    }       
+    }
 
     fn alter_table(&self, column_def: &mut ColumnDef) -> String {
         Table::alter()
@@ -88,7 +94,10 @@ impl SqlTransactionsFactory for InstructionSchema {
         }
     }
 
-    fn from_str(value: &'static str) -> Option<Self> where Self: Sized {
+    fn from_str(value: &'static str) -> Option<Self>
+    where
+        Self: Sized,
+    {
         match value.to_lowercase().as_str() {
             "instruction" => Some(Self::Table),
             "id" => Some(Self::Id),
@@ -103,7 +112,13 @@ impl SqlTableTransactionsFactory for InstructionSchema {
         Table::create()
             .table(Self::Table)
             .if_not_exists()
-            .col(ColumnDef::new(Self::Id).integer().auto_increment().not_null().primary_key())
+            .col(
+                ColumnDef::new(Self::Id)
+                    .integer()
+                    .auto_increment()
+                    .not_null()
+                    .primary_key(),
+            )
             .col(ColumnDef::new(Self::InstructionDetail).text())
             .col(ColumnDef::new(Self::InstructionName).text().not_null())
             .build(SqliteQueryBuilder)
@@ -116,7 +131,7 @@ impl SqlTableTransactionsFactory for InstructionSchema {
             .build(SqliteQueryBuilder)
     }
 }
-impl db::SqlTransactionsFactory for IngredientSchema{
+impl db::SqlTransactionsFactory for IngredientSchema {
     fn column_to_str(&self) -> &'static str {
         match self {
             Self::Table => "Ingredient",
@@ -128,8 +143,8 @@ impl db::SqlTransactionsFactory for IngredientSchema{
             Self::FrId => "fr_id",
             Self::Amount => "amount",
             Self::IngredientType => "amount",
-            Self::InstructionId => "instruction_id"
-        }   
+            Self::InstructionId => "instruction_id",
+        }
     }
     fn from_str(value: &'static str) -> Option<Self> {
         match value.to_lowercase().as_str() {
@@ -143,7 +158,7 @@ impl db::SqlTransactionsFactory for IngredientSchema{
             "ingredient_type" => Some(Self::IngredientType),
             "fr_id" => Some(Self::FrId),
             "instruction_id" => Some(Self::InstructionId),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -153,11 +168,27 @@ impl db::SqlTableTransactionsFactory for IngredientSchema {
         Table::create()
             .table(Self::Table)
             .if_not_exists()
-            .col(ColumnDef::new(Self::Id).integer().auto_increment().not_null().primary_key())
+            .col(
+                ColumnDef::new(Self::Id)
+                    .integer()
+                    .auto_increment()
+                    .not_null()
+                    .primary_key(),
+            )
             .col(ColumnDef::new(Self::Name).text().not_null())
-            .col(ColumnDef::new(Self::Alcoholic).boolean().not_null().default(Value::Bool(Some(false))))
+            .col(
+                ColumnDef::new(Self::Alcoholic)
+                    .boolean()
+                    .not_null()
+                    .default(Value::Bool(Some(false))),
+            )
             .col(ColumnDef::new(Self::Description).text())
-            .col(ColumnDef::new(Self::IsActive).boolean().not_null().default(Value::Bool(Some(false))))
+            .col(
+                ColumnDef::new(Self::IsActive)
+                    .boolean()
+                    .not_null()
+                    .default(Value::Bool(Some(false))),
+            )
             .col(ColumnDef::new(Self::Amount).float())
             .col(ColumnDef::new(Self::IngredientType).integer().not_null())
             .foreign_key(
@@ -166,7 +197,7 @@ impl db::SqlTableTransactionsFactory for IngredientSchema {
                     .from(Self::Table, Self::FrId)
                     .to(FluidRegulationSchema::Table, FluidRegulationSchema::Id)
                     .on_delete(ForeignKeyAction::Cascade)
-                    .on_update(ForeignKeyAction::Cascade)
+                    .on_update(ForeignKeyAction::Cascade),
             )
             .foreign_key(
                 ForeignKeyCreateStatement::new()
@@ -174,10 +205,10 @@ impl db::SqlTableTransactionsFactory for IngredientSchema {
                     .from(Self::Table, Self::InstructionId)
                     .to(InstructionSchema::Table, InstructionSchema::Id)
                     .on_delete(ForeignKeyAction::Cascade)
-                    .on_update(ForeignKeyAction::Cascade)
+                    .on_update(ForeignKeyAction::Cascade),
             )
             .build(SqliteQueryBuilder)
-    }       
+    }
 
     fn alter_table(&self, column_def: &mut ColumnDef) -> String {
         Table::alter()
@@ -200,16 +231,16 @@ impl SqlTransactionsFactory for InstructionToRecipeSchema {
             Self::Table => "InstructionToRecipe",
             Self::RecipeId => "recipe_id",
             Self::InstructionId => "instruction_id",
-            Self::InstructionOrder => "instruction_order"
-        }   
+            Self::InstructionOrder => "instruction_order",
+        }
     }
     fn from_str(value: &'static str) -> Option<Self> {
-        match value.to_lowercase().as_str(){
+        match value.to_lowercase().as_str() {
             "instructiontorecipe" => Some(Self::Table),
             "recipe_id" => Some(Self::RecipeId),
             "instruction_id" => Some(Self::InstructionId),
             "instruction_order" => Some(Self::InstructionOrder),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -224,21 +255,17 @@ impl SqlTableTransactionsFactory for InstructionToRecipeSchema {
                     .from(Self::Table, Self::RecipeId)
                     .to(RecipeSchema::Table, RecipeSchema::Id)
                     .on_delete(ForeignKeyAction::Cascade)
-                    .on_update(ForeignKeyAction::Cascade)
+                    .on_update(ForeignKeyAction::Cascade),
             )
             .foreign_key(
                 ForeignKeyCreateStatement::new()
-                .name("instruction_id")
+                    .name("instruction_id")
                     .from(Self::Table, Self::InstructionId)
                     .to(InstructionSchema::Table, InstructionSchema::Id)
                     .on_delete(ForeignKeyAction::Cascade)
-                    .on_update(ForeignKeyAction::Cascade)
+                    .on_update(ForeignKeyAction::Cascade),
             )
-            .col(
-                ColumnDef::new(Self::InstructionOrder)
-                            .integer()
-                            .not_null()
-            )
+            .col(ColumnDef::new(Self::InstructionOrder).integer().not_null())
             .build(SqliteQueryBuilder)
     }
 
@@ -268,17 +295,17 @@ impl SqlTransactionsFactory for RecipeSchema {
             Self::UserInput => "user_input",
             Self::DrinkSize => "drink_size",
             Self::Description => "description",
-        }   
+        }
     }
     fn from_str(value: &'static str) -> Option<Self> {
-        match value.to_lowercase().as_str(){
+        match value.to_lowercase().as_str() {
             "Recipe" => Some(Self::Table),
             "id" => Some(Self::Id),
             "name" => Some(Self::Name),
             "user_input" => Some(Self::UserInput),
             "drink_size" => Some(Self::DrinkSize),
             "description" => Some(Self::Description),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -287,11 +314,32 @@ impl SqlTableTransactionsFactory for RecipeSchema {
         Table::create()
             .table(Self::Table)
             .if_not_exists()
-            .col(ColumnDef::new(Self::Id).integer().auto_increment().not_null().primary_key())
+            .col(
+                ColumnDef::new(Self::Id)
+                    .integer()
+                    .auto_increment()
+                    .not_null()
+                    .primary_key(),
+            )
             .col(ColumnDef::new(Self::Name).text().not_null().unique_key())
-            .col(ColumnDef::new(Self::UserInput).boolean().not_null().default(Value::Bool(Some(false))))
-            .col(ColumnDef::new(Self::DrinkSize).integer().not_null().default(Value::Int(Some(0))))
-            .col(ColumnDef::new(Self::Description).text().not_null().unique_key())
+            .col(
+                ColumnDef::new(Self::UserInput)
+                    .boolean()
+                    .not_null()
+                    .default(Value::Bool(Some(false))),
+            )
+            .col(
+                ColumnDef::new(Self::DrinkSize)
+                    .integer()
+                    .not_null()
+                    .default(Value::Int(Some(0))),
+            )
+            .col(
+                ColumnDef::new(Self::Description)
+                    .text()
+                    .not_null()
+                    .unique_key(),
+            )
             .build(SqliteQueryBuilder)
     }
 
