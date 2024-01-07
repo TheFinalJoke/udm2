@@ -9,7 +9,10 @@ fn fluid_regulation_table_create() {
     ]
     .join(" ");
 
-    assert_eq!(sqlite::FluidRegulationSchema::create_table().to_string(), sql_query);
+    assert_eq!(
+        sqlite::FluidRegulationSchema::create_table().to_string(),
+        sql_query
+    );
 }
 
 #[test]
