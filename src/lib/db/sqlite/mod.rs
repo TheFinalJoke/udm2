@@ -5,6 +5,8 @@ use sea_query::foreign_key::{ForeignKeyAction, ForeignKeyCreateStatement};
 use sea_query::value::Value;
 use sea_query::{ColumnDef, Iden, Table};
 
+pub mod conn;
+
 // Defines the Schema and how we interact with the DB.
 // The structs generated in RPC Frameworks
 // We will Transform different types

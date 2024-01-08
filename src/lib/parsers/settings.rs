@@ -1,5 +1,4 @@
 use serde::Deserialize;
-// use std::fmt::Display;
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct UdmConfigurer {
@@ -18,7 +17,7 @@ pub struct Configurer {
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct DaemonConfigurer {
     #[serde(default = "default_daemon_db_path")]
-    db_path: String,
+    pub(crate) db_path: String,
 }
 impl Default for DaemonConfigurer {
     fn default() -> Self {

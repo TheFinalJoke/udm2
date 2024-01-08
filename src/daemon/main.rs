@@ -8,8 +8,6 @@ use std::error::Error;
 use std::rc::Rc;
 use tonic::{transport::Server, Request, Response, Status};
 
-// use sea_query::Iden;
-// use lib::rpc_types;
 
 pub mod cli;
 
@@ -38,6 +36,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let config_file = lib::FileRetrieve::new(cli_opts.config_file).retreieve::<config::Config>()?;
 
     let configeror = config_file.try_deserialize::<parsers::settings::UdmConfigurer>()?;
+
     let addr = format!("127.0.0.1:{}", Rc::new(configeror).udm.port).parse()?;
     let udm_service = UdmService::default();
     log::info!("Running Udm Service on {:?}", addr);
