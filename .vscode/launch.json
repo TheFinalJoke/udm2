@@ -1,4 +1,7 @@
 {
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
@@ -23,15 +26,38 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'udm-service'",
+            "name": "Debug executable 'daemon'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=udm-service",
+                    "--bin=daemon",
                     "--package=udm"
                 ],
                 "filter": {
-                    "name": "udm-service",
+                    "name": "daemon",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--config-file",
+                ".config/local.toml",
+                "-ddddd"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'daemon'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=daemon",
+                    "--package=udm"
+                ],
+                "filter": {
+                    "name": "daemon",
                     "kind": "bin"
                 }
             },
@@ -41,17 +67,54 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'udm-service'",
+            "name": "Debug executable 'udm'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=udm",
+                    "--package=udm"
+                ],
+                "filter": {
+                    "name": "udm",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'udm'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=udm-service",
+                    "--bin=udm",
                     "--package=udm"
                 ],
                 "filter": {
-                    "name": "udm-service",
+                    "name": "udm",
                     "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'integration_test'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=integration_test",
+                    "--package=udm"
+                ],
+                "filter": {
+                    "name": "integration_test",
+                    "kind": "test"
                 }
             },
             "args": [],

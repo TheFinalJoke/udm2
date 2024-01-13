@@ -14,7 +14,7 @@ pub mod conn;
 #[iden = "FluidRegulation"]
 pub enum FluidRegulationSchema {
     Table,
-    Id, // Primary Key
+    FrId, // Primary Key
     GpioPin,
     RegulatorType,
 }
@@ -22,7 +22,7 @@ impl db::SqlTransactionsFactory for FluidRegulationSchema {
     fn column_to_str(&self) -> &'static str {
         match self {
             Self::Table => "FluidRegulation",
-            Self::Id => "id",
+            Self::FrId => "fr_id",
             Self::GpioPin => "gpio_pin",
             Self::RegulatorType => "regulator_type",
         }
@@ -30,7 +30,7 @@ impl db::SqlTransactionsFactory for FluidRegulationSchema {
     fn from_str(value: &'static str) -> Option<Self> {
         match value {
             "FluidRegulation" => Some(FluidRegulationSchema::Table),
-            "id" => Some(FluidRegulationSchema::Id),
+            "fr_id" => Some(FluidRegulationSchema::FrId),
             "gpio_pin" => Some(FluidRegulationSchema::GpioPin),
             "regulator_type" => Some(FluidRegulationSchema::RegulatorType),
             _ => None,
@@ -44,7 +44,7 @@ impl db::SqlTableTransactionsFactory for FluidRegulationSchema {
             .table(Self::Table)
             .if_not_exists()
             .col(
-                ColumnDef::new(Self::Id)
+                ColumnDef::new(Self::FrId)
                     .integer()
                     .auto_increment()
                     .not_null()
@@ -66,7 +66,7 @@ impl db::SqlTableTransactionsFactory for FluidRegulationSchema {
 #[iden = "Ingredient"]
 pub enum IngredientSchema {
     Table,
-    Id,
+    IngredientId,
     Name,
     Alcoholic,
     Description,
@@ -80,7 +80,7 @@ impl db::SqlTransactionsFactory for IngredientSchema {
     fn column_to_str(&self) -> &'static str {
         match self {
             Self::Table => "Ingredient",
-            Self::Id => "id",
+            Self::IngredientId => "ingredient_id",
             Self::Name => "name",
             Self::Alcoholic => "alcoholic",
             Self::Description => "description",
@@ -94,7 +94,7 @@ impl db::SqlTransactionsFactory for IngredientSchema {
     fn from_str(value: &'static str) -> Option<Self> {
         match value {
             "Ingredient" => Some(Self::Table),
-            "id" => Some(Self::Id),
+            "ingredient_id" => Some(Self::IngredientId),
             "name" => Some(Self::Name),
             "alcoholic" => Some(Self::Alcoholic),
             "description" => Some(Self::Description),
@@ -114,7 +114,7 @@ impl db::SqlTableTransactionsFactory for IngredientSchema {
             .table(Self::Table)
             .if_not_exists()
             .col(
-                ColumnDef::new(Self::Id)
+                ColumnDef::new(Self::IngredientId)
                     .integer()
                     .auto_increment()
                     .not_null()
@@ -140,7 +140,7 @@ impl db::SqlTableTransactionsFactory for IngredientSchema {
                 ForeignKeyCreateStatement::new()
                     .name("fr_id")
                     .from(Self::Table, Self::FrId)
-                    .to(FluidRegulationSchema::Table, FluidRegulationSchema::Id)
+                    .to(FluidRegulationSchema::Table, FluidRegulationSchema::FrId)
                     .on_delete(ForeignKeyAction::Cascade)
                     .on_update(ForeignKeyAction::Cascade),
             )
@@ -148,7 +148,7 @@ impl db::SqlTableTransactionsFactory for IngredientSchema {
                 ForeignKeyCreateStatement::new()
                     .name("instruction_id")
                     .from(Self::Table, Self::InstructionId)
-                    .to(InstructionSchema::Table, InstructionSchema::Id)
+                    .to(InstructionSchema::Table, InstructionSchema::InstrcutionId)
                     .on_delete(ForeignKeyAction::Cascade)
                     .on_update(ForeignKeyAction::Cascade),
             )
@@ -167,7 +167,7 @@ impl db::SqlTableTransactionsFactory for IngredientSchema {
 #[iden = "Instruction"]
 pub enum InstructionSchema {
     Table,
-    Id,
+    InstrcutionId,
     InstructionDetail,
     InstructionName,
 }
@@ -175,7 +175,7 @@ impl SqlTransactionsFactory for InstructionSchema {
     fn column_to_str(&self) -> &'static str {
         match self {
             Self::Table => "Instruction",
-            Self::Id => "id",
+            Self::InstrcutionId => "instruction_id",
             Self::InstructionDetail => "instruction_detail",
             Self::InstructionName => "instruction_name",
         }
@@ -187,7 +187,7 @@ impl SqlTransactionsFactory for InstructionSchema {
     {
         match value.to_lowercase().as_str() {
             "instruction" => Some(Self::Table),
-            "id" => Some(Self::Id),
+            "instruction_id" => Some(Self::InstrcutionId),
             "instruction_detail" => Some(Self::InstructionDetail),
             "instruction_name" => Some(Self::InstructionName),
             _ => None,
@@ -200,7 +200,7 @@ impl SqlTableTransactionsFactory for InstructionSchema {
             .table(Self::Table)
             .if_not_exists()
             .col(
-                ColumnDef::new(Self::Id)
+                ColumnDef::new(Self::InstrcutionId)
                     .integer()
                     .auto_increment()
                     .not_null()
@@ -255,7 +255,7 @@ impl SqlTableTransactionsFactory for InstructionToRecipeSchema {
                 ForeignKeyCreateStatement::new()
                     .name("recipe_id")
                     .from(Self::Table, Self::RecipeId)
-                    .to(RecipeSchema::Table, RecipeSchema::Id)
+                    .to(RecipeSchema::Table, RecipeSchema::ReceipeId)
                     .on_delete(ForeignKeyAction::Cascade)
                     .on_update(ForeignKeyAction::Cascade),
             )
@@ -263,7 +263,7 @@ impl SqlTableTransactionsFactory for InstructionToRecipeSchema {
                 ForeignKeyCreateStatement::new()
                     .name("instruction_id")
                     .from(Self::Table, Self::InstructionId)
-                    .to(InstructionSchema::Table, InstructionSchema::Id)
+                    .to(InstructionSchema::Table, InstructionSchema::InstrcutionId)
                     .on_delete(ForeignKeyAction::Cascade)
                     .on_update(ForeignKeyAction::Cascade),
             )
@@ -282,7 +282,7 @@ impl SqlTableTransactionsFactory for InstructionToRecipeSchema {
 #[iden = "Recipe"]
 pub enum RecipeSchema {
     Table,
-    Id,
+    ReceipeId,
     Name,
     UserInput,
     DrinkSize,
@@ -292,7 +292,7 @@ impl SqlTransactionsFactory for RecipeSchema {
     fn column_to_str(&self) -> &'static str {
         match self {
             Self::Table => "Recipe",
-            Self::Id => "id",
+            Self::ReceipeId => "recipe_id",
             Self::Name => "name",
             Self::UserInput => "user_input",
             Self::DrinkSize => "drink_size",
@@ -302,7 +302,7 @@ impl SqlTransactionsFactory for RecipeSchema {
     fn from_str(value: &'static str) -> Option<Self> {
         match value {
             "Recipe" => Some(Self::Table),
-            "id" => Some(Self::Id),
+            "recipe_id" => Some(Self::ReceipeId),
             "name" => Some(Self::Name),
             "user_input" => Some(Self::UserInput),
             "drink_size" => Some(Self::DrinkSize),
@@ -317,7 +317,7 @@ impl SqlTableTransactionsFactory for RecipeSchema {
             .table(Self::Table)
             .if_not_exists()
             .col(
-                ColumnDef::new(Self::Id)
+                ColumnDef::new(Self::ReceipeId)
                     .integer()
                     .auto_increment()
                     .not_null()
