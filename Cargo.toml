@@ -32,6 +32,7 @@ serde = "1.0.193"
 tokio-stream = { version = "0.1.14", features = ["net"] }
 tonic-reflection = "0.10.2"
 postgres = "0.19.7"
+thiserror = "1.0.56"
 
 [build-dependencies]
 tonic-build = "0.10.2"

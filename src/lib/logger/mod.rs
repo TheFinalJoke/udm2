@@ -6,7 +6,7 @@ const FILTER_ENV: &str = "RUST_LOG";
 pub struct MyLogger {
     pub inner: Filter,
 }
-
+// TODO(TheFinalJoke): Build implmentation that prints specific colors and writes to a file
 impl MyLogger {
     pub fn new(level: Option<LevelFilter>) -> MyLogger {
         let mut build = Builder::from_env(FILTER_ENV);

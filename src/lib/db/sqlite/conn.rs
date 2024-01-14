@@ -1,29 +1,30 @@
 use log;
 use rusqlite::Connection;
 use std::path::Path;
-use std::rc::Rc;
 
-use crate::db::NonRelatedTable;
+use crate::db;
 use crate::parsers::settings;
 
-pub struct OpenConnection {
+#[derive(Debug)]
+pub struct OpenSqliteConnection {
     pub connection: Connection,
-    pub settings: Rc<settings::UdmConfigurer>,
 }
-impl OpenConnection {
-    pub fn establish_connection(settings: Rc<settings::UdmConfigurer>) -> OpenConnection {
-        let binding = settings.daemon.sqlite.clone().unwrap();
+impl OpenSqliteConnection {
+    pub fn establish_connection(settings: &settings::SqliteConfigurer) -> OpenSqliteConnection {
+        let binding = settings.clone();
         let path = Path::new(&binding.db_path);
         log::info!("Using {} as the path for the database", path.display());
         let conn = rusqlite::Connection::open(path)
             .unwrap_or_else(|e| panic!("Error connection to {} due to: {:?}", path.display(), e));
-        OpenConnection {
-            connection: conn,
-            settings,
-        }
+        OpenSqliteConnection { connection: conn }
     }
 }
 
-pub fn create_or_update_database(open_conn: &OpenConnection) -> rusqlite::Result<()> {
-    NonRelatedTable::gen_schmea(&open_conn.connection)
+impl db::SqlQueryExecutor for OpenSqliteConnection {
+    fn execute<T>(&self) -> Result<T, crate::error::UdmError> {
+        todo!()
+    }
+    fn gen_query(&self) -> Box<dyn db::SqlTransactionsFactory> {
+        todo!()
+    }
 }

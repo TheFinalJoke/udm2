@@ -11,20 +11,42 @@ pub struct UdmConfigurer {
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Configurer {
+    #[serde(default = "default_port")]
     pub port: i64,
+}
+
+impl Default for Configurer {
+    fn default() -> Self {
+        Self {
+            port: default_port(),
+        }
+    }
 }
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct DaemonConfigurer {
     pub postgres: Option<PostgresConfigurer>,
-    pub sqlite: Option<SqliteConfigurer>
+    pub sqlite: Option<SqliteConfigurer>,
 }
+
 impl Default for DaemonConfigurer {
     fn default() -> Self {
         Self {
             postgres: Some(PostgresConfigurer::default()),
-            sqlite: None
+            sqlite: None,
         }
+    }
+}
+
+impl DaemonConfigurer {
+    pub fn is_db_set(&self) -> bool {
+        !self.is_both_db_set() && self.is_a_single_db_set()
+    }
+    fn is_both_db_set(&self) -> bool {
+        self.postgres.is_some() && self.sqlite.is_some()
+    }
+    fn is_a_single_db_set(&self) -> bool {
+        self.postgres.is_some() || self.sqlite.is_some()
     }
 }
 
@@ -41,15 +63,9 @@ impl Default for SqliteConfigurer {
     }
 }
 
-#[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
-pub struct PostgresConfigurer {
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct PostgresConfigurer {}
 
-}
-impl Default for PostgresConfigurer {
-    fn default() -> Self {
-        Self {}
-    }
-}
 #[warn(dead_code)]
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq, Default)]
 pub struct CommandConfigurer {}
@@ -58,4 +74,8 @@ pub struct CommandConfigurer {}
 
 fn default_daemon_db_path() -> String {
     String::from("/etc/udm/udm.db")
+}
+
+fn default_port() -> i64 {
+    19211
 }
