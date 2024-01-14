@@ -10,6 +10,9 @@ use self::sqlite::InstructionSchema;
 use self::sqlite::InstructionToRecipeSchema;
 use self::sqlite::RecipeSchema;
 pub mod sqlite;
+pub mod postgres;
+
+// Build "loadable" different db types with their relevant information
 
 // This represents the table operations itself.
 // Connection and Manipulation will be handled into a different struct
