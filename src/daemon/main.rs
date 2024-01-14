@@ -36,20 +36,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let config_file = lib::FileRetrieve::new(cli_opts.config_file).retreieve::<config::Config>()?;
 
     let configeror = Rc::new(config_file.try_deserialize::<parsers::settings::UdmConfigurer>()?);
-    let open_conn = conn::OpenConnection::establish_connection(Rc::clone(&configeror));
+    println!("{:?}", configeror);
+    // let open_conn = conn::OpenConnection::establish_connection(Rc::clone(&configeror));
 
-    log::info!("Initializing database");
-    let _ = conn::create_or_update_database(&open_conn)
-        .map_err(|e| format!("Error creating database: {:?}", e));
+    // log::info!("Initializing database");
+    // let _ = conn::create_or_update_database(&open_conn)
+    //     .map_err(|e| format!("Error creating database: {:?}", e));
 
-    let addr = format!("127.0.0.1:{}", Rc::clone(&configeror).udm.port).parse()?;
-    let udm_service = UdmService::default();
-    log::info!("Running Udm Service on {:?}", addr);
-    Server::builder()
-        .add_service(server::udm_service_server::UdmServiceServer::new(
-            udm_service,
-        ))
-        .serve(addr)
-        .await?;
+    // let addr = format!("127.0.0.1:{}", Rc::clone(&configeror).udm.port).parse()?;
+    // let udm_service = UdmService::default();
+    // log::info!("Running Udm Service on {:?}", addr);
+    // Server::builder()
+    //     .add_service(server::udm_service_server::UdmServiceServer::new(
+    //         udm_service,
+    //     ))
+    //     .serve(addr)
+    //     .await?;
     Ok(())
 }

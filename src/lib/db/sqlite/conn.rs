@@ -12,7 +12,8 @@ pub struct OpenConnection {
 }
 impl OpenConnection {
     pub fn establish_connection(settings: Rc<settings::UdmConfigurer>) -> OpenConnection {
-        let path = Path::new(&settings.daemon.db_path);
+        let binding = settings.daemon.sqlite.clone().unwrap();
+        let path = Path::new(&binding.db_path);
         log::info!("Using {} as the path for the database", path.display());
         let conn = rusqlite::Connection::open(path)
             .unwrap_or_else(|e| panic!("Error connection to {} due to: {:?}", path.display(), e));
