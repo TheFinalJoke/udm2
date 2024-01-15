@@ -1,27 +1,26 @@
 use core::panic;
 use log;
 
-use super::NonRelatedTableFactory;
+use super::DatabaseTransactionsFactory;
 use crate::db;
 use crate::db::SqlTableTransactionsFactory;
 use crate::UdmResult;
 
-use rusqlite::Connection;
 use sea_query::backend::SqliteQueryBuilder;
+use std::fmt::Display;
 
 pub mod conn;
 
-#[derive(Debug)]
-pub struct NonRelatedTableSqlite<'a> {
-    open_conn: &'a Connection,
+pub struct DatabaseTransactionSqlite<'a> {
+    open_conn: &'a conn::OpenSqliteConnection,
 }
 
-impl<'a> NonRelatedTableFactory for NonRelatedTableSqlite<'a> {
+impl<'a> DatabaseTransactionsFactory for DatabaseTransactionSqlite<'a> {
     #[allow(dead_code)]
-    fn collect_all_current_tables(&self) -> UdmResult<Vec<String>> {
+    fn collect_all_current_tables(&mut self) -> UdmResult<Vec<String>> {
         log::debug!("Getting current tables in db");
         let mut stmt = self
-            .open_conn
+            .open_conn.connection
             .prepare("SELECT name FROM main.sqlite_master WHERE type='table'")?;
         let table_rows = stmt.query_map([], |rows| rows.get(0))?;
         let mut tables: Vec<String> = Vec::new();
@@ -32,7 +31,7 @@ impl<'a> NonRelatedTableFactory for NonRelatedTableSqlite<'a> {
         Ok(tables)
     }
     #[allow(dead_code)]
-    fn gen_schmea(&self) -> UdmResult<()> {
+    fn gen_schmea(&mut self) -> UdmResult<()> {
         let tables = [
             db::FluidRegulationSchema::create_table(SqliteQueryBuilder),
             db::InstructionSchema::create_table(SqliteQueryBuilder),
@@ -42,7 +41,7 @@ impl<'a> NonRelatedTableFactory for NonRelatedTableSqlite<'a> {
         ]
         .join("; ");
         log::debug!("Ensure schmea is defined and exists");
-        let mut batch = rusqlite::Batch::new(self.open_conn, &tables);
+        let mut batch = rusqlite::Batch::new(&self.open_conn.connection, &tables);
         while let Some(mut stmt) = batch.next().unwrap_or_else(|e| {
             panic!("Failure creating the schema {:?} with query {:?}", e, batch)
         }) {
@@ -57,5 +56,11 @@ impl<'a> NonRelatedTableFactory for NonRelatedTableSqlite<'a> {
         }
         log::debug!("Tables created");
         Ok(())
+    }
+}
+
+impl Display for DatabaseTransactionSqlite<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
     }
 }

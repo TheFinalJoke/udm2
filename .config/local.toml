@@ -3,9 +3,12 @@
 
 [daemon]
 
-[daemon.sqlite]
-db_path = "/workspaces/udm/.config/test_udm.db"
+# [daemon.sqlite]
+# db_path = "/workspaces/udm/.config/test_udm.db"
 
-# [daemon.postgres]
+[daemon.postgres]
+user="postgres"
+postgres_user="postgres"
+port=5432
 
 [command]

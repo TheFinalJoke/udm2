@@ -3,7 +3,7 @@ use log;
 use std::fmt::Debug;
 use std::rc::Rc;
 
-use crate::parsers::settings;
+use crate::parsers::{settings, UdmConfig};
 use crate::{error, UdmResult};
 use sea_query::foreign_key::{ForeignKeyAction, ForeignKeyCreateStatement};
 use sea_query::value::Value;
@@ -22,6 +22,9 @@ pub trait SqlTransactionsFactory {
     where
         Self: Sized;
 }
+
+// This generates schemas and manupulates tables outside of the data itself
+// This ipml on each individual table you want to
 pub trait SqlTableTransactionsFactory: SqlTransactionsFactory {
     fn create_table(builder: impl sea_query::backend::SchemaBuilder) -> String;
     fn alter_table(
@@ -29,16 +32,22 @@ pub trait SqlTableTransactionsFactory: SqlTransactionsFactory {
         column_def: &mut ColumnDef,
     ) -> String;
 }
-pub trait NonRelatedTableFactory {
-    fn collect_all_current_tables(&self) -> UdmResult<Vec<String>>;
-    fn gen_schmea(&self) -> UdmResult<()>;
+
+// This generates schemas and manipulates the database outside of the data itself
+// This ipml on each individual table you want to
+pub trait DatabaseTransactionsFactory {
+    fn collect_all_current_tables(&mut self) -> UdmResult<Vec<String>>;
+    fn gen_schmea(&mut self) -> UdmResult<()>;
 }
-pub trait SqlRowTransactionsFactory: SqlTransactionsFactory {}
-pub trait SqlQueryExecutor: Debug {
+
+// This will generate all the queries
+// This manipluates the data itself
+pub trait SqlQueryExecutor {
     fn gen_query(&self) -> Box<dyn SqlTransactionsFactory>;
     fn execute<T>(&self) -> Result<T, error::UdmError>;
 }
 
+// A loadable enum depending on the mechanism is chosen
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum DbType {
     Postgres(settings::PostgresConfigurer),
@@ -57,16 +66,22 @@ impl DbType {
         }
     }
 }
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct OpenConnection<T> {
-    pub connection: T,
-    pub config: DbType,
+
+// This trait will be inherited for each mode of db transmition
+pub trait EstablishDbConnection {
+    type UdmConfig;
+    fn establish_connection(settings: Self::UdmConfig) -> Self;
 }
-impl<T> OpenConnection<T> {
-    pub fn new(connection: T, db_type: DbType) -> Self {
+
+// This struct holds the connection and abstracts it from the main.rs
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct OpenConnection<T: EstablishDbConnection> {
+    pub connection: T,
+}
+impl<T: EstablishDbConnection> OpenConnection<T> {
+    pub fn new(connection: T) -> Self {
         Self {
             connection,
-            config: db_type,
         }
     }
 }

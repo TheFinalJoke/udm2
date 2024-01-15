@@ -2,7 +2,9 @@ extern crate log;
 use clap::Parser;
 
 use lib::db;
-use lib::db::sqlite::conn;
+use lib::db::EstablishDbConnection;
+use lib::db::sqlite::conn as sqlite_conn;
+use lib::db::postgres::conn as postgres_conn;
 use lib::db::DbType;
 use lib::rpc_types::server;
 use lib::rpc_types::service_types;
@@ -38,13 +40,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let config_file = lib::FileRetrieve::new(cli_opts.config_file).retreieve::<config::Config>()?;
 
     let configeror = Rc::new(config_file.try_deserialize::<parsers::settings::UdmConfigurer>()?);
+    log::debug!("Using configuration: {:?}", &configeror);
     lib::parsers::validate_configurer(Rc::clone(&configeror)).unwrap_or_else(|e| panic!("{}", e));
     // Load in the Correct Db Settings and establish connection
     let db_type = db::DbType::load_db(Rc::clone(&configeror));
-    let connection = establish_connection(db_type);
-
-    println!("{:?}", connection);
-
+    let _connection = establish_connection(db_type);
     log::info!("Initializing database");
     // let _ = conn::create_or_update_database(&open_conn)
     //     .map_err(|e| format!("Error creating database: {:?}", e));
@@ -60,16 +60,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .await?;
     Ok(())
 }
-fn establish_connection(db_type: DbType) -> db::OpenConnection<impl db::SqlQueryExecutor> {
+
+fn establish_connection(db_type: DbType) -> db::OpenConnection<impl db::EstablishDbConnection> {
     match &db_type {
-        DbType::Postgres(_config) => {
-            todo!()
+        DbType::Postgres(config) => {
+            let open_connection = postgres_conn::OpenPostgresConnection::establish_connection(config.to_owned());
+            db::OpenConnection::<postgres_conn::OpenPostgresConnection> {
+                connection: open_connection,
+            }
         }
         DbType::Sqlite(config) => {
-            let open_connection = conn::OpenSqliteConnection::establish_connection(config);
-            db::OpenConnection::<conn::OpenSqliteConnection> {
+            let open_connection = sqlite_conn::OpenSqliteConnection::establish_connection(config.to_owned());
+            db::OpenConnection::<sqlite_conn::OpenSqliteConnection> {
                 connection: open_connection,
-                config: db_type,
             }
         }
     }
