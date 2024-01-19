@@ -20,7 +20,8 @@ impl<'a> DatabaseTransactionsFactory for DatabaseTransactionSqlite<'a> {
     fn collect_all_current_tables(&mut self) -> UdmResult<Vec<String>> {
         log::debug!("Getting current tables in db");
         let mut stmt = self
-            .open_conn.connection
+            .open_conn
+            .connection
             .prepare("SELECT name FROM main.sqlite_master WHERE type='table'")?;
         let table_rows = stmt.query_map([], |rows| rows.get(0))?;
         let mut tables: Vec<String> = Vec::new();

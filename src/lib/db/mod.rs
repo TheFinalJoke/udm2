@@ -1,14 +1,19 @@
 use log;
 
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::rc::Rc;
 
-use crate::parsers::{settings, UdmConfig};
+use crate::parsers::settings;
 use crate::{error, UdmResult};
+use crate::db::sqlite::conn as sqlite_conn;
+use crate::db::postgres::conn as postgres_conn;
+
 use sea_query::foreign_key::{ForeignKeyAction, ForeignKeyCreateStatement};
 use sea_query::value::Value;
 use sea_query::{ColumnDef, Iden, Table};
 
+use self::postgres::conn::OpenPostgresConnection;
+use self::sqlite::conn::OpenSqliteConnection;
 pub mod postgres;
 pub mod sqlite;
 
@@ -65,25 +70,26 @@ impl DbType {
             panic!("Could not determine database to use and load")
         }
     }
-}
-
-// This trait will be inherited for each mode of db transmition
-pub trait EstablishDbConnection {
-    type UdmConfig;
-    fn establish_connection(settings: Self::UdmConfig) -> Self;
-}
-
-// This struct holds the connection and abstracts it from the main.rs
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct OpenConnection<T: EstablishDbConnection> {
-    pub connection: T,
-}
-impl<T: EstablishDbConnection> OpenConnection<T> {
-    pub fn new(connection: T) -> Self {
-        Self {
-            connection,
+    pub fn establish_connection(&self) -> Box<dyn DbConnection> {
+        match self {
+            DbType::Postgres(config) => Box::new(OpenPostgresConnection::new(config.to_owned())),
+            DbType::Sqlite(config) => Box::new(OpenSqliteConnection::new(config.to_owned()))
         }
     }
+}
+
+pub trait DbConnection: Display {}
+
+// Abstraction of connection between database connections
+pub enum OpenConnection {
+    SqliteConn(sqlite_conn::OpenSqliteConnection),
+    PostgresConn(postgres_conn::OpenPostgresConnection)
+}
+impl Display for OpenConnection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
+    
 }
 
 // Defines the Schema and how we interact with the DB.

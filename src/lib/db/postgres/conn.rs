@@ -1,16 +1,22 @@
+use crate::db::DbConnection;
+use crate::parsers::{settings, UdmConfig};
 use log;
 use postgres::Client;
-use crate::db;
-use crate::parsers::settings;
+use std::fmt::Display;
 
 pub struct OpenPostgresConnection {
     pub conn: postgres::Client,
 }
 
-impl db::EstablishDbConnection for OpenPostgresConnection {
-    type UdmConfig = settings::PostgresConfigurer;
+impl DbConnection for OpenPostgresConnection {}
 
-    fn establish_connection(settings: settings::PostgresConfigurer) -> Self {
+impl OpenPostgresConnection {
+    pub fn new(settings: settings::PostgresConfigurer) -> Self {
         todo!()
+    }
+}
+impl Display for OpenPostgresConnection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
     }
 }

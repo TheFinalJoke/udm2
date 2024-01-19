@@ -51,6 +51,6 @@ pub fn get_log_level(debug_cli: u8) -> LevelFilter {
         3 => log::LevelFilter::Info,
         4 => log::LevelFilter::Debug,
         5 => log::LevelFilter::Trace,
-        _ => log::LevelFilter::Off,
+        _ => log::LevelFilter::Info, // Default this to info
     }
 }

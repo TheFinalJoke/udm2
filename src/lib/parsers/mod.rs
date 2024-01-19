@@ -1,13 +1,13 @@
-use log;
 use crate::error;
 use crate::UdmResult;
+use log;
+use serde::Deserialize;
 use std::fmt::Debug;
 use std::rc::Rc;
-use serde::Deserialize;
 
 pub mod settings;
 
-pub trait UdmConfig: for<'a> Deserialize<'a> + Debug + Default{}
+pub trait UdmConfig: for<'a> Deserialize<'a> + Debug + Default {}
 
 pub fn validate_configurer(configurer: Rc<settings::UdmConfigurer>) -> UdmResult<()> {
     if !configurer.daemon.is_db_set() {

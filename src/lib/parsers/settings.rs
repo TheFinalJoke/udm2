@@ -1,8 +1,8 @@
 use core::panic;
 
-use serde::Deserialize;
 use crate::parsers::UdmConfig;
 use postgres::Config;
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct UdmConfigurer {
@@ -51,7 +51,7 @@ impl Default for DaemonConfigurer {
         }
     }
 }
-impl UdmConfig for DaemonConfigurer{}
+impl UdmConfig for DaemonConfigurer {}
 
 impl DaemonConfigurer {
     pub fn is_db_set(&self) -> bool {
@@ -77,11 +77,11 @@ impl Default for SqliteConfigurer {
         }
     }
 }
-impl UdmConfig for SqliteConfigurer{}
+impl UdmConfig for SqliteConfigurer {}
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct PostgresConfigurer {
     #[serde(default)]
-    user: String, 
+    user: String,
     #[serde(default)]
     password: String,
     #[serde(default)]
@@ -113,12 +113,12 @@ impl Into<Config> for PostgresConfigurer {
         Config::new()
     }
 }
-impl UdmConfig for PostgresConfigurer{}
+impl UdmConfig for PostgresConfigurer {}
 #[warn(dead_code)]
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq, Default)]
 pub struct CommandConfigurer {}
 
-impl UdmConfig for CommandConfigurer{}
+impl UdmConfig for CommandConfigurer {}
 // Defaults Funcs
 
 fn default_daemon_db_path() -> String {
@@ -132,7 +132,7 @@ fn default_udm_port() -> i64 {
 fn get_password() -> String {
     let pass_var = std::env::var_os("UDM_POSTGRES_PASSWORD");
     if let Some(pass) = pass_var {
-        return pass.into_string().unwrap()
+        return pass.into_string().unwrap();
     } else {
         panic!("Postgres option requires a password")
     }

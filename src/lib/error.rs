@@ -1,6 +1,6 @@
+use postgres::Error as PostgresError;
 use rusqlite::Error as rusqlite_error;
 use thiserror::Error;
-use postgres::Error as PostgresError;
 
 #[derive(Error, Debug)]
 pub enum UdmError {
@@ -9,7 +9,7 @@ pub enum UdmError {
     #[error("An Error from Sqlite")]
     RusqliteError(#[from] rusqlite_error),
     #[error("An Error from Postgres")]
-    PostgresError(#[from] PostgresError)
+    PostgresError(#[from] PostgresError),
 }
 
 impl From<String> for UdmError {

@@ -1,5 +1,5 @@
-use postgres::{self, Client};
 use crate::db;
+use postgres::{self, Client};
 
 pub mod conn;
 
