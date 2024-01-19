@@ -4,7 +4,7 @@ use crate::parsers::UdmConfig;
 use postgres::Config;
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct UdmConfigurer {
     pub udm: Configurer,
     #[serde(default)]
@@ -12,15 +12,7 @@ pub struct UdmConfigurer {
     #[serde(default)]
     pub command: CommandConfigurer,
 }
-impl Default for UdmConfigurer {
-    fn default() -> Self {
-        Self {
-            udm: Configurer::default(),
-            daemon: DaemonConfigurer::default(),
-            command: CommandConfigurer::default(),
-        }
-    }
-}
+
 impl UdmConfig for UdmConfigurer {}
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -87,7 +79,7 @@ pub struct PostgresConfigurer {
     #[serde(default)]
     db_name: String,
     #[serde(default)]
-    db_port: i64,
+    db_port: u16,
     #[serde(default)]
     host: String,
     #[serde(default)]
@@ -108,9 +100,18 @@ impl Default for PostgresConfigurer {
         }
     }
 }
+#[allow(clippy::from_over_into)]
 impl Into<Config> for PostgresConfigurer {
     fn into(self) -> Config {
         Config::new()
+            .user(self.user.as_str())
+            .password(self.password.as_str())
+            .dbname(self.db_name.as_str())
+            .port(self.db_port)
+            .host(&self.host)
+            .application_name(self.application_name.unwrap_or_default().as_str())
+            .options(self.options.unwrap_or_default().as_str())
+            .to_owned()
     }
 }
 impl UdmConfig for PostgresConfigurer {}
@@ -132,7 +133,7 @@ fn default_udm_port() -> i64 {
 fn get_password() -> String {
     let pass_var = std::env::var_os("UDM_POSTGRES_PASSWORD");
     if let Some(pass) = pass_var {
-        return pass.into_string().unwrap();
+        pass.into_string().unwrap()
     } else {
         panic!("Postgres option requires a password")
     }

@@ -1,13 +1,9 @@
 use log;
 
-use std::fmt::{Debug, Display};
 use std::rc::Rc;
 
 use crate::parsers::settings;
 use crate::{error, UdmResult};
-use crate::db::sqlite::conn as sqlite_conn;
-use crate::db::postgres::conn as postgres_conn;
-
 use sea_query::foreign_key::{ForeignKeyAction, ForeignKeyCreateStatement};
 use sea_query::value::Value;
 use sea_query::{ColumnDef, Iden, Table};
@@ -73,24 +69,12 @@ impl DbType {
     pub fn establish_connection(&self) -> Box<dyn DbConnection> {
         match self {
             DbType::Postgres(config) => Box::new(OpenPostgresConnection::new(config.to_owned())),
-            DbType::Sqlite(config) => Box::new(OpenSqliteConnection::new(config.to_owned()))
+            DbType::Sqlite(config) => Box::new(OpenSqliteConnection::new(config.to_owned())),
         }
     }
 }
 
-pub trait DbConnection: Display {}
-
-// Abstraction of connection between database connections
-pub enum OpenConnection {
-    SqliteConn(sqlite_conn::OpenSqliteConnection),
-    PostgresConn(postgres_conn::OpenPostgresConnection)
-}
-impl Display for OpenConnection {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self)
-    }
-    
-}
+pub trait DbConnection: DatabaseTransactionsFactory {}
 
 // Defines the Schema and how we interact with the DB.
 // The structs generated in RPC Frameworks

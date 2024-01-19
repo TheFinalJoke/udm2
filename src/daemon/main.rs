@@ -40,8 +40,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     lib::parsers::validate_configurer(Rc::clone(&configeror)).unwrap_or_else(|e| panic!("{}", e));
     // Load in the Correct Db Settings and establish connection
     let db_type = db::DbType::load_db(Rc::clone(&configeror));
-    let connection = db_type.establish_connection();
-    println!("{}", connection);
+    let _connection = db_type.establish_connection();
     log::info!("Initializing database");
     // let _ = conn::create_or_update_database(&open_conn)
     //     .map_err(|e| format!("Error creating database: {:?}", e));
