@@ -105,7 +105,7 @@ impl PostgresConfigurer {
         String::from("postgres")
     }
     fn get_password() -> String {
-        let pass_var = std::env::var_os("UDM_POSTGRES_PASSWORD");
+        let pass_var = std::env::var_os("UDM_POSTGRES_PW");
         if let Some(pass) = pass_var {
             pass.into_string().unwrap()
         } else {

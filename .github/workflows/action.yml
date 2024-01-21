@@ -1,3 +1,4 @@
+---
 name: UDM Actions
 
 on:
@@ -11,7 +12,7 @@ env:
 
 jobs:
   formatting:
-    name: cargo fmt
+    name: Formatting Rust Code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +28,7 @@ jobs:
     steps:
     - name: Install Ubuntu pre-requirements
       run: |
-        sudo apt install -y protobuf-compiler libprotobuf-dev 
+        sudo apt update &&  apt install -y protobuf-compiler libprotobuf-dev 
       shell: bash
     - name: Checkout Code
       uses: actions/checkout@v3
@@ -48,4 +49,3 @@ jobs:
         PROTOC: "/usr/bin/protoc"
     - name: Run tests
       run: cargo test --verbose
-
