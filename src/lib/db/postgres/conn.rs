@@ -28,6 +28,23 @@ impl OpenPostgresConnection {
         });
         Self { conn: client }
     }
+    pub async fn collect_current_dbs(&mut self) -> crate::UdmResult<Vec<String>> {
+        log::debug!("Collecting Current databases");
+        let sql = "SELECT datname FROM pg_dtabase";
+        let stmt = self.conn.prepare(sql).await?;
+        let collected_db_rows = self.conn.query(&stmt, &[]).await;
+        Self::from_row_to_vec_string(collected_db_rows?)
+    }
+    fn from_row_to_vec_string(rows: Vec<tokio_postgres::Row>) -> crate::UdmResult<Vec<String>> {
+        let mut tables: Vec<String> = Vec::new();
+        for row in rows {
+            if let Ok(data) = row.try_get(0) {
+                tables.push(data);
+            }
+        }
+        log::trace!("Data tables: {:?}", tables);
+        Ok(tables)
+    }
 }
 #[async_trait]
 impl DatabaseTransactionsFactory for OpenPostgresConnection {
@@ -38,14 +55,7 @@ impl DatabaseTransactionsFactory for OpenPostgresConnection {
             .prepare("SELECT * FROM pg_catalog.pg_tables")
             .await?;
         let table_rows = self.conn.query(&stmt, &[]).await;
-        let mut tables: Vec<String> = Vec::new();
-        for row in table_rows? {
-            if let Ok(data) = row.try_get(0) {
-                tables.push(data);
-            }
-        }
-        log::trace!("Data tables: {:?}", tables);
-        Ok(tables)
+        Self::from_row_to_vec_string(table_rows?)
     }
     async fn gen_schmea(&mut self) -> crate::UdmResult<()> {
         let tables = [
@@ -56,8 +66,11 @@ impl DatabaseTransactionsFactory for OpenPostgresConnection {
             db::InstructionToRecipeSchema::create_table(sea_query::PostgresQueryBuilder),
         ]
         .join("; ");
+        if let Err(query_err) = self.conn.batch_execute(tables.as_str()).await {
+            log::error!("{:#?}", query_err.as_db_error());
+            std::process::exit(20)
+        }
         log::debug!("Ensure schmea is defined");
-        self.conn.batch_execute(tables.as_str()).await?;
         Ok(())
     }
 }

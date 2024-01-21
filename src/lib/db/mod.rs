@@ -213,9 +213,11 @@ impl SqlTableTransactionsFactory for IngredientSchema {
             )
             .col(ColumnDef::new(Self::Amount).float())
             .col(ColumnDef::new(Self::IngredientType).integer().not_null())
+            .col(ColumnDef::new(Self::FrId).integer())
+            .col(ColumnDef::new(Self::InstructionId).integer())
             .foreign_key(
                 ForeignKeyCreateStatement::new()
-                    .name("fr_id")
+                    .name("fk_fluidregulation")
                     .from(Self::Table, Self::FrId)
                     .to(FluidRegulationSchema::Table, FluidRegulationSchema::FrId)
                     .on_delete(ForeignKeyAction::Cascade)
@@ -223,7 +225,7 @@ impl SqlTableTransactionsFactory for IngredientSchema {
             )
             .foreign_key(
                 ForeignKeyCreateStatement::new()
-                    .name("instruction_id")
+                    .name("fk_instruction")
                     .from(Self::Table, Self::InstructionId)
                     .to(InstructionSchema::Table, InstructionSchema::InstructionId)
                     .on_delete(ForeignKeyAction::Cascade)
@@ -334,9 +336,11 @@ impl SqlTableTransactionsFactory for InstructionToRecipeSchema {
         Table::create()
             .table(Self::Table)
             .if_not_exists()
+            // .col(ColumnDef::new(Self::RecipeId).integer())
+            .col(ColumnDef::new(Self::InstructionId).integer())
             .foreign_key(
                 ForeignKeyCreateStatement::new()
-                    .name("recipe_id")
+                    .name("fk_recipe")
                     .from(Self::Table, Self::RecipeId)
                     .to(RecipeSchema::Table, RecipeSchema::RecipeId)
                     .on_delete(ForeignKeyAction::Cascade)
@@ -344,7 +348,7 @@ impl SqlTableTransactionsFactory for InstructionToRecipeSchema {
             )
             .foreign_key(
                 ForeignKeyCreateStatement::new()
-                    .name("instruction_id")
+                    .name("fk_instruction")
                     .from(Self::Table, Self::InstructionId)
                     .to(InstructionSchema::Table, InstructionSchema::InstructionId)
                     .on_delete(ForeignKeyAction::Cascade)
