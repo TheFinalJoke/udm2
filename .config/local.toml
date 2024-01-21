@@ -8,7 +8,6 @@
 
 [daemon.postgres]
 user="postgres"
-postgres_user="postgres"
-port=5432
+db_port=5432
 
 [command]

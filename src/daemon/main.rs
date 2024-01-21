@@ -40,10 +40,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     lib::parsers::validate_configurer(Rc::clone(&configeror)).unwrap_or_else(|e| panic!("{}", e));
     // Load in the Correct Db Settings and establish connection
     let db_type = db::DbType::load_db(Rc::clone(&configeror));
-    let _connection = db_type.establish_connection();
+    let connection = db_type.establish_connection();
     log::info!("Initializing database");
-    // let _ = conn::create_or_update_database(&open_conn)
-    //     .map_err(|e| format!("Error creating database: {:?}", e));
+    let _ = connection
+        .await
+        .gen_schmea()
+        .await
+        .map_err(|e| format!("Failed to create database schema {}", e));
 
     let addr = format!("127.0.0.1:{}", Rc::clone(&configeror).udm.port).parse()?;
     let udm_service = UdmService::default();

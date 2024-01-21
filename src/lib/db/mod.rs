@@ -1,4 +1,5 @@
 use log;
+use tonic::async_trait;
 
 use std::rc::Rc;
 
@@ -7,9 +8,6 @@ use crate::{error, UdmResult};
 use sea_query::foreign_key::{ForeignKeyAction, ForeignKeyCreateStatement};
 use sea_query::value::Value;
 use sea_query::{ColumnDef, Iden, Table};
-
-use self::postgres::conn::OpenPostgresConnection;
-use self::sqlite::conn::OpenSqliteConnection;
 pub mod postgres;
 pub mod sqlite;
 
@@ -36,16 +34,18 @@ pub trait SqlTableTransactionsFactory: SqlTransactionsFactory {
 
 // This generates schemas and manipulates the database outside of the data itself
 // This ipml on each individual table you want to
+#[async_trait]
 pub trait DatabaseTransactionsFactory {
-    fn collect_all_current_tables(&mut self) -> UdmResult<Vec<String>>;
-    fn gen_schmea(&mut self) -> UdmResult<()>;
+    async fn collect_all_current_tables(&mut self) -> UdmResult<Vec<String>>;
+    async fn gen_schmea(&mut self) -> UdmResult<()>;
 }
 
 // This will generate all the queries
 // This manipluates the data itself
+#[async_trait]
 pub trait SqlQueryExecutor {
     fn gen_query(&self) -> Box<dyn SqlTransactionsFactory>;
-    fn execute<T>(&self) -> Result<T, error::UdmError>;
+    async fn execute<T>(&self) -> Result<T, error::UdmError>;
 }
 
 // A loadable enum depending on the mechanism is chosen
@@ -66,14 +66,19 @@ impl DbType {
             panic!("Could not determine database to use and load")
         }
     }
-    pub fn establish_connection(&self) -> Box<dyn DbConnection> {
+    pub async fn establish_connection(&self) -> Box<dyn DbConnection> {
         match self {
-            DbType::Postgres(config) => Box::new(OpenPostgresConnection::new(config.to_owned())),
-            DbType::Sqlite(config) => Box::new(OpenSqliteConnection::new(config.to_owned())),
+            DbType::Postgres(config) => {
+                Box::new(postgres::conn::OpenPostgresConnection::new(config.to_owned()).await)
+            }
+            DbType::Sqlite(config) => {
+                Box::new(sqlite::conn::OpenSqliteConnection::new(config.to_owned()).await)
+            }
         }
     }
 }
 
+#[async_trait]
 pub trait DbConnection: DatabaseTransactionsFactory {}
 
 // Defines the Schema and how we interact with the DB.

@@ -1,8 +1,8 @@
 use core::panic;
 
 use crate::parsers::UdmConfig;
-use postgres::Config;
 use serde::Deserialize;
+use tokio_postgres::Config;
 
 #[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct UdmConfigurer {
@@ -72,15 +72,15 @@ impl Default for SqliteConfigurer {
 impl UdmConfig for SqliteConfigurer {}
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct PostgresConfigurer {
-    #[serde(default)]
+    #[serde(default = "PostgresConfigurer::set_user_default")]
     user: String,
-    #[serde(default)]
+    #[serde(default = "PostgresConfigurer::get_password")]
     password: String,
-    #[serde(default)]
+    #[serde(default = "PostgresConfigurer::set_default_db_name")]
     db_name: String,
-    #[serde(default)]
+    #[serde(default = "PostgresConfigurer::set_default_db_port")]
     db_port: u16,
-    #[serde(default)]
+    #[serde(default = "PostgresConfigurer::set_default_host")]
     host: String,
     #[serde(default)]
     application_name: Option<String>,
@@ -90,14 +90,36 @@ pub struct PostgresConfigurer {
 impl Default for PostgresConfigurer {
     fn default() -> Self {
         Self {
-            user: String::from("postgres"),
-            password: get_password(),
-            db_name: String::from("udm"),
-            db_port: 5432,
-            host: String::from("localhost"),
+            user: Self::set_user_default(),
+            password: Self::get_password(),
+            db_name: Self::set_default_db_name(),
+            db_port: Self::set_default_db_port(),
+            host: Self::set_default_host(),
             application_name: None,
             options: None,
         }
+    }
+}
+impl PostgresConfigurer {
+    fn set_user_default() -> String {
+        String::from("postgres")
+    }
+    fn get_password() -> String {
+        let pass_var = std::env::var_os("UDM_POSTGRES_PASSWORD");
+        if let Some(pass) = pass_var {
+            pass.into_string().unwrap()
+        } else {
+            panic!("Postgres option requires a password")
+        }
+    }
+    fn set_default_db_name() -> String {
+        String::from("udm")
+    }
+    fn set_default_db_port() -> u16 {
+        5432
+    }
+    fn set_default_host() -> String {
+        String::from("localhost")
     }
 }
 #[allow(clippy::from_over_into)]
@@ -108,7 +130,7 @@ impl Into<Config> for PostgresConfigurer {
             .password(self.password.as_str())
             .dbname(self.db_name.as_str())
             .port(self.db_port)
-            .host(&self.host)
+            .host(self.host.as_str())
             .application_name(self.application_name.unwrap_or_default().as_str())
             .options(self.options.unwrap_or_default().as_str())
             .to_owned()
@@ -128,13 +150,4 @@ fn default_daemon_db_path() -> String {
 
 fn default_udm_port() -> i64 {
     19211
-}
-
-fn get_password() -> String {
-    let pass_var = std::env::var_os("UDM_POSTGRES_PASSWORD");
-    if let Some(pass) = pass_var {
-        pass.into_string().unwrap()
-    } else {
-        panic!("Postgres option requires a password")
-    }
 }
