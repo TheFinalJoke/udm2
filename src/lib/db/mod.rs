@@ -336,7 +336,7 @@ impl SqlTableTransactionsFactory for InstructionToRecipeSchema {
         Table::create()
             .table(Self::Table)
             .if_not_exists()
-            // .col(ColumnDef::new(Self::RecipeId).integer())
+            .col(ColumnDef::new(Self::RecipeId).integer())
             .col(ColumnDef::new(Self::InstructionId).integer())
             .foreign_key(
                 ForeignKeyCreateStatement::new()

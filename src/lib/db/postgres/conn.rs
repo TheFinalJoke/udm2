@@ -14,23 +14,24 @@ impl DbConnection for OpenPostgresConnection {}
 impl OpenPostgresConnection {
     pub async fn new(settings: settings::PostgresConfigurer) -> Self {
         let config: Config = settings.into();
-        let (client, connection) = config
-            .connect(NoTls)
-            .await
-            .unwrap_or_else(|e| panic!("{}", e));
+        let (client, connection) = config.connect(NoTls).await.unwrap_or_else(|e| {
+            log::error!("{}", e);
+            std::process::exit(15)
+        });
         tokio::spawn(async move {
             if let Err(e) = connection.await {
-                panic!(
+                log::error!(
                     "Unable to establish an connection with postgres database {}",
                     e
-                )
+                );
+                std::process::exit(10)
             }
         });
         Self { conn: client }
     }
     pub async fn collect_current_dbs(&mut self) -> crate::UdmResult<Vec<String>> {
         log::debug!("Collecting Current databases");
-        let sql = "SELECT datname FROM pg_dtabase";
+        let sql = "SELECT datname FROM pg_database";
         let stmt = self.conn.prepare(sql).await?;
         let collected_db_rows = self.conn.query(&stmt, &[]).await;
         Self::from_row_to_vec_string(collected_db_rows?)
@@ -66,11 +67,11 @@ impl DatabaseTransactionsFactory for OpenPostgresConnection {
             db::InstructionToRecipeSchema::create_table(sea_query::PostgresQueryBuilder),
         ]
         .join("; ");
+        log::debug!("Ensure schmea is defined");
         if let Err(query_err) = self.conn.batch_execute(tables.as_str()).await {
-            log::error!("{:#?}", query_err.as_db_error());
+            log::error!("{}", query_err);
             std::process::exit(20)
         }
-        log::debug!("Ensure schmea is defined");
         Ok(())
     }
 }

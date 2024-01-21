@@ -113,7 +113,7 @@ impl PostgresConfigurer {
         }
     }
     fn set_default_db_name() -> String {
-        String::from("udm")
+        String::from("postgres")
     }
     fn set_default_db_port() -> u16 {
         5432

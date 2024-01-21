@@ -7,6 +7,9 @@ ARCH=$(uname -m)
 if [[ $ARCH == "x86_64" ]] || [[ $ARCH == "amd64" ]]
 then
     ARCH="amd64"
+elif [[ $ARCH == "aarch64" ]]
+then
+    ARCH="arm64"
 fi
 COMPUTER_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
 FILENAME="protolint_${PROTOLINT_VERSION}_${COMPUTER_TYPE}_${ARCH}.tar.gz"
