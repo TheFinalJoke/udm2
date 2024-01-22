@@ -31,17 +31,10 @@ fn fluid_regulation_table_alter() {
 fn ingredient_table_create() {
     let query = [
         r#"CREATE TABLE IF NOT EXISTS "Ingredient""#,
-        r#"( "ingredient_id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,"#,
-        r#""name" text NOT NULL,"#,
-        r#""alcoholic" boolean NOT NULL DEFAULT FALSE,"#,
-        r#""description" text,"#,
-        r#""is_active" boolean NOT NULL DEFAULT FALSE,"#,
-        r#""amount" real,"#,
-        r#""ingredient_type" integer NOT NULL,"#,
-        r#"FOREIGN KEY ("fr_id") REFERENCES "FluidRegulation""#,
-        r#"("fr_id") ON DELETE CASCADE ON UPDATE CASCADE,"#,
-        r#"FOREIGN KEY ("instruction_id") REFERENCES "Instruction""#,
-        r#"("instruction_id") ON DELETE CASCADE ON UPDATE CASCADE )"#,
+        r#"( "ingredient_id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" text NOT NULL, "alcoholic" boolean NOT NULL DEFAULT FALSE,"#,
+        r#""description" text, "is_active" boolean NOT NULL DEFAULT FALSE, "amount" real, "ingredient_type" integer NOT NULL, "fr_id" integer, "instruction_id" integer,"#,
+        r#"FOREIGN KEY ("fr_id") REFERENCES "FluidRegulation" ("fr_id") ON DELETE CASCADE ON UPDATE CASCADE,"#,
+        r#"FOREIGN KEY ("instruction_id") REFERENCES "Instruction" ("instruction_id") ON DELETE CASCADE ON UPDATE CASCADE )"#,
     ]
     .join(" ");
     assert_eq!(
@@ -91,7 +84,7 @@ fn instruction_table_alter() {
 fn instruction_to_recipe_table_create() {
     let query = [
         r#"CREATE TABLE IF NOT EXISTS "InstructionToRecipe""#,
-        r#"( "instruction_order" integer NOT NULL,"#,
+        r#"( "recipe_id" integer, "instruction_id" integer, "instruction_order" integer NOT NULL,"#,
         r#"FOREIGN KEY ("recipe_id") REFERENCES "Recipe" ("recipe_id") ON DELETE CASCADE ON UPDATE CASCADE,"#,
         r#"FOREIGN KEY ("instruction_id") REFERENCES "Instruction" ("instruction_id") ON DELETE CASCADE ON UPDATE CASCADE )"#
     ].join(" ");
