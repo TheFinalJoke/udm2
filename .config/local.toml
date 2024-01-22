@@ -1,6 +1,13 @@
 [udm]
-port = 19211
+# port = 19211
 
 [daemon]
+
+# [daemon.sqlite]
+# db_path = "/workspaces/udm/.config/test_udm.db"
+
+[daemon.postgres]
+user="postgres"
+db_port=5432
 
 [command]

@@ -1,10 +1,15 @@
 extern crate log;
 use config::{Config, File, FileFormat};
 use std::path::PathBuf;
+use std::result;
+
 pub mod db;
+pub mod error;
 pub mod logger;
 pub mod parsers;
 pub mod rpc_types;
+
+pub type UdmResult<T> = result::Result<T, error::UdmError>;
 
 pub trait Retrieval<T: 'static> {
     fn retreieve<I: 'static>(self) -> Result<T, String>;

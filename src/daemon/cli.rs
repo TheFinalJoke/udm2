@@ -23,7 +23,7 @@ pub struct DaemonCli {
 impl Default for DaemonCli {
     fn default() -> Self {
         Self {
-            debug: 0,
+            debug: 3,
             config_file: Path::new("/etc/udm/default.toml").to_path_buf(),
             command: None,
         }
