@@ -1,3 +1,4 @@
+---
 name: UDM Actions
 
 on:
@@ -11,7 +12,7 @@ env:
 
 jobs:
   formatting:
-    name: cargo fmt
+    name: Formatting Rust Code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,13 +23,14 @@ jobs:
       - name: Rustfmt Check
         uses: actions-rust-lang/rustfmt@v1
   build:
+    name: Build, Lint, and Test
     runs-on: ubuntu-latest
-
     steps:
     - name: Install Ubuntu pre-requirements
       run: |
-        sudo apt install -y protobuf-compiler libprotobuf-dev 
+        sudo apt update &&  sudo apt install -y protobuf-compiler libprotobuf-dev 
       shell: bash
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
     - name: Checkout Code
       uses: actions/checkout@v3
     - name: Linting the Code Base
@@ -41,11 +43,8 @@ jobs:
         VALIDATE_RUST_2018: false
         VALIDATE_RUST_2015: false
         VALIDATE_RUST_CLIPPY: false
-        
-    - name: Build
-      run: cargo build --verbose
+    - run: cargo build
       env: 
         PROTOC: "/usr/bin/protoc"
-    - name: Run tests
-      run: cargo test --verbose
+    - run: cargo test
 
