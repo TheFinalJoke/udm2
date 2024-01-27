@@ -4,12 +4,13 @@ use tonic::async_trait;
 use std::rc::Rc;
 
 use crate::parsers::settings;
-use crate::{error, UdmResult};
+use crate::UdmResult;
 use sea_query::foreign_key::{ForeignKeyAction, ForeignKeyCreateStatement};
 use sea_query::value::Value;
 use sea_query::{ColumnDef, Iden, Table};
 pub mod postgres;
 pub mod sqlite;
+pub mod executor;
 
 // Build "loadable" different db types with their relevant information
 
@@ -32,21 +33,15 @@ pub trait SqlTableTransactionsFactory: SqlTransactionsFactory {
     ) -> String;
 }
 
-// This generates schemas and manipulates the database outside of the data itself
-// This ipml on each individual table you want to
+// This Generates and executes the actual queries
 #[async_trait]
 pub trait DatabaseTransactionsFactory {
     async fn collect_all_current_tables(&mut self) -> UdmResult<Vec<String>>;
     async fn gen_schmea(&mut self) -> UdmResult<()>;
 }
 
-// This will generate all the queries
-// This manipluates the data itself
 #[async_trait]
-pub trait SqlQueryExecutor {
-    fn gen_query(&self) -> Box<dyn SqlTransactionsFactory>;
-    async fn execute<T>(&self) -> Result<T, error::UdmError>;
-}
+pub trait DbConnection: DatabaseTransactionsFactory {}
 
 // A loadable enum depending on the mechanism is chosen
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -78,8 +73,6 @@ impl DbType {
     }
 }
 
-#[async_trait]
-pub trait DbConnection: DatabaseTransactionsFactory {}
 
 // Defines the Schema and how we interact with the DB.
 // The structs generated in RPC Frameworks
