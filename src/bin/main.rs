@@ -1,8 +1,9 @@
 extern crate log;
 use clap::Parser;
-// use lib::db::{sqlite, SqlTableTransactionsFactory};
-use lib::{logger, Retrieval};
+use lib::logger;
+use lib::rpc_types::server::udm_service_client::UdmServiceClient;
 use std::error::Error;
+
 pub mod cli;
 
 #[tokio::main]
@@ -14,7 +15,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         "Initialized logger, collecting Config File {}",
         &cli_opts.config_file.display()
     );
-    let config_file = lib::FileRetrieve::new(cli_opts.config_file).retreieve::<config::Config>();
-    println!("{:?}", config_file);
+
+    let udm_server = format!("{}:{}", cli_opts.udm_server.to_string(), cli_opts.udm_port);
+    let client = UdmServiceClient::connect(udm_server).await?;
+
     Ok(())
 }

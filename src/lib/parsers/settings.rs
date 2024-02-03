@@ -1,5 +1,3 @@
-use core::panic;
-
 use crate::parsers::UdmConfig;
 use serde::Deserialize;
 use tokio_postgres::Config;
@@ -9,8 +7,6 @@ pub struct UdmConfigurer {
     pub udm: Configurer,
     #[serde(default)]
     pub daemon: DaemonConfigurer,
-    #[serde(default)]
-    pub command: CommandConfigurer,
 }
 
 impl UdmConfig for UdmConfigurer {}
@@ -109,7 +105,8 @@ impl PostgresConfigurer {
         if let Some(pass) = pass_var {
             pass.into_string().unwrap()
         } else {
-            panic!("Postgres option requires a password")
+            log::error!("Postgres option requires a password");
+            std::process::exit(30)
         }
     }
     fn set_default_db_name() -> String {
@@ -137,11 +134,7 @@ impl Into<Config> for PostgresConfigurer {
     }
 }
 impl UdmConfig for PostgresConfigurer {}
-#[warn(dead_code)]
-#[derive(Deserialize, Debug, Clone, PartialEq, Eq, Default)]
-pub struct CommandConfigurer {}
 
-impl UdmConfig for CommandConfigurer {}
 // Defaults Funcs
 
 fn default_daemon_db_path() -> String {

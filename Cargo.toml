@@ -2,6 +2,7 @@
 name = "udm"
 version = "0.1.0"
 edition = "2021"
+default-run = "udm"
 
 [[bin]]
 name = "daemon"
@@ -35,6 +36,7 @@ postgres = "0.19.7"
 thiserror = "1.0.56"
 tokio-postgres = "0.7.10"
 async-trait = "0.1.77"
+tokio-rusqlite = "0.5.0"
 
 [build-dependencies]
 tonic-build = "0.10.2"

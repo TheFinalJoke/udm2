@@ -1,6 +1,8 @@
 use clap::{Args, Parser, Subcommand};
 use std::path::{Path, PathBuf};
 
+pub mod helpers;
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct UdmCli {
@@ -17,9 +19,20 @@ pub struct UdmCli {
     )]
     pub config_file: PathBuf,
 
-    #[arg(long, help = "Run in Daemon mode", default_value = "true")]
-    pub daemon: bool,
-
+    #[arg(
+        short = 's',
+        long,
+        help = "Ip for udm_server",
+        default_value = "127.0.0.1"
+    )]
+    pub udm_server: std::net::Ipv4Addr,
+    #[arg(
+        short = 'p',
+        long,
+        help = "Connect to udm port",
+        default_value = "19211"
+    )]
+    pub udm_port: i64,
     #[command(subcommand)]
     command: Option<UdmCommands>,
 }
@@ -28,18 +41,20 @@ impl Default for UdmCli {
         Self {
             debug: 0,
             config_file: Path::new("/etc/udm/default.toml").to_path_buf(),
-            daemon: true,
+            udm_server: std::net::Ipv4Addr::new(127, 0, 0, 1),
+            udm_port: 19211,
             command: None,
         }
     }
 }
 
 impl UdmCli {
-    pub fn new(debug: u8, config_file: &str, daemon: bool) -> Self {
+    pub fn new(debug: u8, config_file: &str) -> Self {
         Self {
             debug,
             config_file: Path::new(config_file).to_path_buf(),
-            daemon,
+            udm_server: std::net::Ipv4Addr::new(127, 0, 0, 1),
+            udm_port: 19211,
             command: None,
         }
     }

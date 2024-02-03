@@ -8,9 +8,9 @@ use crate::UdmResult;
 use sea_query::foreign_key::{ForeignKeyAction, ForeignKeyCreateStatement};
 use sea_query::value::Value;
 use sea_query::{ColumnDef, Iden, Table};
+pub mod executor;
 pub mod postgres;
 pub mod sqlite;
-pub mod executor;
 
 // Build "loadable" different db types with their relevant information
 
@@ -41,7 +41,7 @@ pub trait DatabaseTransactionsFactory {
 }
 
 #[async_trait]
-pub trait DbConnection: DatabaseTransactionsFactory {}
+pub trait DbConnection: DatabaseTransactionsFactory + Send + Sync {}
 
 // A loadable enum depending on the mechanism is chosen
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -72,7 +72,6 @@ impl DbType {
         }
     }
 }
-
 
 // Defines the Schema and how we interact with the DB.
 // The structs generated in RPC Frameworks

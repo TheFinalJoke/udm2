@@ -1,29 +1,16 @@
 extern crate log;
 use clap::Parser;
-
 use lib::db;
 use lib::rpc_types::server;
-use lib::rpc_types::service_types;
 use lib::{logger, parsers, Retrieval};
 use std::error::Error;
+use std::net::IpAddr;
+use std::net::Ipv4Addr;
+use std::net::SocketAddr;
 use std::rc::Rc;
-use tonic::{transport::Server, Request, Response, Status};
 
 pub mod cli;
 
-#[derive(Default)]
-pub struct UdmService {}
-
-#[tonic::async_trait]
-impl server::udm_service_server::UdmService for UdmService {
-    async fn add_fluid_regulator(
-        &self,
-        _request: Request<service_types::AddFluidRegulatorRequest>,
-    ) -> Result<Response<service_types::AddFluidRegulatorResponse>, Status> {
-        let reply = service_types::AddFluidRegulatorResponse { fu_id: 132 };
-        Ok(Response::new(reply))
-    }
-}
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let cli_opts = cli::DaemonCli::parse();
@@ -40,22 +27,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
     lib::parsers::validate_configurer(Rc::clone(&configeror)).unwrap_or_else(|e| panic!("{}", e));
     // Load in the Correct Db Settings and establish connection
     let db_type = db::DbType::load_db(Rc::clone(&configeror));
-    let connection = db_type.establish_connection();
+    let mut connection = db_type.establish_connection().await;
     log::info!("Initializing database");
     let _ = connection
-        .await
         .gen_schmea()
         .await
         .map_err(|e| format!("Failed to create database schema {}", e));
 
-    let addr = format!("127.0.0.1:{}", Rc::clone(&configeror).udm.port).parse()?;
-    let udm_service = UdmService::default();
-    log::info!("Running Udm Service on {:?}", addr);
-    Server::builder()
-        .add_service(server::udm_service_server::UdmServiceServer::new(
-            udm_service,
-        ))
-        .serve(addr)
-        .await?;
+    let addr = SocketAddr::new(
+        IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+        Rc::clone(&configeror).udm.port.try_into()?,
+    );
+    log::info!("Attempting to start server on {}", &addr);
+    let daemon_server = server::DaemonServer::new(connection, addr);
+    let udm_service = server::udm_service_server::UdmServiceServer::new(daemon_server);
+    server::start_server(udm_service, addr).await?;
     Ok(())
 }
