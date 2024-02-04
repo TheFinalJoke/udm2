@@ -1,7 +1,11 @@
-use clap::{Args, Parser, Subcommand};
+use clap::{Parser, Subcommand};
 use std::path::{Path, PathBuf};
 
 pub mod helpers;
+pub mod recipe;
+pub mod ingredient;
+pub mod instruction;
+pub mod fluid;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -34,7 +38,7 @@ pub struct UdmCli {
     )]
     pub udm_port: i64,
     #[command(subcommand)]
-    command: Option<UdmCommands>,
+    pub command: Option<UdmCommand>,
 }
 impl Default for UdmCli {
     fn default() -> Self {
@@ -61,37 +65,16 @@ impl UdmCli {
 }
 
 #[derive(Subcommand, Debug)]
-enum UdmCommands {
-    #[command(about = "To interact with recipes")]
-    Recipe(RecipeCommands),
-    #[command(about = "To interact with ingredients")]
-    Ingredient(IngredientCommands),
-    #[command(about = "To interact with instructions")]
-    Instruction(InstructionCommands),
-    #[command(about = "To interact with fluid")]
-    Fluid(FluidCommands),
+pub enum UdmCommand {
+    #[command(about = "To interact with recipes", subcommand)]
+    Recipe(recipe::RecipeCommands),
+    #[command(about = "To interact with ingredients", subcommand)]
+    Ingredient(ingredient::IngredientCommands),
+    #[command(about = "To interact with instructions", subcommand)]
+    Instruction(instruction::InstructionCommands),
+    #[command(about = "To interact with fluid", subcommand)]
+    Fluid(fluid::FluidCommands),
 }
 
-#[derive(Args, Debug)]
-struct RecipeCommands {
-    #[arg(short, long)]
-    recipe_id: Option<i64>,
-}
 
-#[derive(Args, Debug)]
-struct IngredientCommands {
-    #[arg(short, long)]
-    ingredient_id: Option<i64>,
-}
 
-#[derive(Args, Debug)]
-struct InstructionCommands {
-    #[arg(short, long)]
-    instruction_id: Option<i64>,
-}
-
-#[derive(Args, Debug)]
-struct FluidCommands {
-    #[arg(short, long)]
-    fr_id: Option<i64>,
-}

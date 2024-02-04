@@ -23,8 +23,9 @@ impl DaemonServer {
 impl udm_server::udm_service_server::UdmService for DaemonServer {
     async fn add_fluid_regulator(
         &self,
-        _request: Request<service_types::AddFluidRegulatorRequest>,
+        request: Request<service_types::AddFluidRegulatorRequest>,
     ) -> Result<Response<service_types::AddFluidRegulatorResponse>, Status> {
+        log::debug!("Got request {:?}", request);
         let reply = service_types::AddFluidRegulatorResponse { fu_id: 132 };
         Ok(Response::new(reply))
     }
