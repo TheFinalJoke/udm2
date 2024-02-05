@@ -9,18 +9,18 @@ use crate::UdmResult;
 
 tonic::include_proto!("server");
 
-pub struct DaemonServer {
+pub struct DaemonServerContext {
     pub connection: Box<dyn DbConnection>,
     pub addr: SocketAddr,
 }
 
-impl DaemonServer {
+impl DaemonServerContext {
     pub fn new(connection: Box<dyn DbConnection>, addr: SocketAddr) -> Self {
         Self { connection, addr }
     }
 }
 #[tonic::async_trait]
-impl udm_server::udm_service_server::UdmService for DaemonServer {
+impl udm_server::udm_service_server::UdmService for DaemonServerContext {
     async fn add_fluid_regulator(
         &self,
         request: Request<service_types::AddFluidRegulatorRequest>,
@@ -32,7 +32,7 @@ impl udm_server::udm_service_server::UdmService for DaemonServer {
 }
 
 pub async fn start_server(
-    service: udm_service_server::UdmServiceServer<DaemonServer>,
+    service: udm_service_server::UdmServiceServer<DaemonServerContext>,
     addr: SocketAddr,
 ) -> UdmResult<()> {
     log::info!("Running Udm Service on {:?}", &addr);

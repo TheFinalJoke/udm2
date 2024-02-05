@@ -39,7 +39,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Rc::clone(&configeror).udm.port.try_into()?,
     );
     log::info!("Attempting to start server on {}", &addr);
-    let daemon_server = server::DaemonServer::new(connection, addr);
+    let builder = match db_type {
+        db::DbType::Postgres(_) => sea_query::PostgresQueryBuilder,
+        db::DbType::Sqlite(_) => sea_query::SqliteQueryBuilder,
+    };
+    let daemon_server = server::DaemonServerContext::new(connection, addr);
     let udm_service = server::udm_service_server::UdmServiceServer::new(daemon_server);
     server::start_server(udm_service, addr).await?;
     Ok(())

@@ -66,6 +66,13 @@ message ModifyFluidRegulatorResponse {
 message AddFluidRegulatorRequest {
   fhs_types.FluidRegulator fluid = 1;
 }
+
+message RemoveFluidRegulatorRequest {
+  int64 fr_id = 1;
+}
+
+message RemoveFluidRegulatorResponse {}
+
 message AddFluidRegulatorResponse {
   int64 fu_id = 1;
 }
