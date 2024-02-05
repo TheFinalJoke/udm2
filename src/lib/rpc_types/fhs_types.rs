@@ -1,7 +1,3 @@
-use serde::de::Deserialize;
-
-use crate::UdmResult;
-
 tonic::include_proto!("fhs_types");
 
 impl RegulatorType {
@@ -9,8 +5,8 @@ impl RegulatorType {
         [
             RegulatorType::Pump.as_str_name(),
             RegulatorType::Tap.as_str_name(),
-            RegulatorType::Valve.as_str_name()
-        ].to_vec()
+            RegulatorType::Valve.as_str_name(),
+        ]
+        .to_vec()
     }
 }
-
