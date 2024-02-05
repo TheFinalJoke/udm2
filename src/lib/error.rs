@@ -10,6 +10,8 @@ pub enum UdmError {
     RusqliteError(#[from] rusqlite_error),
     #[error("An Error from Postgres {0}")]
     PostgresError(#[from] PostgresError),
+    #[error("Invalid Input {0}")]
+    InvalidInput(String),
 }
 
 impl From<String> for UdmError {

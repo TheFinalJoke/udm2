@@ -1,7 +1,7 @@
 extern crate log;
 use clap::Parser;
 use lib::logger;
-use lib::rpc_types::server::udm_service_client::UdmServiceClient;
+use cli::helpers::UdmServerOptions;
 use lib::rpc_types::service_types::AddFluidRegulatorRequest;
 use lib::rpc_types::fhs_types::FluidRegulator;
 use lib::rpc_types::fhs_types::RegulatorType;
@@ -20,17 +20,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
         "Initialized logger, collecting Config File {}",
         &cli_opts.config_file.display()
     );
-    let udm_server = format!("http://{}:{}", cli_opts.udm_server.to_string(), cli_opts.udm_port);
-    // let mut client = UdmServiceClient::connect(udm_server).await?;
+    let server_options = UdmServerOptions{
+            host: cli_opts.udm_server.to_string(),
+            port: cli_opts.udm_port
+        };
     if let Some(commands) = &cli_opts.command {
         match commands {
-            cli::UdmCommand::Recipe(com_input) => todo!(),
-            cli::UdmCommand::Ingredient(com_input) => todo!(),
-            cli::UdmCommand::Instruction(com_input) => todo!(),
-            cli::UdmCommand::Fluid(com_input) => {
-                com_input.handle_command();
+            cli::UdmCommand::Recipe(user_input) => todo!(),
+            cli::UdmCommand::Ingredient(user_input) => todo!(),
+            cli::UdmCommand::Instruction(user_input) => todo!(),
+            cli::UdmCommand::Fluid(user_input) => {
+                let _ = user_input.handle_command(server_options);
             },
-}
+        }
     }
     // let request = AddFluidRegulatorRequest{
     //     fluid: Some(FluidRegulator{
