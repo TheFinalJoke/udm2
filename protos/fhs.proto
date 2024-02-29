@@ -8,7 +8,7 @@ enum RegulatorType {
   REGULATOR_TYPE_TAP = 3;
 }
 message FluidRegulator {
-  int64 fr_id = 1;
-  int32 gpio_pin = 2;
-  RegulatorType regulator_type = 3;
+  optional int64 fr_id = 1;
+  optional int32 gpio_pin = 2;
+  optional RegulatorType regulator_type = 3;
 }

@@ -1,4 +1,4 @@
-use crate::db;
+use crate::{db, UdmResult};
 use crate::db::{DatabaseTransactionsFactory, DbConnection, SqlTableTransactionsFactory};
 use crate::parsers::settings;
 use async_trait::async_trait;
@@ -9,7 +9,13 @@ pub struct OpenPostgresConnection {
     pub conn: tokio_postgres::Client,
 }
 #[async_trait]
-impl DbConnection for OpenPostgresConnection {}
+impl DbConnection for OpenPostgresConnection {
+    async fn insert(&self, stmt: String) -> UdmResult<i64> {
+        let prepared = self.conn.prepare(stmt.as_str()).await?;
+        let row = self.conn.query_one(&prepared, &[]).await?;
+        Ok(row.get(0))
+    }
+}
 
 impl OpenPostgresConnection {
     pub async fn new(settings: settings::PostgresConfigurer) -> Self {
@@ -27,7 +33,7 @@ impl OpenPostgresConnection {
                 std::process::exit(10)
             }
         });
-        Self { conn: client }
+        Self { conn: client}
     }
     pub async fn collect_current_dbs(&mut self) -> crate::UdmResult<Vec<String>> {
         log::debug!("Collecting Current databases");
@@ -75,5 +81,4 @@ impl DatabaseTransactionsFactory for OpenPostgresConnection {
         Ok(())
     }
 }
-
 

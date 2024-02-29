@@ -2,7 +2,7 @@ use log;
 use tonic::async_trait;
 
 use std::rc::Rc;
-
+use std::sync::Arc;
 use crate::parsers::settings;
 use crate::UdmResult;
 use sea_query::foreign_key::{ForeignKeyAction, ForeignKeyCreateStatement};
@@ -41,7 +41,22 @@ pub trait DatabaseTransactionsFactory {
 }
 
 #[async_trait]
-pub trait DbConnection: DatabaseTransactionsFactory + Send + Sync {}
+pub trait DbConnection: DatabaseTransactionsFactory + Send + Sync {
+    async fn insert(&self, stmt: String) -> UdmResult<i64>;
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct DbMetaData {
+    pub dbtype: Arc<DbType>,
+}
+
+impl DbMetaData {
+    pub fn new(dbtype: Arc<DbType>) -> Self {
+        Self {
+            dbtype,
+        }
+    }
+}
 
 // A loadable enum depending on the mechanism is chosen
 #[derive(Debug, PartialEq, Eq, Clone)]

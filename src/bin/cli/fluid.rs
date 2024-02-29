@@ -60,13 +60,11 @@ impl UdmGrpcActions<FluidRegulator> for AddFluidArgs {
             )));
         }
         Ok(FluidRegulator {
-            fr_id: self.fr_id.unwrap(),
-            regulator_type: fhs_types::RegulatorType::from_str_name(
+            fr_id: Some(self.fr_id.unwrap()),
+            regulator_type: Some(fhs_types::RegulatorType::from_str_name(
                 self.reg_type.clone().unwrap().as_str(),
-            )
-            .unwrap()
-            .into(),
-            gpio_pin: self.gpio_pin.unwrap(),
+            ).unwrap().into()),
+            gpio_pin: self.gpio_pin,
         })
     }
 }

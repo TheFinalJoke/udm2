@@ -17,7 +17,7 @@
 		"ghcr.io/devcontainers-contrib/features/act-asdf:2": {},
 		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
 	},
-	"postCreateCommand": "sudo apt update && sudo apt install -y protobuf-compiler libprotobuf-dev shellcheck && sudo bash scripts/install_protolint.sh",
+	"postCreateCommand": "sudo apt update && sudo apt install -y protobuf-compiler libprotobuf-dev shellcheck && sudo bash scripts/install_protolint.sh && sudo apt update && sudo apt upgrade -y",
 	"customizations": {
 		"vscode": {
 			"extensions": [

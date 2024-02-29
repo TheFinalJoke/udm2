@@ -3,12 +3,13 @@ use clap::Parser;
 use lib::db;
 use lib::rpc_types::server;
 use lib::{logger, parsers, Retrieval};
+use lib::db::DbMetaData;
 use std::error::Error;
 use std::net::IpAddr;
 use std::net::Ipv4Addr;
 use std::net::SocketAddr;
 use std::rc::Rc;
-
+use std::sync::Arc;
 pub mod cli;
 
 #[tokio::main]
@@ -26,7 +27,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     log::debug!("Using configuration: {:?}", &configeror);
     lib::parsers::validate_configurer(Rc::clone(&configeror)).unwrap_or_else(|e| panic!("{}", e));
     // Load in the Correct Db Settings and establish connection
-    let db_type = db::DbType::load_db(Rc::clone(&configeror));
+    let db_type = Arc::new(db::DbType::load_db(Rc::clone(&configeror)));
     let mut connection = db_type.establish_connection().await;
     log::info!("Initializing database");
     let _ = connection
@@ -39,11 +40,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Rc::clone(&configeror).udm.port.try_into()?,
     );
     log::info!("Attempting to start server on {}", &addr);
-    let builder = match db_type {
-        db::DbType::Postgres(_) => sea_query::PostgresQueryBuilder,
-        db::DbType::Sqlite(_) => sea_query::SqliteQueryBuilder,
-    };
-    let daemon_server = server::DaemonServerContext::new(connection, addr);
+    let db_metadata = DbMetaData::new(Arc::clone(&db_type));
+    let daemon_server = server::DaemonServerContext::new(connection, addr, db_metadata);
     let udm_service = server::udm_service_server::UdmServiceServer::new(daemon_server);
     server::start_server(udm_service, addr).await?;
     Ok(())
