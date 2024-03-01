@@ -1,11 +1,10 @@
-use clap::{Parser, Subcommand};
-use std::path::{Path, PathBuf};
-
+use clap::Parser;
+use clap::Subcommand;
+pub mod fluid;
 pub mod helpers;
-pub mod recipe;
 pub mod ingredient;
 pub mod instruction;
-pub mod fluid;
+pub mod recipe;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -13,15 +12,6 @@ pub struct UdmCli {
     /// Turn debugging information on
     #[arg(short, long, action = clap::ArgAction::Count, help="Turn on debugging, the more (d)s more verbose")]
     pub debug: u8,
-
-    #[arg(
-        short,
-        long,
-        value_name = "FILE",
-        help = "Path to Config File",
-        default_value = "/etc/udm/default.toml"
-    )]
-    pub config_file: PathBuf,
 
     #[arg(
         short = 's',
@@ -44,7 +34,6 @@ impl Default for UdmCli {
     fn default() -> Self {
         Self {
             debug: 0,
-            config_file: Path::new("/etc/udm/default.toml").to_path_buf(),
             udm_server: std::net::Ipv4Addr::new(127, 0, 0, 1),
             udm_port: 19211,
             command: None,
@@ -53,10 +42,9 @@ impl Default for UdmCli {
 }
 
 impl UdmCli {
-    pub fn new(debug: u8, config_file: &str) -> Self {
+    pub fn new(debug: u8) -> Self {
         Self {
             debug,
-            config_file: Path::new(config_file).to_path_buf(),
             udm_server: std::net::Ipv4Addr::new(127, 0, 0, 1),
             udm_port: 19211,
             command: None,
@@ -75,6 +63,3 @@ pub enum UdmCommand {
     #[command(about = "To interact with fluid", subcommand)]
     Fluid(fluid::FluidCommands),
 }
-
-
-

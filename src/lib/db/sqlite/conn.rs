@@ -1,8 +1,7 @@
 use async_trait::async_trait;
 use log;
-use tokio_rusqlite::Connection;
-// use sea_query::SqliteQueryBuilder;
 use std::path::Path;
+use tokio_rusqlite::Connection;
 
 use crate::db::{DatabaseTransactionsFactory, DbConnection};
 use crate::parsers::settings::{self, SqliteConfigurer};
@@ -14,7 +13,11 @@ pub struct OpenSqliteConnection {
 }
 
 #[async_trait]
-impl DbConnection for OpenSqliteConnection {}
+impl DbConnection for OpenSqliteConnection {
+    async fn insert(&self, _stmt: String) -> UdmResult<i32> {
+        todo!()
+    }
+}
 
 impl OpenSqliteConnection {
     pub async fn new(settings: settings::SqliteConfigurer) -> Self {

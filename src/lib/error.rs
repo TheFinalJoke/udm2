@@ -12,6 +12,8 @@ pub enum UdmError {
     PostgresError(#[from] PostgresError),
     #[error("Invalid Input {0}")]
     InvalidInput(String),
+    #[error("Api Failure: {0}")]
+    ApiFailure(String),
 }
 
 impl From<String> for UdmError {

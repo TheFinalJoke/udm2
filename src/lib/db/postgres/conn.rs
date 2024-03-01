@@ -1,7 +1,9 @@
-use crate::db;
 use crate::db::{DatabaseTransactionsFactory, DbConnection, SqlTableTransactionsFactory};
+use crate::error::UdmError;
 use crate::parsers::settings;
+use crate::{db, UdmResult};
 use async_trait::async_trait;
+use log;
 
 use tokio_postgres::{Config, NoTls};
 
@@ -9,7 +11,18 @@ pub struct OpenPostgresConnection {
     pub conn: tokio_postgres::Client,
 }
 #[async_trait]
-impl DbConnection for OpenPostgresConnection {}
+impl DbConnection for OpenPostgresConnection {
+    async fn insert(&self, stmt: String) -> UdmResult<i32> {
+        log::info!("Received insert call query: {}", &stmt);
+        let prepared = self.conn.prepare(stmt.as_str()).await?;
+        let row = self.conn.query_one(&prepared, &[]).await?;
+        let data: UdmResult<i32> = row
+            .try_get(0)
+            .map_err(|e| UdmError::ApiFailure(e.to_string()));
+        log::debug!("Result from inserting into db {:?}", &data);
+        data
+    }
+}
 
 impl OpenPostgresConnection {
     pub async fn new(settings: settings::PostgresConfigurer) -> Self {

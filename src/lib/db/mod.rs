@@ -1,13 +1,13 @@
 use log;
 use tonic::async_trait;
 
-use std::rc::Rc;
-
 use crate::parsers::settings;
 use crate::UdmResult;
 use sea_query::foreign_key::{ForeignKeyAction, ForeignKeyCreateStatement};
 use sea_query::value::Value;
 use sea_query::{ColumnDef, Iden, Table};
+use std::rc::Rc;
+use std::sync::Arc;
 pub mod executor;
 pub mod postgres;
 pub mod sqlite;
@@ -41,7 +41,21 @@ pub trait DatabaseTransactionsFactory {
 }
 
 #[async_trait]
-pub trait DbConnection: DatabaseTransactionsFactory + Send + Sync {}
+pub trait DbConnection: DatabaseTransactionsFactory + Send + Sync {
+    // Documentation for datatypes: https://docs.rs/postgres/0.14.0/postgres/types/trait.FromSql.html#types
+    async fn insert(&self, stmt: String) -> UdmResult<i32>;
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct DbMetaData {
+    pub dbtype: Arc<DbType>,
+}
+
+impl DbMetaData {
+    pub fn new(dbtype: Arc<DbType>) -> Self {
+        Self { dbtype }
+    }
+}
 
 // A loadable enum depending on the mechanism is chosen
 #[derive(Debug, PartialEq, Eq, Clone)]

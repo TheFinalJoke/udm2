@@ -7,35 +7,35 @@ pub enum IngredientCommands {
     #[command(about = "Show current Ingredient")]
     Show(ShowIngredientArgs),
     #[command(about = "Remove current Ingredient ")]
-    Remove(RemoveIngredientArgs)
+    Remove(RemoveIngredientArgs),
 }
 
 #[derive(Args, Debug)]
 pub struct AddIngredientArgs {
-    #[arg(long, value_name="JSON", help="Raw json to transform")]
+    #[arg(long, value_name = "JSON", help = "Raw json to transform")]
     raw: String,
     #[arg(short, long)]
     fr_id: Option<i64>,
-    #[arg(short, long, default_value="false")]
-    json: bool
+    #[arg(short, long, default_value = "false")]
+    json: bool,
 }
 
 #[derive(Args, Debug)]
 pub struct ShowIngredientArgs {
-    #[arg(long, value_name="JSON", help="Raw json to transform")]
+    #[arg(long, value_name = "JSON", help = "Raw json to transform")]
     raw: String,
     #[arg(short, long)]
     fr_id: Option<i64>,
-    #[arg(short, long, default_value="false")]
-    json: bool
+    #[arg(short, long, default_value = "false")]
+    json: bool,
 }
 
 #[derive(Args, Debug)]
 pub struct RemoveIngredientArgs {
-    #[arg(long, value_name="JSON", help="Raw json to transform")]
+    #[arg(long, value_name = "JSON", help = "Raw json to transform")]
     raw: String,
     #[arg(short, long)]
     fr_id: Option<i64>,
-    #[arg(short, long, default_value="false")]
-    json: bool
+    #[arg(short, long, default_value = "false")]
+    json: bool,
 }
