@@ -28,7 +28,7 @@
                 "args": [
                     "build",
                     "--bin=daemon",
-                    "--package=udm",
+                    "--package=udm"
                 ],
                 "filter": {
                     "name": "daemon",
