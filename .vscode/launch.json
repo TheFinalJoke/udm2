@@ -28,7 +28,7 @@
                 "args": [
                     "build",
                     "--bin=daemon",
-                    "--package=udm"
+                    "--package=udm",
                 ],
                 "filter": {
                     "name": "daemon",
@@ -37,7 +37,8 @@
             },
             "args": [
                 "--config-file",
-                ".config/local.toml"
+                ".config/local.toml",
+                "-ddddd"
             ],
             "cwd": "${workspaceFolder}",
             "env": {

@@ -5,6 +5,8 @@ use crate::rpc_types::server::udm_service_server::UdmService;
 use crate::rpc_types::server::udm_service_server::UdmServiceServer;
 use crate::rpc_types::service_types::AddFluidRegulatorRequest;
 use crate::rpc_types::service_types::AddFluidRegulatorResponse;
+use crate::rpc_types::service_types::ResetRequest;
+use crate::rpc_types::service_types::ResetResponse;
 use crate::rpc_types::service_types::ServiceResponse;
 use crate::UdmResult;
 use anyhow::Result;
@@ -54,6 +56,26 @@ impl UdmService for DaemonServerContext {
                 "Failed to insert into database: {}",
                 e
             ))),
+        }
+    }
+
+    async fn reset_db(
+        &self,
+        request: Request<ResetRequest>,
+    ) -> Result<Response<ResetResponse>, Status> {
+        log::info!("Got request {:?}", request);
+        let dropped_result = self.connection.truncate_schema().await; 
+        log::info!("the dropped Result {:?}", &dropped_result);
+        match dropped_result {
+            Ok(_) => {
+                log::info!("Successfully dropped rows");
+                Ok(
+                    ResetResponse{}.to_response()
+                )
+            },
+            Err(err) => {
+                Err(Status::cancelled(format!("Failed to drop rows: {}", err.to_string())))
+            }
         }
     }
 }

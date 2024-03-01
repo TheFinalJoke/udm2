@@ -27,18 +27,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
             cli::UdmCommand::Fluid(user_input) => {
                 let _ = user_input.handle_command(server_options).await;
             }
+            cli::UdmCommand::Reset(user_input) => {
+                let _ = user_input.handle_command(server_options).await;
+            }
         }
     }
-    // let request = AddFluidRegulatorRequest{
-    //     fluid: Some(FluidRegulator{
-    //         fr_id: 1,
-    //         gpio_pin: 10,
-    //         regulator_type: RegulatorType::Valve.into()
-    //     })
-    // };
-    // let response = client.add_fluid_regulator(request).await?;
-    // // println!("metadata {:?}", &response.metadata());
-    // // let (metadata, mess, ext) = response.into_parts();
-    // println!("response: {:?}, client {:?}", response.into_inner(), client);
     Ok(())
 }

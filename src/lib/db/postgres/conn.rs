@@ -1,7 +1,12 @@
 use crate::db::{DatabaseTransactionsFactory, DbConnection, SqlTableTransactionsFactory};
 use crate::error::UdmError;
 use crate::parsers::settings;
-use crate::{db, UdmResult};
+use crate::UdmResult;
+use crate::db::FluidRegulationSchema;
+use crate::db::InstructionSchema;
+use crate::db::RecipeSchema;
+use crate::db::IngredientSchema;
+use crate::db::InstructionToRecipeSchema;
 use async_trait::async_trait;
 use log;
 
@@ -73,11 +78,11 @@ impl DatabaseTransactionsFactory for OpenPostgresConnection {
     }
     async fn gen_schmea(&mut self) -> crate::UdmResult<()> {
         let tables = [
-            db::FluidRegulationSchema::create_table(sea_query::PostgresQueryBuilder),
-            db::InstructionSchema::create_table(sea_query::PostgresQueryBuilder),
-            db::RecipeSchema::create_table(sea_query::PostgresQueryBuilder),
-            db::IngredientSchema::create_table(sea_query::PostgresQueryBuilder),
-            db::InstructionToRecipeSchema::create_table(sea_query::PostgresQueryBuilder),
+            FluidRegulationSchema::create_table(sea_query::PostgresQueryBuilder),
+            InstructionSchema::create_table(sea_query::PostgresQueryBuilder),
+            RecipeSchema::create_table(sea_query::PostgresQueryBuilder),
+            IngredientSchema::create_table(sea_query::PostgresQueryBuilder),
+            InstructionToRecipeSchema::create_table(sea_query::PostgresQueryBuilder),
         ]
         .join("; ");
         log::debug!("Ensure schmea is defined");
@@ -86,5 +91,11 @@ impl DatabaseTransactionsFactory for OpenPostgresConnection {
             std::process::exit(20)
         }
         Ok(())
+    }
+    async fn truncate_schema(&self) -> UdmResult<()> {
+        let tables = r#""InstructionToRecipe", "Ingredient", "Recipe", "Instruction", "FluidRegulation""#;
+        let query = format!("TRUNCATE TABLE {};", tables);
+        log::info!("Running query: {}", &query);
+        self.conn.batch_execute(query.as_str()).await.map_err(|e| UdmError::ApiFailure(e.to_string()))
     }
 }

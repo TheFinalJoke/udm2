@@ -3,9 +3,12 @@ use tonic::async_trait;
 
 use crate::parsers::settings;
 use crate::UdmResult;
-use sea_query::foreign_key::{ForeignKeyAction, ForeignKeyCreateStatement};
+use sea_query::foreign_key::ForeignKeyCreateStatement;
+use sea_query::foreign_key::ForeignKeyAction;
 use sea_query::value::Value;
-use sea_query::{ColumnDef, Iden, Table};
+use sea_query::ColumnDef;
+use sea_query::Iden;
+use sea_query::Table;
 use std::rc::Rc;
 use std::sync::Arc;
 pub mod executor;
@@ -31,6 +34,9 @@ pub trait SqlTableTransactionsFactory: SqlTransactionsFactory {
         builder: impl sea_query::backend::SchemaBuilder,
         column_def: &mut ColumnDef,
     ) -> String;
+    fn truncate_table<T: sea_query::Iden + 'static>(table: T, builder: impl sea_query::backend::SchemaBuilder) -> String {
+        Table::truncate().table(table).to_owned().to_string(builder)
+    }
 }
 
 // This Generates and executes the actual queries
@@ -38,6 +44,7 @@ pub trait SqlTableTransactionsFactory: SqlTransactionsFactory {
 pub trait DatabaseTransactionsFactory {
     async fn collect_all_current_tables(&mut self) -> UdmResult<Vec<String>>;
     async fn gen_schmea(&mut self) -> UdmResult<()>;
+    async fn truncate_schema(&self) -> UdmResult<()>;
 }
 
 #[async_trait]
