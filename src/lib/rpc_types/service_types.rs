@@ -24,6 +24,7 @@ impl ServiceRequest for ModifyInstructionRequest {}
 impl ServiceRequest for AddIngredientRequest {}
 impl ServiceRequest for RemoveIngredientRequest {}
 impl ServiceRequest for GetIngredientRequest {}
+impl ServiceRequest for ResetRequest {}
 
 impl ServiceResponse for AddFluidRegulatorResponse {}
 impl ServiceResponse for ModifyFluidRegulatorResponse {}
@@ -37,3 +38,4 @@ impl ServiceResponse for ModifyInstructionResponse {}
 impl ServiceResponse for AddIngredientResponse {}
 impl ServiceResponse for RemoveIngredientResponse {}
 impl ServiceResponse for GetIngredientResponse {}
+impl ServiceResponse for ResetResponse {}

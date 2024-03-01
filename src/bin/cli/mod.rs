@@ -1,3 +1,4 @@
+use clap::Args;
 use clap::Parser;
 use clap::Subcommand;
 pub mod fluid;
@@ -5,6 +6,15 @@ pub mod helpers;
 pub mod ingredient;
 pub mod instruction;
 pub mod recipe;
+use crate::cli::helpers::UdmServerOptions;
+use async_trait::async_trait;
+use lib::error::UdmError;
+use lib::rpc_types::service_types::EntityType;
+use lib::rpc_types::service_types::ResetRequest;
+use lib::rpc_types::service_types::ResetType;
+use lib::UdmResult;
+
+use self::helpers::MainCommandHandler;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -62,4 +72,43 @@ pub enum UdmCommand {
     Instruction(instruction::InstructionCommands),
     #[command(about = "To interact with fluid", subcommand)]
     Fluid(fluid::FluidCommands),
+    #[command(about = "Reset all tables in the database")]
+    Reset(ResetCommands),
+}
+
+#[derive(Args, Debug)]
+pub struct ResetCommands {
+    #[arg(short, long, help = "reset all databases", default_value = "true")]
+    all: bool,
+}
+
+#[async_trait]
+impl MainCommandHandler for ResetCommands {
+    async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()> {
+        let req = ResetRequest {
+            entity: EntityType::Unspecified.into(),
+            reset_type: {
+                if self.all {
+                    ResetType::All.into()
+                } else {
+                    ResetType::Unspecified.into()
+                }
+            },
+        };
+        let mut connection = options.connect().await?;
+        let reset = connection
+            .reset_db(req)
+            .await
+            .map_err(|e| UdmError::ApiFailure(format!("{}", e)));
+        match reset {
+            Ok(_) => {
+                log::info!("Successfully reset the tables");
+                Ok(())
+            }
+            Err(e) => {
+                log::error!("Failed to reset tables: {}", e.to_string());
+                Err(e)
+            }
+        }
+    }
 }

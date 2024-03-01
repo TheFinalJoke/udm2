@@ -6,4 +6,7 @@ import "service.proto";
 service UdmService {
   rpc AddFluidRegulator(service_types.AddFluidRegulatorRequest)
       returns (service_types.AddFluidRegulatorResponse);
+  
+  rpc ResetDb(service_types.ResetRequest)
+      returns (service_types.ResetResponse);
 }

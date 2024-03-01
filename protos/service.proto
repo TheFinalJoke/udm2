@@ -4,6 +4,13 @@ package service_types;
 import "fhs.proto";
 import "recipe.proto";
 
+enum EntityType {
+  ENTITY_TYPE_UNSPECIFIED = 0;
+  ENTITY_TYPE_RECIPE = 1;
+  ENTITY_TYPE_FLUID = 2;
+  ENTITY_TYPE_INSTRUCTION = 3;
+  ENTITY_TYPE_INGREDIENT = 4;
+}
 message Config {
   int32 port = 1;
 }
@@ -108,4 +115,16 @@ message GetIngredientRequest {
 
 message GetIngredientResponse {
   recipe_types.Ingredient ingredient = 1;
+}
+enum ResetType {
+  RESET_TYPE_UNSPECIFIED = 0;
+  RESET_TYPE_ALL = 1;
+}
+message ResetRequest {
+  EntityType entity = 1;
+  ResetType reset_type = 2;
+}
+
+message ResetResponse {
+  
 }

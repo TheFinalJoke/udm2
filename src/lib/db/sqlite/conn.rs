@@ -76,4 +76,7 @@ impl DatabaseTransactionsFactory for OpenSqliteConnection {
         // log::debug!("Tables created");
         // Ok(())
     }
+    async fn truncate_schema(&self) -> UdmResult<()> {
+        todo!()
+    }
 }
