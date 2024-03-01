@@ -37,7 +37,7 @@ pub struct AddFluidArgs {
     #[arg(short, long, default_value = "false")]
     json: bool,
     #[arg(short, long, help = "Specify the ID")]
-    fr_id: Option<i64>,
+    fr_id: Option<i32>,
     #[arg(short='t', long="type", help="Type of regulator", value_parser=fhs_types::RegulatorType::get_possible_values())]
     reg_type: Option<String>,
     #[arg(
@@ -54,16 +54,18 @@ impl UdmGrpcActions<FluidRegulator> for AddFluidArgs {
             let fluid = serde_json::from_str(raw_input)
                 .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")));
             return fluid;
-        } else if self.fr_id.is_none() || self.reg_type.is_none() || self.gpio_pin.is_none() {
+        } else if self.reg_type.is_none() || self.gpio_pin.is_none() {
             return Err(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",
             )));
         }
         Ok(FluidRegulator {
-            fr_id: Some(self.fr_id.unwrap()),
-            regulator_type: Some(fhs_types::RegulatorType::from_str_name(
-                self.reg_type.clone().unwrap().as_str(),
-            ).unwrap().into()),
+            fr_id: self.fr_id,
+            regulator_type: Some(
+                fhs_types::RegulatorType::from_str_name(self.reg_type.clone().unwrap().as_str())
+                    .unwrap()
+                    .into(),
+            ),
             gpio_pin: self.gpio_pin,
         })
     }

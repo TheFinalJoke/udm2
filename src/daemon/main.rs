@@ -1,9 +1,9 @@
 extern crate log;
 use clap::Parser;
 use lib::db;
+use lib::db::DbMetaData;
 use lib::rpc_types::server;
 use lib::{logger, parsers, Retrieval};
-use lib::db::DbMetaData;
 use std::error::Error;
 use std::net::IpAddr;
 use std::net::Ipv4Addr;

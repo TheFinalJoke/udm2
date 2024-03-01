@@ -1,4 +1,3 @@
-use log;
 use config::{Config, File, FileFormat};
 use std::path::PathBuf;
 use std::result;

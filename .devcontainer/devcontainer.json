@@ -41,6 +41,7 @@
 		}
 	},
 	"containerEnv": {
-		"DEBUG": "1"
+		"DEBUG": "1",
+		"UDM_POSTGRES_PW": "postgres"
 	}
 }

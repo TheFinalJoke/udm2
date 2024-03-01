@@ -18,7 +18,7 @@ enum DrinkSize {
   DRINK_SIZE_EXTRA_LARGE = 5;
 }
 message Instruction {
-  int64 id = 1;
+  int32 id = 1;
   string instruction_detail = 2;
   optional recipe_types.Ingredient ingredient = 3;
 }
@@ -38,7 +38,7 @@ message Ingredient {
 }
 
 message Recipe {
-  int64 id = 1;
+  int32 id = 1;
   string name = 2;
   DrinkSize size = 3;
   map<int32, Instruction> instructions = 4;

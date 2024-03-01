@@ -5,7 +5,7 @@ import "fhs.proto";
 import "recipe.proto";
 
 message Config {
-  int64 port = 1;
+  int32 port = 1;
 }
 
 message AddReceipeRequest {
@@ -13,11 +13,11 @@ message AddReceipeRequest {
 }
 
 message AddReceipeResponse {
-  int64 receipe_id = 1;
+  int32 receipe_id = 1;
 }
 
 message GetRecipeRequest {
-  int64 recipe_id = 1;
+  int32 recipe_id = 1;
 }
 
 message GetRecipeResponse {
@@ -29,7 +29,7 @@ message ModifyRecipeRequest {
 }
 
 message ModifyRecipeResponse {
-  int64 recipe_id = 1;
+  int32 recipe_id = 1;
 }
 
 message AddInstructionRequest {
@@ -37,11 +37,11 @@ message AddInstructionRequest {
 }
 
 message AddInstructionResponse {
-  int64 instruction_id = 1;
+  int32 instruction_id = 1;
 }
 
 message GetInstructionRequest {
-  int64 instruction_id = 1;
+  int32 instruction_id = 1;
 }
 
 message GetInstructionResponse {
@@ -53,11 +53,11 @@ message ModifyInstructionRequest {
 }
 
 message ModifyInstructionResponse {
-  int64 instruction_id = 1;
+  int32 instruction_id = 1;
 }
 
 message ModifyFluidRegulatorRequest {
-  int64 fu_id = 1;
+  int32 fr_id = 1;
 }
 
 message ModifyFluidRegulatorResponse {
@@ -68,20 +68,22 @@ message AddFluidRegulatorRequest {
 }
 
 message RemoveFluidRegulatorRequest {
-  int64 fr_id = 1;
+  int32 fr_id = 1;
 }
 
-message RemoveFluidRegulatorResponse {}
+message RemoveFluidRegulatorResponse {
+  
+}
 
 message AddFluidRegulatorResponse {
-  int64 fu_id = 1;
+  int32 fr_id = 1;
 }
 message ModifyIngredientRequest {
   recipe_types.Ingredient ingredient = 1;
 }
 
 message ModifyIngredientResponse {
-  int64 ingredient_id = 1;
+  int32 ingredient_id = 1;
 }
 
 message AddIngredientRequest {
@@ -89,7 +91,7 @@ message AddIngredientRequest {
 }
 
 message AddIngredientResponse {
-  int64 ingredient_id = 1;
+  int32 ingredient_id = 1;
 }
 
 message RemoveIngredientResponse {
@@ -97,11 +99,11 @@ message RemoveIngredientResponse {
 }
 
 message RemoveIngredientRequest {
-  int64 ingredient_id = 1;
+  int32 ingredient_id = 1;
 }
 
 message GetIngredientRequest {
-  int64 ingredient_id = 1;
+  int32 ingredient_id = 1;
 }
 
 message GetIngredientResponse {

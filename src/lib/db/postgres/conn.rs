@@ -1,7 +1,9 @@
-use crate::{db, UdmResult};
 use crate::db::{DatabaseTransactionsFactory, DbConnection, SqlTableTransactionsFactory};
+use crate::error::UdmError;
 use crate::parsers::settings;
+use crate::{db, UdmResult};
 use async_trait::async_trait;
+use log;
 
 use tokio_postgres::{Config, NoTls};
 
@@ -10,10 +12,15 @@ pub struct OpenPostgresConnection {
 }
 #[async_trait]
 impl DbConnection for OpenPostgresConnection {
-    async fn insert(&self, stmt: String) -> UdmResult<i64> {
+    async fn insert(&self, stmt: String) -> UdmResult<i32> {
+        log::info!("Received insert call query: {}", &stmt);
         let prepared = self.conn.prepare(stmt.as_str()).await?;
         let row = self.conn.query_one(&prepared, &[]).await?;
-        Ok(row.get(0))
+        let data: UdmResult<i32> = row
+            .try_get(0)
+            .map_err(|e| UdmError::ApiFailure(e.to_string()));
+        log::debug!("Result from inserting into db {:?}", &data);
+        data
     }
 }
 
@@ -33,7 +40,7 @@ impl OpenPostgresConnection {
                 std::process::exit(10)
             }
         });
-        Self { conn: client}
+        Self { conn: client }
     }
     pub async fn collect_current_dbs(&mut self) -> crate::UdmResult<Vec<String>> {
         log::debug!("Collecting Current databases");
@@ -81,4 +88,3 @@ impl DatabaseTransactionsFactory for OpenPostgresConnection {
         Ok(())
     }
 }
-

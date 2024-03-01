@@ -5,7 +5,6 @@ pub mod recipe_types;
 pub mod server;
 pub mod service_types;
 
-
 pub enum TaskIdentifier {
     AddFluid,
     ModFluid,

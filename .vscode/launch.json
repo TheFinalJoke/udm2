@@ -37,10 +37,12 @@
             },
             "args": [
                 "--config-file",
-                ".config/local.toml",
-                "-ddddd"
+                ".config/local.toml"
             ],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "UDM_POSTGRES_PW": "postgres"
+            }
         },
         {
             "type": "lldb",
