@@ -1,12 +1,12 @@
+use crate::db::FluidRegulationSchema;
+use crate::db::IngredientSchema;
+use crate::db::InstructionSchema;
+use crate::db::InstructionToRecipeSchema;
+use crate::db::RecipeSchema;
 use crate::db::{DatabaseTransactionsFactory, DbConnection, SqlTableTransactionsFactory};
 use crate::error::UdmError;
 use crate::parsers::settings;
 use crate::UdmResult;
-use crate::db::FluidRegulationSchema;
-use crate::db::InstructionSchema;
-use crate::db::RecipeSchema;
-use crate::db::IngredientSchema;
-use crate::db::InstructionToRecipeSchema;
 use async_trait::async_trait;
 use log;
 
@@ -47,14 +47,14 @@ impl OpenPostgresConnection {
         });
         Self { conn: client }
     }
-    pub async fn collect_current_dbs(&mut self) -> crate::UdmResult<Vec<String>> {
+    pub async fn collect_current_dbs(&mut self) -> UdmResult<Vec<String>> {
         log::debug!("Collecting Current databases");
         let sql = "SELECT datname FROM pg_database";
         let stmt = self.conn.prepare(sql).await?;
         let collected_db_rows = self.conn.query(&stmt, &[]).await;
         Self::from_row_to_vec_string(collected_db_rows?)
     }
-    fn from_row_to_vec_string(rows: Vec<tokio_postgres::Row>) -> crate::UdmResult<Vec<String>> {
+    fn from_row_to_vec_string(rows: Vec<tokio_postgres::Row>) -> UdmResult<Vec<String>> {
         let mut tables: Vec<String> = Vec::new();
         for row in rows {
             if let Ok(data) = row.try_get(0) {
@@ -67,7 +67,7 @@ impl OpenPostgresConnection {
 }
 #[async_trait]
 impl DatabaseTransactionsFactory for OpenPostgresConnection {
-    async fn collect_all_current_tables(&mut self) -> crate::UdmResult<Vec<String>> {
+    async fn collect_all_current_tables(&mut self) -> UdmResult<Vec<String>> {
         log::debug!("Getting Current tables from protgres database");
         let stmt = self
             .conn
@@ -76,7 +76,7 @@ impl DatabaseTransactionsFactory for OpenPostgresConnection {
         let table_rows = self.conn.query(&stmt, &[]).await;
         Self::from_row_to_vec_string(table_rows?)
     }
-    async fn gen_schmea(&mut self) -> crate::UdmResult<()> {
+    async fn gen_schmea(&mut self) -> UdmResult<()> {
         let tables = [
             FluidRegulationSchema::create_table(sea_query::PostgresQueryBuilder),
             InstructionSchema::create_table(sea_query::PostgresQueryBuilder),
@@ -93,9 +93,13 @@ impl DatabaseTransactionsFactory for OpenPostgresConnection {
         Ok(())
     }
     async fn truncate_schema(&self) -> UdmResult<()> {
-        let tables = r#""InstructionToRecipe", "Ingredient", "Recipe", "Instruction", "FluidRegulation""#;
+        let tables =
+            r#""InstructionToRecipe", "Ingredient", "Recipe", "Instruction", "FluidRegulation""#;
         let query = format!("TRUNCATE TABLE {};", tables);
         log::info!("Running query: {}", &query);
-        self.conn.batch_execute(query.as_str()).await.map_err(|e| UdmError::ApiFailure(e.to_string()))
+        self.conn
+            .batch_execute(query.as_str())
+            .await
+            .map_err(|e| UdmError::ApiFailure(e.to_string()))
     }
 }

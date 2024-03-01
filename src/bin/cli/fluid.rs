@@ -83,7 +83,10 @@ impl MainCommandHandler for AddFluidArgs {
             .await
             .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
         log::debug!("Got response {:?}", response);
-        log::info!("Inserted into database, got ID back {}", response.into_inner().fr_id);
+        log::info!(
+            "Inserted into database, got ID back {}",
+            response.into_inner().fr_id
+        );
         Ok(())
     }
 }

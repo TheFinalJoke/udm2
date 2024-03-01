@@ -64,18 +64,14 @@ impl UdmService for DaemonServerContext {
         request: Request<ResetRequest>,
     ) -> Result<Response<ResetResponse>, Status> {
         log::info!("Got request {:?}", request);
-        let dropped_result = self.connection.truncate_schema().await; 
+        let dropped_result = self.connection.truncate_schema().await;
         log::info!("the dropped Result {:?}", &dropped_result);
         match dropped_result {
             Ok(_) => {
                 log::info!("Successfully dropped rows");
-                Ok(
-                    ResetResponse{}.to_response()
-                )
-            },
-            Err(err) => {
-                Err(Status::cancelled(format!("Failed to drop rows: {}", err.to_string())))
+                Ok(ResetResponse {}.to_response())
             }
+            Err(err) => Err(Status::cancelled(format!("Failed to drop rows: {}", err))),
         }
     }
 }

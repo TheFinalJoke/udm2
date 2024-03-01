@@ -8,9 +8,9 @@ pub mod instruction;
 pub mod recipe;
 use crate::cli::helpers::UdmServerOptions;
 use async_trait::async_trait;
+use lib::error::UdmError;
 use lib::rpc_types::service_types::EntityType;
 use lib::rpc_types::service_types::ResetRequest;
-use lib::error::UdmError;
 use lib::rpc_types::service_types::ResetType;
 use lib::UdmResult;
 
@@ -94,19 +94,21 @@ impl MainCommandHandler for ResetCommands {
                     ResetType::Unspecified.into()
                 }
             },
-            ..Default::default()
         };
         let mut connection = options.connect().await?;
-        let reset = connection.reset_db(req).await.map_err(|e| UdmError::ApiFailure(format!("{}", e)));
+        let reset = connection
+            .reset_db(req)
+            .await
+            .map_err(|e| UdmError::ApiFailure(format!("{}", e)));
         match reset {
             Ok(_) => {
                 log::info!("Successfully reset the tables");
                 Ok(())
-            },
+            }
             Err(e) => {
                 log::error!("Failed to reset tables: {}", e.to_string());
                 Err(e)
-            },
+            }
         }
     }
 }

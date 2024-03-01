@@ -3,8 +3,8 @@ use tonic::async_trait;
 
 use crate::parsers::settings;
 use crate::UdmResult;
-use sea_query::foreign_key::ForeignKeyCreateStatement;
 use sea_query::foreign_key::ForeignKeyAction;
+use sea_query::foreign_key::ForeignKeyCreateStatement;
 use sea_query::value::Value;
 use sea_query::ColumnDef;
 use sea_query::Iden;
@@ -34,7 +34,10 @@ pub trait SqlTableTransactionsFactory: SqlTransactionsFactory {
         builder: impl sea_query::backend::SchemaBuilder,
         column_def: &mut ColumnDef,
     ) -> String;
-    fn truncate_table<T: sea_query::Iden + 'static>(table: T, builder: impl sea_query::backend::SchemaBuilder) -> String {
+    fn truncate_table<T: sea_query::Iden + 'static>(
+        table: T,
+        builder: impl sea_query::backend::SchemaBuilder,
+    ) -> String {
         Table::truncate().table(table).to_owned().to_string(builder)
     }
 }
