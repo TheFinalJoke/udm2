@@ -111,3 +111,47 @@ pub struct RemoveFluidArgs {
     #[arg(short, long, help = "Remove fluid regulator by ID", required = true)]
     fr_id: Option<i64>,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use lib::rpc_types::fhs_types::FluidRegulator;
+    use lib::rpc_types::fhs_types::RegulatorType;
+
+    #[test]
+    fn test_sanatize_input() {
+        let add_fluid = AddFluidArgs {
+            raw: None,
+            json: false,
+            fr_id: None,
+            reg_type: Some("REGULATOR_TYPE_VALVE".to_string()),
+            gpio_pin: Some(12),
+        };
+        let fr = add_fluid.sanatize_input();
+        let expected_result = FluidRegulator {
+            regulator_type: Some(RegulatorType::Valve.into()),
+            gpio_pin: Some(12),
+            ..Default::default()
+        };
+        assert_eq!(fr.unwrap(), expected_result)
+    }
+    #[test]
+    fn test_sanatize_input_raw() {
+        let raw = r#"{"fr_id": 1, "regulator_type": 1, "gpio_pin": 12}"#.to_string();
+        let add_fluid = AddFluidArgs {
+            raw: Some(raw),
+            json: false,
+            fr_id: None,
+            reg_type: None,
+            gpio_pin: None,
+        };
+        let fr = add_fluid.sanatize_input();
+        let expected_result = FluidRegulator {
+            fr_id: Some(1),
+            regulator_type: Some(RegulatorType::Valve.into()),
+            gpio_pin: Some(12),
+            ..Default::default()
+        };
+        assert_eq!(fr.unwrap(), expected_result)
+    }
+}
