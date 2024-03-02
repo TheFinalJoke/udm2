@@ -1,9 +1,11 @@
+use crate::db::DatabaseTransactionsFactory;
+use crate::db::DbConnection;
 use crate::db::FluidRegulationSchema;
 use crate::db::IngredientSchema;
 use crate::db::InstructionSchema;
 use crate::db::InstructionToRecipeSchema;
 use crate::db::RecipeSchema;
-use crate::db::{DatabaseTransactionsFactory, DbConnection, SqlTableTransactionsFactory};
+use crate::db::SqlTableTransactionsFactory;
 use crate::error::UdmError;
 use crate::parsers::settings;
 use crate::UdmResult;

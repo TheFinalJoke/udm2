@@ -1,11 +1,13 @@
 use crate::cli::helpers::MainCommandHandler;
 use crate::cli::helpers::UdmGrpcActions;
 use crate::cli::helpers::UdmServerOptions;
-use clap::{Args, Subcommand};
+use clap::Args;
+use clap::Subcommand;
 use lib::error::UdmError;
-use lib::rpc_types::fhs_types;
 use lib::rpc_types::fhs_types::FluidRegulator;
-use lib::rpc_types::service_types;
+use lib::rpc_types::fhs_types::RegulatorType;
+use lib::rpc_types::service_types::AddFluidRegulatorRequest;
+use lib::rpc_types::service_types::RemoveFluidRegulatorRequest;
 use lib::UdmResult;
 use tonic::async_trait;
 
@@ -25,7 +27,7 @@ impl MainCommandHandler for FluidCommands {
             // Need to pass the client information here
             FluidCommands::Add(user_input) => user_input.handle_command(options).await,
             FluidCommands::Show(_user_input) => todo!(),
-            FluidCommands::Remove(_user_input) => todo!(),
+            FluidCommands::Remove(user_input) => user_input.handle_command(options).await,
         }
     }
 }
@@ -38,7 +40,7 @@ pub struct AddFluidArgs {
     json: bool,
     #[arg(short, long, help = "Specify the ID")]
     fr_id: Option<i32>,
-    #[arg(short='t', long="type", help="Type of regulator", value_parser=fhs_types::RegulatorType::get_possible_values())]
+    #[arg(short='t', long="type", help="Type of regulator", value_parser=RegulatorType::get_possible_values())]
     reg_type: Option<String>,
     #[arg(
         short = 'g',
@@ -62,7 +64,7 @@ impl UdmGrpcActions<FluidRegulator> for AddFluidArgs {
         Ok(FluidRegulator {
             fr_id: self.fr_id,
             regulator_type: Some(
-                fhs_types::RegulatorType::from_str_name(self.reg_type.clone().unwrap().as_str())
+                RegulatorType::from_str_name(self.reg_type.clone().unwrap().as_str())
                     .unwrap()
                     .into(),
             ),
@@ -79,7 +81,7 @@ impl MainCommandHandler for AddFluidArgs {
         });
         let mut open_connection = options.connect().await?;
         let response = open_connection
-            .add_fluid_regulator(service_types::AddFluidRegulatorRequest { fluid: Some(fr) })
+            .add_fluid_regulator(AddFluidRegulatorRequest { fluid: Some(fr) })
             .await
             .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
         log::debug!("Got response {:?}", response);
@@ -109,7 +111,19 @@ pub struct ShowFluidArgs {
 #[derive(Args, Debug)]
 pub struct RemoveFluidArgs {
     #[arg(short, long, help = "Remove fluid regulator by ID", required = true)]
-    fr_id: Option<i64>,
+    fr_id: Option<i32>,
+}
+#[async_trait]
+impl MainCommandHandler for RemoveFluidArgs {
+    async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()> {
+        let id = self.fr_id.ok_or_else(|| {
+            UdmError::InvalidInput("Invalid input to remove fluid regulator".to_string())
+        })?;
+        let req = RemoveFluidRegulatorRequest { fr_id: id };
+        let open_conn = options.connect().await?;
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
