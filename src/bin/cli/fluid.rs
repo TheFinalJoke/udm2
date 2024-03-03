@@ -1,7 +1,7 @@
+use crate::cli::helpers::ensure_removal;
 use crate::cli::helpers::MainCommandHandler;
 use crate::cli::helpers::UdmGrpcActions;
 use crate::cli::helpers::UdmServerOptions;
-use crate::cli::helpers::ensure_removal;
 use clap::Args;
 use clap::Subcommand;
 use lib::error::UdmError;
