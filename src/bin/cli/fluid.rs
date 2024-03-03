@@ -58,9 +58,10 @@ impl UdmGrpcActions<FluidRegulator> for AddFluidArgs {
     fn sanatize_input(&self) -> lib::UdmResult<FluidRegulator> {
         if let Some(raw_input) = &self.raw {
             log::debug!("Json passed: {}", &raw_input);
-            let fluid = serde_json::from_str(raw_input)
-                .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")));
-            return fluid;
+            let fluid: FluidRegulator = serde_json::from_str(raw_input)
+                .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
+            fluid.validate_without_id_fields()?;
+            return Ok(fluid);
         }
         if self.reg_type.is_none() || self.gpio_pin.is_none() {
             return Err(UdmError::InvalidInput(String::from(
@@ -120,9 +121,10 @@ impl UdmGrpcActions<FluidRegulator> for UpdateFluidArgs {
     fn sanatize_input(&self) -> lib::UdmResult<FluidRegulator> {
         if let Some(raw_input) = &self.raw {
             log::debug!("Json passed: {}", &raw_input);
-            let fluid = serde_json::from_str(raw_input)
-                .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")));
-            return fluid;
+            let fluid: FluidRegulator = serde_json::from_str(raw_input)
+                .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
+            fluid.validate_all_fields()?;
+            return Ok(fluid);
         }
         if self.fr_id.is_none() || self.reg_type.is_none() || self.gpio_pin.is_none() {
             return Err(UdmError::InvalidInput(String::from(
@@ -210,7 +212,7 @@ mod tests {
     use lib::rpc_types::fhs_types::RegulatorType;
 
     #[test]
-    fn test_sanatize_input() {
+    fn test_sanatize_add_input() {
         let add_fluid = AddFluidArgs {
             raw: None,
             json: false,
@@ -227,7 +229,7 @@ mod tests {
         assert_eq!(fr.unwrap(), expected_result)
     }
     #[test]
-    fn test_sanatize_input_raw() {
+    fn test_sanatize_input_add_raw() {
         let raw = r#"{"fr_id": 1, "regulator_type": 1, "gpio_pin": 12}"#.to_string();
         let add_fluid = AddFluidArgs {
             raw: Some(raw),
@@ -244,5 +246,97 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(fr.unwrap(), expected_result)
+    }
+    #[test]
+    fn test_sanatize_update_input() {
+        let update_fluid = UpdateFluidArgs {
+            raw: None,
+            json: false,
+            fr_id: Some(1),
+            reg_type: Some("REGULATOR_TYPE_VALVE".to_string()),
+            gpio_pin: Some(12),
+        };
+        let fr = update_fluid.sanatize_input();
+        let expected_result = FluidRegulator {
+            fr_id: Some(1),
+            regulator_type: Some(RegulatorType::Valve.into()),
+            gpio_pin: Some(12),
+        };
+        assert_eq!(fr.unwrap(), expected_result)
+    }
+    #[test]
+    fn test_sanatize_input_update_raw() {
+        let raw = r#"{"fr_id": 1, "regulator_type": 1, "gpio_pin": 12}"#.to_string();
+        let update_fluid = UpdateFluidArgs {
+            raw: Some(raw),
+            json: false,
+            fr_id: None,
+            reg_type: None,
+            gpio_pin: None,
+        };
+        let fr = update_fluid.sanatize_input();
+        let expected_result = FluidRegulator {
+            fr_id: Some(1),
+            regulator_type: Some(RegulatorType::Valve.into()),
+            gpio_pin: Some(12),
+            ..Default::default()
+        };
+        assert_eq!(fr.unwrap(), expected_result)
+    }
+    #[test]
+    fn test_sanatize_input_add_raw_not_all_valued() {
+        let raw = r#"{"gpio_pin": 12}"#.to_string();
+        let add_fluid = AddFluidArgs {
+            raw: Some(raw),
+            json: false,
+            fr_id: None,
+            reg_type: None,
+            gpio_pin: None,
+        };
+        let fr = add_fluid.sanatize_input();
+        assert_eq!(
+            fr.unwrap_err().to_string(),
+            "Invalid Input `Not all required fields were passed`".to_string()
+        )
+    }
+    #[test]
+    fn test_sanatize_add_input_not_all_values() {
+        let add_fluid = AddFluidArgs {
+            raw: None,
+            json: false,
+            fr_id: None,
+            reg_type: None,
+            gpio_pin: Some(12),
+        };
+        let fr = add_fluid.sanatize_input();
+        assert_eq!(fr.is_err(), true)
+    }
+    #[test]
+    fn test_sanatize_input_update_raw_not_all_valued() {
+        let raw = r#"{"regulator_type": 1, "gpio_pin": 12}"#.to_string();
+        let update_fluid = UpdateFluidArgs {
+            raw: Some(raw),
+            json: false,
+            fr_id: None,
+            reg_type: None,
+            gpio_pin: None,
+        };
+        let fr = update_fluid.sanatize_input();
+        assert_eq!(
+            fr.unwrap_err().to_string(),
+            "Invalid Input `Not all required fields were passed`".to_string()
+        )
+    }
+    #[test]
+    fn test_sanatize_update_input_not_all_values() {
+        let update_fluid = UpdateFluidArgs {
+            raw: None,
+            json: false,
+            fr_id: None,
+            reg_type: Some("REGULATOR_TYPE_VALVE".to_string()),
+            gpio_pin: Some(12),
+        };
+        let fr = update_fluid.sanatize_input();
+        assert_eq!(fr.is_err(), true)
     }
 }

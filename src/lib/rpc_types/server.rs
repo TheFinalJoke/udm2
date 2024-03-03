@@ -100,7 +100,10 @@ impl UdmService for DaemonServerContext {
         request: Request<ModifyFluidRegulatorRequest>,
     ) -> Result<Response<ModifyFluidRegulatorResponse>, Status> {
         log::debug!("Got {:?}", request);
-        let fr = request.into_inner().fluid.ok_or_else(|| Status::cancelled("Invalid request to remove fluid regulator"))?;
+        let fr = request
+            .into_inner()
+            .fluid
+            .ok_or_else(|| Status::cancelled("Invalid request to remove fluid regulator"))?;
         let query = fr.gen_update_query().to_string(PostgresQueryBuilder);
         let result = self.connection.update(query).await;
         match result {

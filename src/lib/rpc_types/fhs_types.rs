@@ -1,5 +1,7 @@
 use crate::db::executor::GenQueries;
 use crate::db::FluidRegulationSchema;
+use crate::error::UdmError;
+use crate::UdmResult;
 use async_trait::async_trait;
 use sea_query::DeleteStatement;
 use sea_query::Expr;
@@ -42,10 +44,34 @@ impl GenQueries for FluidRegulator {
     fn gen_update_query(&self) -> UpdateStatement {
         Query::update()
             .table(FluidRegulationSchema::Table)
-            .values([(FluidRegulationSchema::GpioPin, self.gpio_pin.into()), (FluidRegulationSchema::RegulatorType, self.regulator_type.into())])
+            .values([
+                (FluidRegulationSchema::GpioPin, self.gpio_pin.into()),
+                (
+                    FluidRegulationSchema::RegulatorType,
+                    self.regulator_type.into(),
+                ),
+            ])
             .and_where(Expr::col(FluidRegulationSchema::FrId).eq(self.fr_id))
             .returning(Query::returning().column(FluidRegulationSchema::FrId))
             .to_owned()
+    }
+}
+impl FluidRegulator {
+    pub fn validate_all_fields(&self) -> UdmResult<()> {
+        if self.fr_id.is_none() || self.regulator_type.is_none() || self.gpio_pin.is_none() {
+            return Err(UdmError::InvalidInput(String::from(
+                "`Not all required fields were passed`",
+            )));
+        }
+        Ok(())
+    }
+    pub fn validate_without_id_fields(&self) -> UdmResult<()> {
+        if self.regulator_type.is_none() || self.gpio_pin.is_none() {
+            return Err(UdmError::InvalidInput(String::from(
+                "`Not all required fields were passed`",
+            )));
+        }
+        Ok(())
     }
 }
 #[cfg(test)]
@@ -72,5 +98,17 @@ mod tests {
         let query = FluidRegulator::gen_remove_query(fr_id);
         let expected = r#"DELETE FROM "FluidRegulation" WHERE "fr_id" = 2"#;
         assert_eq!(query.to_string(PostgresQueryBuilder), expected);
+    }
+
+    #[test]
+    fn test_gen_update_query() {
+        let fr = FluidRegulator {
+            fr_id: Some(1),
+            gpio_pin: Some(23),
+            regulator_type: Some(RegulatorType::Tap.into()),
+        };
+        let query = fr.gen_update_query().to_string(PostgresQueryBuilder);
+        let expected_query = r#"UPDATE "FluidRegulation" SET "gpio_pin" = 23, "regulator_type" = 3 WHERE "fr_id" = 1 RETURNING "fr_id""#.to_string();
+        assert_eq!(query, expected_query)
     }
 }

@@ -7,8 +7,8 @@ use sea_query::DeleteStatement;
 use sea_query::InsertStatement;
 use sea_query::Query;
 use sea_query::SelectStatement;
-use sea_query::UpdateStatement;
 use sea_query::SimpleExpr;
+use sea_query::UpdateStatement;
 
 #[async_trait]
 pub trait GenQueries {
