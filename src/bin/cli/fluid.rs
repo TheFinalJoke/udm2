@@ -1,6 +1,7 @@
 use crate::cli::helpers::MainCommandHandler;
 use crate::cli::helpers::UdmGrpcActions;
 use crate::cli::helpers::UdmServerOptions;
+use crate::cli::helpers::ensure_removal;
 use clap::Args;
 use clap::Subcommand;
 use lib::error::UdmError;
@@ -119,9 +120,19 @@ impl MainCommandHandler for RemoveFluidArgs {
         let id = self.fr_id.ok_or_else(|| {
             UdmError::InvalidInput("Invalid input to remove fluid regulator".to_string())
         })?;
+        let _ = ensure_removal();
         let req = RemoveFluidRegulatorRequest { fr_id: id };
-        let open_conn = options.connect().await?;
-
+        let mut open_conn = options.connect().await?;
+        let response = open_conn.remove_fluid_regulator(req).await;
+        log::debug!("Got response {:?}", response);
+        match response {
+            Ok(_) => {
+                log::info!("Successfully removed from database");
+            }
+            Err(err) => {
+                log::error!("Error removing from db: {}", err.to_string())
+            }
+        }
         Ok(())
     }
 }

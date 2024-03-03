@@ -29,6 +29,13 @@ impl DbConnection for OpenPostgresConnection {
         log::debug!("Result from inserting into db {:?}", &data);
         data
     }
+    async fn delete(&self, stmt: String) -> UdmResult<()> {
+        log::info!("Recieved delete call query: {}", &stmt);
+        let prepared = self.conn.prepare(stmt.as_str()).await?;
+        let result = self.conn.query_opt(&prepared, &[]).await;
+        log::debug!("Result from deleting from db: {:?}", &result);
+        Ok(())
+    }
 }
 
 impl OpenPostgresConnection {
