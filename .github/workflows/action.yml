@@ -34,7 +34,7 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
     - name: Linting the Code Base
-      uses: super-linter/super-linter@v5.7.2
+      uses: super-linter/super-linter@v6.3.0
       env:
         DEFAULT_BRANCH: main
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
