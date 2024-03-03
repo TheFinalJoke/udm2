@@ -24,7 +24,7 @@ message ModifyFluidRegulatorRequest {
 }
 
 message ModifyFluidRegulatorResponse {
-  fhs_types.FluidRegulator fluid = 1;
+  int32 fr_id = 1;
 }
 message AddFluidRegulatorRequest {
   fhs_types.FluidRegulator fluid = 1;
@@ -88,7 +88,7 @@ message ModifyInstructionRequest {
 }
 
 message ModifyInstructionResponse {
-  recipe_types.Instruction instruction = 1;
+  int32 instruction_id = 1;
 }
 
 message ModifyIngredientRequest {
@@ -96,7 +96,7 @@ message ModifyIngredientRequest {
 }
 
 message ModifyIngredientResponse {
-  recipe_types.Ingredient ingredient = 1;
+  int32 ingredient_id = 1;
 }
 
 message AddIngredientRequest {

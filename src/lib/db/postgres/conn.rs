@@ -1,11 +1,11 @@
 use crate::db::DatabaseTransactionsFactory;
-use crate::db::DbConnection;
 use crate::db::FluidRegulationSchema;
 use crate::db::IngredientSchema;
 use crate::db::InstructionSchema;
 use crate::db::InstructionToRecipeSchema;
 use crate::db::RecipeSchema;
 use crate::db::SqlTableTransactionsFactory;
+use crate::db::DbConnection;
 use crate::error::UdmError;
 use crate::parsers::settings;
 use crate::UdmResult;
@@ -30,11 +30,19 @@ impl DbConnection for OpenPostgresConnection {
         data
     }
     async fn delete(&self, stmt: String) -> UdmResult<()> {
-        log::info!("Recieved delete call query: {}", &stmt);
+        log::info!("Received delete call query: {}", &stmt);
         let prepared = self.conn.prepare(stmt.as_str()).await?;
         let result = self.conn.query_opt(&prepared, &[]).await;
         log::debug!("Result from deleting from db: {:?}", &result);
         Ok(())
+    }
+    async fn update(&self, stmt: String) -> UdmResult<i32> {
+        log::info!("Received update call query: {}", &stmt);
+        let prepared = self.conn.prepare(stmt.as_str()).await?;
+        let row = self.conn.query_one(&prepared, &[]).await?;
+        let data: UdmResult<i32> = row.try_get(0).map_err(|e| UdmError::ApiFailure(e.to_string()));
+        log::debug!("Result from inserting into db {:?}", &data);
+        data
     }
 }
 

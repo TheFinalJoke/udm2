@@ -5,6 +5,7 @@ use sea_query::DeleteStatement;
 use sea_query::Expr;
 use sea_query::InsertStatement;
 use sea_query::Query;
+use sea_query::UpdateStatement;
 
 tonic::include_proto!("fhs_types");
 
@@ -36,6 +37,14 @@ impl GenQueries for FluidRegulator {
         Query::delete()
             .from_table(FluidRegulationSchema::Table)
             .and_where(Expr::col(FluidRegulationSchema::FrId).eq(id))
+            .to_owned()
+    }
+    fn gen_update_query(&self) -> UpdateStatement {
+        Query::update()
+            .table(FluidRegulationSchema::Table)
+            .values([(FluidRegulationSchema::GpioPin, self.gpio_pin.into()), (FluidRegulationSchema::RegulatorType, self.regulator_type.into())])
+            .and_where(Expr::col(FluidRegulationSchema::FrId).eq(self.fr_id))
+            .returning(Query::returning().column(FluidRegulationSchema::FrId))
             .to_owned()
     }
 }

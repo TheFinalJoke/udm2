@@ -7,6 +7,7 @@ use sea_query::DeleteStatement;
 use sea_query::InsertStatement;
 use sea_query::Query;
 use sea_query::SelectStatement;
+use sea_query::UpdateStatement;
 use sea_query::SimpleExpr;
 
 #[async_trait]
@@ -25,4 +26,5 @@ pub trait GenQueries {
         query.to_owned()
     }
     fn gen_remove_query(id: i32) -> DeleteStatement;
+    fn gen_update_query(&self) -> UpdateStatement;
 }

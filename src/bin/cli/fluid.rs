@@ -8,6 +8,7 @@ use lib::error::UdmError;
 use lib::rpc_types::fhs_types::FluidRegulator;
 use lib::rpc_types::fhs_types::RegulatorType;
 use lib::rpc_types::service_types::AddFluidRegulatorRequest;
+use lib::rpc_types::service_types::ModifyFluidRegulatorRequest;
 use lib::rpc_types::service_types::RemoveFluidRegulatorRequest;
 use lib::UdmResult;
 use tonic::async_trait;
@@ -20,6 +21,8 @@ pub enum FluidCommands {
     Show(ShowFluidArgs),
     #[command(about = "Remove a fluid regulator")]
     Remove(RemoveFluidArgs),
+    #[command(about = "Update a fluid regulator")]
+    Update(UpdateFluidArgs),
 }
 #[async_trait]
 impl MainCommandHandler for FluidCommands {
@@ -29,6 +32,7 @@ impl MainCommandHandler for FluidCommands {
             FluidCommands::Add(user_input) => user_input.handle_command(options).await,
             FluidCommands::Show(_user_input) => todo!(),
             FluidCommands::Remove(user_input) => user_input.handle_command(options).await,
+            FluidCommands::Update(user_input) => user_input.handle_command(options).await,
         }
     }
 }
@@ -57,7 +61,8 @@ impl UdmGrpcActions<FluidRegulator> for AddFluidArgs {
             let fluid = serde_json::from_str(raw_input)
                 .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")));
             return fluid;
-        } else if self.reg_type.is_none() || self.gpio_pin.is_none() {
+        }
+        if self.reg_type.is_none() || self.gpio_pin.is_none() {
             return Err(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",
             )));
@@ -94,6 +99,67 @@ impl MainCommandHandler for AddFluidArgs {
     }
 }
 
+#[derive(Args, Debug)]
+pub struct UpdateFluidArgs {
+    #[arg(long, value_name = "JSON", help = "Raw json to transform")]
+    raw: Option<String>,
+    #[arg(short, long, default_value = "false")]
+    json: bool,
+    #[arg(short, long, help = "Specify the ID")]
+    fr_id: Option<i32>,
+    #[arg(short='t', long="type", help="Type of regulator", value_parser=RegulatorType::get_possible_values())]
+    reg_type: Option<String>,
+    #[arg(
+        short = 'g',
+        long = "gpio_pin",
+        help = "The GPIO pin the device is connected"
+    )]
+    gpio_pin: Option<i32>,
+}
+impl UdmGrpcActions<FluidRegulator> for UpdateFluidArgs {
+    fn sanatize_input(&self) -> lib::UdmResult<FluidRegulator> {
+        if let Some(raw_input) = &self.raw {
+            log::debug!("Json passed: {}", &raw_input);
+            let fluid = serde_json::from_str(raw_input)
+                .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")));
+            return fluid;
+        }
+        if self.fr_id.is_none() || self.reg_type.is_none() || self.gpio_pin.is_none() {
+            return Err(UdmError::InvalidInput(String::from(
+                "`Not all required fields were passed`",
+            )));
+        }
+        Ok(FluidRegulator {
+            fr_id: self.fr_id,
+            regulator_type: Some(
+                RegulatorType::from_str_name(self.reg_type.clone().unwrap().as_str())
+                    .unwrap()
+                    .into(),
+            ),
+            gpio_pin: self.gpio_pin,
+        })
+    }
+}
+#[async_trait]
+impl MainCommandHandler for UpdateFluidArgs {
+    async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()> {
+        let fr = self.sanatize_input().unwrap_or_else(|e| {
+            log::error!("{}", e);
+            std::process::exit(2)
+        });
+        let mut open_connection = options.connect().await?;
+        let response = open_connection
+            .update_fluid_regulator(ModifyFluidRegulatorRequest { fluid: Some(fr) })
+            .await
+            .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
+        log::debug!("Got response {:?}", response);
+        log::info!(
+            "Updated database, got ID back {}",
+            response.into_inner().fr_id
+        );
+        Ok(())
+    }
+}
 #[derive(Args, Debug)]
 pub struct ShowFluidArgs {
     #[arg(short, long, default_value = "false")]
