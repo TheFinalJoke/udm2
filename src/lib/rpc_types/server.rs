@@ -1,10 +1,30 @@
 use crate::db::executor::GenQueries;
 use crate::db::DbConnection;
 use crate::db::DbMetaData;
+use crate::rpc_types::fhs_types::FluidRegulator;
 use crate::rpc_types::server::udm_service_server::UdmService;
 use crate::rpc_types::server::udm_service_server::UdmServiceServer;
 use crate::rpc_types::service_types::AddFluidRegulatorRequest;
 use crate::rpc_types::service_types::AddFluidRegulatorResponse;
+use crate::rpc_types::service_types::AddIngredientRequest;
+use crate::rpc_types::service_types::AddIngredientResponse;
+use crate::rpc_types::service_types::AddInstructionRequest;
+use crate::rpc_types::service_types::AddInstructionResponse;
+use crate::rpc_types::service_types::AddRecipeRequest;
+use crate::rpc_types::service_types::AddRecipeResponse;
+use crate::rpc_types::service_types::GenericRemovalResponse;
+use crate::rpc_types::service_types::ModifyFluidRegulatorRequest;
+use crate::rpc_types::service_types::ModifyFluidRegulatorResponse;
+use crate::rpc_types::service_types::ModifyIngredientRequest;
+use crate::rpc_types::service_types::ModifyIngredientResponse;
+use crate::rpc_types::service_types::ModifyInstructionRequest;
+use crate::rpc_types::service_types::ModifyInstructionResponse;
+use crate::rpc_types::service_types::ModifyRecipeRequest;
+use crate::rpc_types::service_types::ModifyRecipeResponse;
+use crate::rpc_types::service_types::RemoveFluidRegulatorRequest;
+use crate::rpc_types::service_types::RemoveIngredientRequest;
+use crate::rpc_types::service_types::RemoveInstructionRequest;
+use crate::rpc_types::service_types::RemoveRecipeRequest;
 use crate::rpc_types::service_types::ResetRequest;
 use crate::rpc_types::service_types::ResetResponse;
 use crate::rpc_types::service_types::ServiceResponse;
@@ -17,6 +37,7 @@ use tonic::transport::Server;
 use tonic::Request;
 use tonic::Response;
 use tonic::Status;
+
 tonic::include_proto!("server");
 
 pub struct DaemonServerContext {
@@ -58,7 +79,82 @@ impl UdmService for DaemonServerContext {
             ))),
         }
     }
-
+    async fn remove_fluid_regulator(
+        &self,
+        request: Request<RemoveFluidRegulatorRequest>,
+    ) -> Result<Response<GenericRemovalResponse>, Status> {
+        log::debug!("Got Request {:?}", request);
+        let fr_id = request.into_inner().fr_id;
+        let query = FluidRegulator::gen_remove_query(fr_id).to_string(PostgresQueryBuilder);
+        let delete_result = self.connection.delete(query).await;
+        match delete_result {
+            Ok(_) => {
+                let remove_response = GenericRemovalResponse {}.to_response();
+                Ok(remove_response)
+            }
+            Err(e) => Err(Status::aborted(e.to_string())),
+        }
+    }
+    async fn update_fluid_regulator(
+        &self,
+        _request: Request<ModifyFluidRegulatorRequest>,
+    ) -> Result<Response<ModifyFluidRegulatorResponse>, Status> {
+        todo!()
+    }
+    async fn add_recipe(
+        &self,
+        _request: Request<AddRecipeRequest>,
+    ) -> Result<Response<AddRecipeResponse>, Status> {
+        todo!()
+    }
+    async fn remove_recipe(
+        &self,
+        _request: Request<RemoveRecipeRequest>,
+    ) -> Result<Response<GenericRemovalResponse>, Status> {
+        todo!()
+    }
+    async fn update_recipe(
+        &self,
+        _request: Request<ModifyRecipeRequest>,
+    ) -> Result<Response<ModifyRecipeResponse>, Status> {
+        todo!()
+    }
+    async fn add_instruction(
+        &self,
+        _request: Request<AddInstructionRequest>,
+    ) -> Result<Response<AddInstructionResponse>, Status> {
+        todo!()
+    }
+    async fn remove_instruction(
+        &self,
+        _request: Request<RemoveInstructionRequest>,
+    ) -> Result<Response<GenericRemovalResponse>, Status> {
+        todo!()
+    }
+    async fn update_instruction(
+        &self,
+        _request: Request<ModifyInstructionRequest>,
+    ) -> Result<Response<ModifyInstructionResponse>, Status> {
+        todo!()
+    }
+    async fn add_ingredient(
+        &self,
+        _request: Request<AddIngredientRequest>,
+    ) -> Result<Response<AddIngredientResponse>, Status> {
+        todo!()
+    }
+    async fn remove_ingredient(
+        &self,
+        _request: Request<RemoveIngredientRequest>,
+    ) -> Result<Response<GenericRemovalResponse>, Status> {
+        todo!()
+    }
+    async fn update_ingredient(
+        &self,
+        _request: Request<ModifyIngredientRequest>,
+    ) -> Result<Response<ModifyIngredientResponse>, Status> {
+        todo!()
+    }
     async fn reset_db(
         &self,
         request: Request<ResetRequest>,

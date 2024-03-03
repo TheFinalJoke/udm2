@@ -29,3 +29,14 @@ impl UdmServerOptions {
         Ok(client)
     }
 }
+pub fn ensure_removal() -> UdmResult<()> {
+    let mut buffer = String::new();
+    println!("Are you sure you want to remove? y/n");
+    let _ = std::io::stdin().read_line(&mut buffer);
+    let input = buffer.trim().to_owned();
+    if &input == "y" {
+        Ok(())
+    } else {
+        std::process::exit(2)
+    }
+}

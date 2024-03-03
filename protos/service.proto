@@ -15,12 +15,35 @@ message Config {
   int32 port = 1;
 }
 
-message AddReceipeRequest {
+message GenericRemovalResponse {
+  
+}
+
+message ModifyFluidRegulatorRequest {
+  fhs_types.FluidRegulator fluid = 1;
+}
+
+message ModifyFluidRegulatorResponse {
+  fhs_types.FluidRegulator fluid = 1;
+}
+message AddFluidRegulatorRequest {
+  fhs_types.FluidRegulator fluid = 1;
+}
+
+message RemoveFluidRegulatorRequest {
+  int32 fr_id = 1;
+}
+
+message AddFluidRegulatorResponse {
+  int32 fr_id = 1;
+}
+
+message AddRecipeRequest {
   recipe_types.Recipe recipe = 1;
 }
 
-message AddReceipeResponse {
-  int32 receipe_id = 1;
+message AddRecipeResponse {
+  int32 recipe_id = 1;
 }
 
 message GetRecipeRequest {
@@ -38,7 +61,9 @@ message ModifyRecipeRequest {
 message ModifyRecipeResponse {
   int32 recipe_id = 1;
 }
-
+message RemoveRecipeRequest {
+  int32 recipe_id = 1;
+}
 message AddInstructionRequest {
   recipe_types.Instruction instruction = 1;
 }
@@ -55,42 +80,23 @@ message GetInstructionResponse {
   recipe_types.Instruction instruction = 1;
 }
 
+message RemoveInstructionRequest {
+  int32 instruction_id = 1;
+}
 message ModifyInstructionRequest {
   recipe_types.Instruction instruction = 1;
 }
 
 message ModifyInstructionResponse {
-  int32 instruction_id = 1;
+  recipe_types.Instruction instruction = 1;
 }
 
-message ModifyFluidRegulatorRequest {
-  int32 fr_id = 1;
-}
-
-message ModifyFluidRegulatorResponse {
-  fhs_types.FluidRegulator fluid = 1;
-}
-message AddFluidRegulatorRequest {
-  fhs_types.FluidRegulator fluid = 1;
-}
-
-message RemoveFluidRegulatorRequest {
-  int32 fr_id = 1;
-}
-
-message RemoveFluidRegulatorResponse {
-  
-}
-
-message AddFluidRegulatorResponse {
-  int32 fr_id = 1;
-}
 message ModifyIngredientRequest {
   recipe_types.Ingredient ingredient = 1;
 }
 
 message ModifyIngredientResponse {
-  int32 ingredient_id = 1;
+  recipe_types.Ingredient ingredient = 1;
 }
 
 message AddIngredientRequest {
@@ -99,10 +105,6 @@ message AddIngredientRequest {
 
 message AddIngredientResponse {
   int32 ingredient_id = 1;
-}
-
-message RemoveIngredientResponse {
-
 }
 
 message RemoveIngredientRequest {

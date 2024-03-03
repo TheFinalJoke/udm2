@@ -54,6 +54,7 @@ pub trait DatabaseTransactionsFactory {
 pub trait DbConnection: DatabaseTransactionsFactory + Send + Sync {
     // Documentation for datatypes: https://docs.rs/postgres/0.14.0/postgres/types/trait.FromSql.html#types
     async fn insert(&self, stmt: String) -> UdmResult<i32>;
+    async fn delete(&self, stmt: String) -> UdmResult<()>;
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

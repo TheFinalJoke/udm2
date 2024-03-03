@@ -7,6 +7,51 @@ service UdmService {
   rpc AddFluidRegulator(service_types.AddFluidRegulatorRequest)
       returns (service_types.AddFluidRegulatorResponse);
   
+  rpc RemoveFluidRegulator(service_types.RemoveFluidRegulatorRequest)
+      returns (service_types.GenericRemovalResponse);
+
+  rpc UpdateFluidRegulator(service_types.ModifyFluidRegulatorRequest)
+      returns (service_types.ModifyFluidRegulatorResponse);
+    
+  // Figure out how to collect regulators
+  // rpc CollectFluidRegulators()
+
+  rpc AddRecipe(service_types.AddRecipeRequest) 
+      returns (service_types.AddRecipeResponse);
+    
+  // Same here for recipes
+  // rpc CollectRecipe()
+
+  rpc RemoveRecipe(service_types.RemoveRecipeRequest)
+      returns (service_types.GenericRemovalResponse);
+
+  rpc UpdateRecipe(service_types.ModifyRecipeRequest)
+      returns (service_types.ModifyRecipeResponse);
+    
+  rpc AddInstruction(service_types.AddInstructionRequest)
+      returns (service_types.AddInstructionResponse);
+    
+  // Same here
+  // rpc Collect Instructions
+
+  rpc RemoveInstruction(service_types.RemoveInstructionRequest)
+      returns (service_types.GenericRemovalResponse);
+
+  rpc UpdateInstruction(service_types.ModifyInstructionRequest)
+      returns (service_types.ModifyInstructionResponse);
+    
+  rpc AddIngredient(service_types.AddIngredientRequest)
+      returns (service_types.AddIngredientResponse);
+  
+  // rpc CollectIngredient
+
+  rpc RemoveIngredient(service_types.RemoveIngredientRequest)
+      returns (service_types.GenericRemovalResponse);
+    
+  rpc UpdateIngredient(service_types.ModifyIngredientRequest)
+      returns (service_types.ModifyIngredientResponse);
+
   rpc ResetDb(service_types.ResetRequest)
       returns (service_types.ResetResponse);
+  
 }

@@ -1,6 +1,8 @@
 use crate::db::executor::GenQueries;
 use crate::db::FluidRegulationSchema;
 use async_trait::async_trait;
+use sea_query::DeleteStatement;
+use sea_query::Expr;
 use sea_query::InsertStatement;
 use sea_query::Query;
 
@@ -30,6 +32,12 @@ impl GenQueries for FluidRegulator {
             .returning(Query::returning().column(FluidRegulationSchema::FrId))
             .to_owned()
     }
+    fn gen_remove_query(id: i32) -> DeleteStatement {
+        Query::delete()
+            .from_table(FluidRegulationSchema::Table)
+            .and_where(Expr::col(FluidRegulationSchema::FrId).eq(id))
+            .to_owned()
+    }
 }
 #[cfg(test)]
 mod tests {
@@ -47,5 +55,13 @@ mod tests {
         let query = fr.gen_insert_query().to_string(PostgresQueryBuilder);
         let expected_query = r#"INSERT INTO "FluidRegulation" ("gpio_pin", "regulator_type") VALUES (23, 3) RETURNING "fr_id""#.to_string();
         assert_eq!(query, expected_query)
+    }
+
+    #[test]
+    fn test_gen_remove_query() {
+        let fr_id = 2;
+        let query = FluidRegulator::gen_remove_query(fr_id);
+        let expected = r#"DELETE FROM "FluidRegulation" WHERE "fr_id" = 2"#;
+        assert_eq!(query.to_string(PostgresQueryBuilder), expected);
     }
 }

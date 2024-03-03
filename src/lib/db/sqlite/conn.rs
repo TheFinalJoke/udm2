@@ -17,6 +17,10 @@ impl DbConnection for OpenSqliteConnection {
     async fn insert(&self, _stmt: String) -> UdmResult<i32> {
         todo!()
     }
+
+    async fn delete(&self, _stmt: String) -> UdmResult<()> {
+        todo!()
+    }
 }
 
 impl OpenSqliteConnection {

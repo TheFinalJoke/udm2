@@ -25,8 +25,7 @@
 				"github.vscode-github-actions",
 				"timonwong.shellcheck",
 				"qwtel.sqlite-viewer",
-				"weijan.vscode-postgresql-client2",
-				"ms-ossdata.vscode-postgresql"
+				"cweijan.vscode-postgresql-client2"
 			],
 			"settings": {
 				"rust-analyzer.cargo.buildScripts.enable": true,

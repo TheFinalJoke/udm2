@@ -3,6 +3,7 @@ use sea_query::Iden;
 // This will generate all the queries
 // This manipluates the data itself
 use async_trait::async_trait;
+use sea_query::DeleteStatement;
 use sea_query::InsertStatement;
 use sea_query::Query;
 use sea_query::SelectStatement;
@@ -23,4 +24,5 @@ pub trait GenQueries {
         }
         query.to_owned()
     }
+    fn gen_remove_query(id: i32) -> DeleteStatement;
 }
