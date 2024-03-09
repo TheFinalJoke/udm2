@@ -1,4 +1,5 @@
 use log;
+use tokio_postgres::Row;
 use tonic::async_trait;
 
 use crate::parsers::settings;
@@ -56,6 +57,7 @@ pub trait DbConnection: DatabaseTransactionsFactory + Send + Sync {
     async fn insert(&self, stmt: String) -> UdmResult<i32>;
     async fn delete(&self, stmt: String) -> UdmResult<()>;
     async fn update(&self, stmt: String) -> UdmResult<i32>;
+    async fn select(&self, stmt: String) -> UdmResult<Row>;
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -156,6 +158,7 @@ impl SqlTableTransactionsFactory for FluidRegulationSchema {
             .add_column(column_def)
             .build(builder)
     }
+    
 }
 #[derive(Iden, Eq, PartialEq, Debug)]
 #[iden = "Ingredient"]

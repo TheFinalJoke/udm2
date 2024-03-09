@@ -38,6 +38,32 @@ message AddFluidRegulatorResponse {
   int32 fr_id = 1;
 }
 
+enum Operation {
+  OPERATION_UNSPECIFIED=0;
+  OPERATION_EQUAL=1;
+  OPERATION_NOT_EQUAL=2;
+  OPERATION_IN=3;
+  OPERATION_NOT_IN =4;
+  OPERATION_GREATER_THAN = 5;
+  OPERATION_GREATER_THAN_OR_EQUAL = 6;
+  OPERATION_LESS_THAN_OR_EQUAL = 7;
+  OPERATION_LESS_THAN = 8;
+  OPERATION_LIKE = 9;
+  OPERATION_NOT_LIKE = 10;
+  OPERATION_IS = 11;
+  OPERATION_NOT_IS = 12;
+}
+message FetchData {
+  string column = 1;
+  Operation operation = 2;
+  repeated string values = 3;
+}
+message CollectFluidRegulatorsRequest {
+  repeated FetchData expressions = 1;
+}
+message CollectFluidRegulatorsResponse {
+  repeated fhs_types.FluidRegulator fluids = 1;
+}
 message AddRecipeRequest {
   recipe_types.Recipe recipe = 1;
 }

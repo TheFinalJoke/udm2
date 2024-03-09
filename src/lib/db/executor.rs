@@ -14,7 +14,6 @@ use sea_query::UpdateStatement;
 pub trait GenQueries {
     fn gen_insert_query(&self) -> InsertStatement;
     fn gen_select_query_on_fields<T: Iden + 'static>(
-        &self,
         table: T,
         wheres: Vec<SimpleExpr>,
     ) -> SelectStatement {

@@ -9,6 +9,7 @@ use crate::db::SqlTableTransactionsFactory;
 use crate::error::UdmError;
 use crate::parsers::settings;
 use crate::UdmResult;
+use tokio_postgres::Row;
 use async_trait::async_trait;
 use log;
 
@@ -45,6 +46,9 @@ impl DbConnection for OpenPostgresConnection {
             .map_err(|e| UdmError::ApiFailure(e.to_string()));
         log::debug!("Result from inserting into db {:?}", &data);
         data
+    }
+    async fn select(&self, stmt: String) -> UdmResult<Row> {
+        todo!()
     }
 }
 

@@ -2,6 +2,7 @@ use rusqlite::Error as rusqlite_error;
 use std::error::Error as GenericError;
 use thiserror::Error;
 use tokio_postgres::Error as PostgresError;
+use regex::Error as RegexError;
 #[derive(Error, Debug)]
 pub enum UdmError {
     #[error("Invalid Configuration {0}")]
@@ -14,6 +15,8 @@ pub enum UdmError {
     InvalidInput(String),
     #[error("Api Failure: {0}")]
     ApiFailure(String),
+    #[error("Error Parsing: {0}")]
+    ParsingError(#[from] RegexError),
 }
 
 impl From<String> for UdmError {

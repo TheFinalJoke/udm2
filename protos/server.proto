@@ -13,8 +13,8 @@ service UdmService {
   rpc UpdateFluidRegulator(service_types.ModifyFluidRegulatorRequest)
       returns (service_types.ModifyFluidRegulatorResponse);
     
-  // Figure out how to collect regulators
-  // rpc CollectFluidRegulators()
+  rpc CollectFluidRegulators(service_types.CollectFluidRegulatorsRequest)
+      returns (service_types.CollectFluidRegulatorsResponse);
 
   rpc AddRecipe(service_types.AddRecipeRequest) 
       returns (service_types.AddRecipeResponse);

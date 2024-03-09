@@ -1,11 +1,14 @@
 use crate::db::executor::GenQueries;
 use crate::db::DbConnection;
 use crate::db::DbMetaData;
+use crate::db::FluidRegulationSchema;
 use crate::rpc_types::fhs_types::FluidRegulator;
 use crate::rpc_types::server::udm_service_server::UdmService;
 use crate::rpc_types::server::udm_service_server::UdmServiceServer;
 use crate::rpc_types::service_types::AddFluidRegulatorRequest;
 use crate::rpc_types::service_types::AddFluidRegulatorResponse;
+use crate::rpc_types::service_types::CollectFluidRegulatorsRequest;
+use crate::rpc_types::service_types::CollectFluidRegulatorsResponse;
 use crate::rpc_types::service_types::AddIngredientRequest;
 use crate::rpc_types::service_types::AddIngredientResponse;
 use crate::rpc_types::service_types::AddInstructionRequest;
@@ -116,6 +119,14 @@ impl UdmService for DaemonServerContext {
                 e
             ))),
         }
+    }
+    async fn collect_fluid_regulators(
+        &self,
+        request: Request<CollectFluidRegulatorsRequest>
+    ) -> Result<Response<CollectFluidRegulatorsResponse>, Status> {
+        log::debug!("Got {:?}", request);
+        // build wheres
+        let query = FluidRegulator::gen_select_query_on_fields(FluidRegulationSchema::Table, wheres);
     }
     async fn add_recipe(
         &self,
