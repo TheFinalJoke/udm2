@@ -1,7 +1,8 @@
-use config::{Config, File, FileFormat};
+use config::Config;
+use config::File;
+use config::FileFormat;
 use std::path::PathBuf;
 use std::result;
-
 pub mod db;
 pub mod error;
 pub mod logger;

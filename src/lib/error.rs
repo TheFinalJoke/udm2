@@ -1,8 +1,8 @@
+use regex::Error as RegexError;
 use rusqlite::Error as rusqlite_error;
 use std::error::Error as GenericError;
 use thiserror::Error;
 use tokio_postgres::Error as PostgresError;
-use regex::Error as RegexError;
 #[derive(Error, Debug)]
 pub enum UdmError {
     #[error("Invalid Configuration {0}")]

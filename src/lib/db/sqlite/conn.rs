@@ -1,11 +1,11 @@
-use async_trait::async_trait;
-use log;
-use std::path::Path;
-use tokio_rusqlite::Connection;
-use tokio_postgres::Row;
 use crate::db::{DatabaseTransactionsFactory, DbConnection};
 use crate::parsers::settings::{self, SqliteConfigurer};
 use crate::UdmResult;
+use async_trait::async_trait;
+use log;
+use std::path::Path;
+use tokio_postgres::Row;
+use tokio_rusqlite::Connection;
 
 pub struct OpenSqliteConnection {
     pub connection: Connection,
@@ -24,7 +24,7 @@ impl DbConnection for OpenSqliteConnection {
     async fn update(&self, _stmt: String) -> UdmResult<i32> {
         todo!()
     }
-    async fn select(&self, _stmt: String) -> UdmResult<Row> {
+    async fn select(&self, _stmt: String) -> UdmResult<Vec<Row>> {
         todo!()
     }
 }

@@ -79,7 +79,11 @@
                     "kind": "bin"
                 }
             },
-            "args": [],
+            "args": [
+                "fluid",
+                "show",
+                "fr_id=1"
+            ],
             "cwd": "${workspaceFolder}"
         },
         {

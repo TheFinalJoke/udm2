@@ -56,7 +56,7 @@ enum Operation {
 message FetchData {
   string column = 1;
   Operation operation = 2;
-  repeated string values = 3;
+  string values = 3;
 }
 message CollectFluidRegulatorsRequest {
   repeated FetchData expressions = 1;

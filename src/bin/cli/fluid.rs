@@ -162,30 +162,57 @@ impl MainCommandHandler for UpdateFluidArgs {
 }
 #[derive(Args, Debug)]
 pub struct ShowFluidArgs {
-    query_options: String
+    query_options: Option<String>,
+    #[arg(long, short = 'e', help = "Example queries", default_value = "false")]
+    example: bool,
 }
 #[async_trait]
 impl MainCommandHandler for ShowFluidArgs {
     async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()> {
-        let fetched = self.sanatize_input()?;
-        let mut open_connection = options.connect().await?;
-        let response = open_connection.collect_fluid_regulators(CollectFluidRegulatorsRequest{expressions: fetched}).await.map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
-        log::debug!("Got response {:?}", response);
-        for data in response.into_inner().fluids {
-            println!("{:?}", data);
+        if self.example {
+            self.show_example();
+            Ok(())
+        } else {
+            let fetched = self.sanatize_input()?;
+            let mut open_connection = options.connect().await?;
+            let response = open_connection
+                .collect_fluid_regulators(CollectFluidRegulatorsRequest {
+                    expressions: fetched,
+                })
+                .await
+                .map_err(|e| UdmError::ApiFailure(format!("{}", e)));
+            match response {
+                Ok(response) => {
+                    log::debug!("Got response {:?}", response);
+                    for data in response.into_inner().fluids {
+                        println!("{:?}", data);
+                    }
+                    Ok(())
+                },
+                Err(err) => {
+                    println!("Error: Could not show FRs due to: {}", err.to_string());
+                    Ok(())
+                },
+            }
+                
         }
-        Ok(())
     }
 }
 impl UdmGrpcActions<Vec<FetchData>> for ShowFluidArgs {
     fn sanatize_input(&self) -> UdmResult<Vec<FetchData>> {
-        let wheres: Vec<&str> = self.query_options.split(",").collect();
-        let mut collected_queries: Vec<FetchData> = Vec::new();
-        for clause in wheres {
-            let sanatized_data = FetchData::to_fetch_data(clause)?;
-            collected_queries.push(sanatized_data);
-        }
+        let collected_queries =
+            FetchData::to_fetch_data_vec(self.query_options.clone().unwrap().as_str())?;
         Ok(collected_queries)
+    }
+}
+impl ShowFluidArgs {
+    pub(crate) fn show_example(&self) {
+        println!("To build a query it will be <field><operation><values>");
+        println!("fr_id=1");
+        println!("^^ will query fr_id=1");
+        println!("Another example of multiple values, fr_id IN 1 2");
+        println!("");
+        println!("You and also do comma seperated for multiple queries at once");
     }
 }
 #[derive(Args, Debug)]

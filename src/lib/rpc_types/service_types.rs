@@ -1,9 +1,11 @@
-use tonic::Response;
-use regex::Regex;
-use regex::Error::Syntax;
+use crate::db::FluidRegulationSchema;
 use crate::error::UdmError;
 use crate::UdmResult;
-
+use regex::Regex;
+use sea_query::Expr;
+use sea_query::SimpleExpr;
+use tonic::Response;
+use log::debug;
 tonic::include_proto!("service_types");
 
 pub trait ServiceRequest {}
@@ -49,22 +51,60 @@ impl ServiceResponse for ModifyIngredientResponse {}
 impl ServiceResponse for ResetResponse {}
 impl ServiceResponse for GenericRemovalResponse {}
 
+
 impl FetchData {
-    pub fn to_fetch_data(user_input: &str) -> UdmResult<FetchData> {
-        let capture_regex: &str = r"(?P<field>[a-z_\s]+)(?P<operation>=|!=|in|!in|<|<=|>=|>|like|!like|is|!is)(?P<value>[\sa-zA-Z_\d]+)";
+    pub fn to_fetch_data_vec(user_input: &str) -> UdmResult<Vec<FetchData>> {
+        let capture_regex: &str = r"(?P<field>[a-z_\s]+)(?P<operation>=|!=|in|!in|<|<=|>=|>|like|!like|is|!is)(?P<value>[a-zA-Z_\d\\s]+)(?:,|$)";
         let reg = Regex::new(capture_regex)?;
-        let captures = reg.captures(user_input).ok_or_else(|| UdmError::ParsingError(Syntax("Error Parsing the input".to_string())))?;
-        let operation = Operation::to_operation(captures.name("operation").unwrap().as_str()).ok_or_else(|| UdmError::ParsingError(Syntax("Error Parsing the input".to_string())))?;
-        Ok(
-            FetchData { 
-                column: captures.name("field").unwrap().as_str().to_string(), 
-                operation: operation.into(),
-                values: vec![captures.name("value").unwrap().as_str().to_string()], 
-            }
-        )
+        let mut fetch_vec = Vec::new();
+        for captures in reg.captures_iter(user_input) {
+            fetch_vec.push(FetchData {
+                column: captures["field"].to_owned(),
+                operation: Operation::to_operation(&captures["operation"])
+                    .unwrap()
+                    .into(),
+                values: captures["value"]
+                    .split(",")
+                    .into_iter()
+                    .map(|val| val.to_string())
+                    .collect(),
+            })
+        }
+        debug!("User input data: {:?}", &fetch_vec);
+        Ok(fetch_vec)
+    }
+    pub fn to_simple_expr<T: sea_query::Iden + 'static>(&self, column: T) -> UdmResult<SimpleExpr> {
+        let vals = self.values.to_owned();
+        match Operation::try_from(self.operation).map_err(|_| UdmError::InvalidInput("Could not parse the operation".to_string()))? {
+            Operation::Unspecified => Err(UdmError::ApiFailure("Operation not specified".to_string())),
+            Operation::Equal => Ok(Expr::col(column).eq(vals)),
+            Operation::NotEqual => Ok(Expr::col(column).ne(vals)),
+            Operation::In => Ok(Expr::col(column).is_in(vec![vals])),
+            Operation::NotIn => Ok(Expr::col(column).is_not_in(vec![vals])),
+            Operation::GreaterThan => Ok(Expr::col(column).gt(vals)),
+            Operation::GreaterThanOrEqual => Ok(Expr::col(column).gte(vals)),
+            Operation::LessThanOrEqual => Ok(Expr::col(column).lte(vals)),
+            Operation::LessThan => Ok(Expr::col(column).lt(vals)),
+            Operation::Like => Ok(Expr::col(column).like(vals)),
+            Operation::NotLike => Ok(Expr::col(column).not_like(vals)),
+            Operation::Is => Ok(Expr::col(column).is(vals)),
+            Operation::NotIs => Ok(Expr::col(column).is_not(vals)),
+        }
     }
 }
-
+impl CollectFluidRegulatorsRequest {
+    pub fn get_expressions(&self) -> UdmResult<Vec<SimpleExpr>> {
+        let mut exprs = Vec::new();
+        for expr in &self.expressions {
+            let cloned_data = expr.column.clone();
+            let col = FluidRegulationSchema::try_from(cloned_data)?;
+            let simple_expr = expr.to_simple_expr(col)?;
+            debug!("Got simple expr: {:?}", simple_expr);
+            exprs.push(simple_expr)
+        }
+        Ok(exprs)
+    }
+}
 impl Operation {
     pub fn to_operation(user_input: &str) -> Option<Operation> {
         match user_input {
@@ -80,13 +120,13 @@ impl Operation {
             "!like" => Some(Operation::NotLike),
             "is" => Some(Operation::Is),
             "!is" => Some(Operation::NotIs),
-            _ => None
+            _ => None,
         }
     }
     pub fn to_str(&self) -> &str {
         match self {
             Operation::Unspecified => "",
-            Operation::Equal => "",
+            Operation::Equal => "=",
             Operation::NotEqual => "!=",
             Operation::In => "IN",
             Operation::NotIn => "NOT IN",
@@ -100,4 +140,5 @@ impl Operation {
             Operation::NotIs => "NOT IS",
         }
     }
+
 }

@@ -2,12 +2,15 @@ use crate::db::executor::GenQueries;
 use crate::db::FluidRegulationSchema;
 use crate::error::UdmError;
 use crate::UdmResult;
+use anyhow::Error as AnyError;
 use async_trait::async_trait;
+use postgres::row::Row;
 use sea_query::DeleteStatement;
 use sea_query::Expr;
 use sea_query::InsertStatement;
 use sea_query::Query;
 use sea_query::UpdateStatement;
+use std::result::Result;
 
 tonic::include_proto!("fhs_types");
 
@@ -56,6 +59,7 @@ impl GenQueries for FluidRegulator {
             .to_owned()
     }
 }
+
 impl FluidRegulator {
     pub fn validate_all_fields(&self) -> UdmResult<()> {
         if self.fr_id.is_none() || self.regulator_type.is_none() || self.gpio_pin.is_none() {
@@ -74,6 +78,18 @@ impl FluidRegulator {
         Ok(())
     }
 }
+impl TryFrom<Row> for FluidRegulator {
+    type Error = AnyError;
+
+    fn try_from(value: Row) -> Result<Self, Self::Error> {
+        Ok(Self {
+            fr_id: value.try_get(0)?,
+            gpio_pin: value.try_get(1)?,
+            regulator_type: value.try_get(2)?,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

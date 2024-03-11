@@ -2,6 +2,7 @@ use log;
 use tokio_postgres::Row;
 use tonic::async_trait;
 
+use crate::error::UdmError;
 use crate::parsers::settings;
 use crate::UdmResult;
 use sea_query::foreign_key::ForeignKeyAction;
@@ -21,7 +22,7 @@ pub mod sqlite;
 // This represents the table operations itself.
 // Connection and Manipulation will be handled into a different struct
 pub trait SqlTransactionsFactory {
-    fn column_to_str(&self) -> &'static str;
+    fn column_to_str(&self) -> &'static str; 
     fn from_str(value: &'static str) -> Option<Self>
     where
         Self: Sized;
@@ -57,7 +58,7 @@ pub trait DbConnection: DatabaseTransactionsFactory + Send + Sync {
     async fn insert(&self, stmt: String) -> UdmResult<i32>;
     async fn delete(&self, stmt: String) -> UdmResult<()>;
     async fn update(&self, stmt: String) -> UdmResult<i32>;
-    async fn select(&self, stmt: String) -> UdmResult<Row>;
+    async fn select(&self, stmt: String) -> UdmResult<Vec<Row>>;
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -158,7 +159,19 @@ impl SqlTableTransactionsFactory for FluidRegulationSchema {
             .add_column(column_def)
             .build(builder)
     }
-    
+}
+
+impl TryFrom<String> for FluidRegulationSchema {
+    type Error = UdmError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "FluidRegulation" => Ok(FluidRegulationSchema::Table),
+            "fr_id" => Ok(FluidRegulationSchema::FrId),
+            "gpio_pin" => Ok(FluidRegulationSchema::GpioPin),
+            "regulator_type" => Ok(FluidRegulationSchema::RegulatorType),
+            _ => Err(UdmError::ApiFailure("Failed to collect Column".to_string())),
+            }
+        }
 }
 #[derive(Iden, Eq, PartialEq, Debug)]
 #[iden = "Ingredient"]
@@ -202,6 +215,24 @@ impl SqlTransactionsFactory for IngredientSchema {
             "fr_id" => Some(Self::FrId),
             "instruction_id" => Some(Self::InstructionId),
             _ => None,
+        }
+    }
+}
+impl TryFrom<String> for IngredientSchema {
+    type Error = UdmError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "Ingredient" => Ok(Self::Table),
+            "ingredient_id" => Ok(Self::IngredientId),
+            "name" => Ok(Self::Name),
+            "alcoholic" => Ok(Self::Alcoholic),
+            "description" => Ok(Self::Description),
+            "is_active" => Ok(Self::IsActive),
+            "amount" => Ok(Self::Amount),
+            "ingredient_type" => Ok(Self::IngredientType),
+            "fr_id" => Ok(Self::FrId),
+            "instruction_id" => Ok(Self::InstructionId),
+            _ => Err(UdmError::ApiFailure("Failed to collect IngredientSchema Column".to_string())),
         }
     }
 }
@@ -297,6 +328,19 @@ impl SqlTransactionsFactory for InstructionSchema {
         }
     }
 }
+impl TryFrom<String> for InstructionSchema {
+    type Error = UdmError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.to_lowercase().as_str() {
+            "instruction" => Ok(Self::Table),
+            "instruction_id" => Ok(Self::InstructionId),
+            "instruction_detail" => Ok(Self::InstructionDetail),
+            "instruction_name" => Ok(Self::InstructionName),
+            _ => Err(UdmError::ApiFailure("Failed to collect InstructionSchema column".to_string())),
+        }
+    }
+}
+
 impl SqlTableTransactionsFactory for InstructionSchema {
     fn create_table(builder: impl sea_query::backend::SchemaBuilder) -> String {
         Table::create()
@@ -349,6 +393,18 @@ impl SqlTransactionsFactory for InstructionToRecipeSchema {
             "instruction_id" => Some(Self::InstructionId),
             "instruction_order" => Some(Self::InstructionOrder),
             _ => None,
+        }
+    }
+}
+impl TryFrom<String> for InstructionToRecipeSchema {
+    type Error = UdmError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "InstructionToRecipe" => Ok(Self::Table),
+            "recipe_id" => Ok(Self::RecipeId),
+            "instruction_id" => Ok(Self::InstructionId),
+            "instruction_order" => Ok(Self::InstructionOrder),
+            _ => Err(UdmError::ApiFailure("Failed to collect InstructionToRecipeSchema Column".to_string())),
         }
     }
 }
@@ -419,6 +475,20 @@ impl SqlTransactionsFactory for RecipeSchema {
             "drink_size" => Some(Self::DrinkSize),
             "description" => Some(Self::Description),
             _ => None,
+        }
+    }
+}
+impl TryFrom<String> for RecipeSchema {
+    type Error = UdmError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "Recipe" => Ok(Self::Table),
+            "recipe_id" => Ok(Self::RecipeId),
+            "name" => Ok(Self::Name),
+            "user_input" => Ok(Self::UserInput),
+            "drink_size" => Ok(Self::DrinkSize),
+            "description" => Ok(Self::Description),
+            _ => Ok(Self::Table),
         }
     }
 }

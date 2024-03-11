@@ -7,14 +7,14 @@ use crate::rpc_types::server::udm_service_server::UdmService;
 use crate::rpc_types::server::udm_service_server::UdmServiceServer;
 use crate::rpc_types::service_types::AddFluidRegulatorRequest;
 use crate::rpc_types::service_types::AddFluidRegulatorResponse;
-use crate::rpc_types::service_types::CollectFluidRegulatorsRequest;
-use crate::rpc_types::service_types::CollectFluidRegulatorsResponse;
 use crate::rpc_types::service_types::AddIngredientRequest;
 use crate::rpc_types::service_types::AddIngredientResponse;
 use crate::rpc_types::service_types::AddInstructionRequest;
 use crate::rpc_types::service_types::AddInstructionResponse;
 use crate::rpc_types::service_types::AddRecipeRequest;
 use crate::rpc_types::service_types::AddRecipeResponse;
+use crate::rpc_types::service_types::CollectFluidRegulatorsRequest;
+use crate::rpc_types::service_types::CollectFluidRegulatorsResponse;
 use crate::rpc_types::service_types::GenericRemovalResponse;
 use crate::rpc_types::service_types::ModifyFluidRegulatorRequest;
 use crate::rpc_types::service_types::ModifyFluidRegulatorResponse;
@@ -33,6 +33,7 @@ use crate::rpc_types::service_types::ResetResponse;
 use crate::rpc_types::service_types::ServiceResponse;
 use crate::UdmResult;
 use anyhow::Result;
+use itertools::Itertools;
 use log;
 use sea_query::PostgresQueryBuilder;
 use std::net::SocketAddr;
@@ -122,11 +123,34 @@ impl UdmService for DaemonServerContext {
     }
     async fn collect_fluid_regulators(
         &self,
-        request: Request<CollectFluidRegulatorsRequest>
+        request: Request<CollectFluidRegulatorsRequest>,
     ) -> Result<Response<CollectFluidRegulatorsResponse>, Status> {
         log::debug!("Got {:?}", request);
-        // build wheres
-        let query = FluidRegulator::gen_select_query_on_fields(FluidRegulationSchema::Table, wheres);
+        let exprs = request
+            .into_inner()
+            .get_expressions()
+            .map_err(|e| Status::cancelled(e.to_string()))?;
+        let query = FluidRegulator::gen_select_query_on_fields(FluidRegulationSchema::Table, exprs)
+            .to_string(PostgresQueryBuilder);
+        let results = self.connection.select(query).await;
+        match results {
+            Ok(results) => {
+                let frs: Vec<FluidRegulator> = results
+                    .into_iter()
+                    .map(|row| FluidRegulator::try_from(row).unwrap())
+                    .collect_vec();
+                log::info!("Successfully collected fluid regulators");
+                log::debug!("Collected data {:?}", frs);
+                Ok(CollectFluidRegulatorsResponse { fluids: frs }.to_response())
+            }
+            Err(e) =>  {
+                log::error!("There was an error collecting {}", e.to_string());
+                Err(Status::cancelled(format!(
+                "Failed to query the database: {}",
+                e.to_string()
+            )))
+        },
+        }
     }
     async fn add_recipe(
         &self,

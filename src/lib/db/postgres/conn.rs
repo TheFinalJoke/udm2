@@ -9,9 +9,9 @@ use crate::db::SqlTableTransactionsFactory;
 use crate::error::UdmError;
 use crate::parsers::settings;
 use crate::UdmResult;
-use tokio_postgres::Row;
 use async_trait::async_trait;
 use log;
+use tokio_postgres::Row;
 
 use tokio_postgres::{Config, NoTls};
 
@@ -47,8 +47,12 @@ impl DbConnection for OpenPostgresConnection {
         log::debug!("Result from inserting into db {:?}", &data);
         data
     }
-    async fn select(&self, stmt: String) -> UdmResult<Row> {
-        todo!()
+    async fn select(&self, stmt: String) -> UdmResult<Vec<Row>> {
+        log::info!("Received update call query: {}", &stmt);
+        let prepared = self.conn.prepare(stmt.as_str()).await?;
+        let rows = self.conn.query(&prepared, &[]).await?;
+        log::debug!("Result from inserting into db {:?}", &rows);
+        Ok(rows)
     }
 }
 
