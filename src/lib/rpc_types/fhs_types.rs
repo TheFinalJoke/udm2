@@ -10,7 +10,7 @@ use sea_query::Expr;
 use sea_query::InsertStatement;
 use sea_query::Query;
 use sea_query::UpdateStatement;
-use std::result::Result;
+
 
 tonic::include_proto!("fhs_types");
 
@@ -84,8 +84,8 @@ impl TryFrom<Row> for FluidRegulator {
     fn try_from(value: Row) -> Result<Self, Self::Error> {
         Ok(Self {
             fr_id: value.try_get(0)?,
-            gpio_pin: value.try_get(1)?,
-            regulator_type: value.try_get(2)?,
+            regulator_type: value.try_get(1)?,
+            gpio_pin: value.try_get(2)?,
         })
     }
 }

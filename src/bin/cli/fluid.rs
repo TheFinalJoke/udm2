@@ -13,8 +13,34 @@ use lib::rpc_types::service_types::FetchData;
 use lib::rpc_types::service_types::ModifyFluidRegulatorRequest;
 use lib::rpc_types::service_types::RemoveFluidRegulatorRequest;
 use lib::UdmResult;
+use cli_table::Cell;
+use cli_table::Style;
+use cli_table::Table;
+use cli_table::TableStruct;
 use tonic::async_trait;
 
+fn create_tables(data: Vec<FluidRegulator>) -> TableStruct{
+    let mut table = Vec::new();
+    for fluid in data {
+        let fr_id = match &fluid.fr_id {
+            Some(id) => format!("{}", id),
+            None => "Not Set".to_string(),
+        };
+        let gpio_pin: String = match &fluid.gpio_pin {
+            Some(pin) => format!("{}", pin),
+            None => "Not Set".to_string(),
+        };
+        let reg = match fluid.regulator_type {
+            Some(reg) => RegulatorType::try_from(reg).unwrap_or(RegulatorType::Unspecified).as_str_name().to_string(),
+            None => "Not Set".to_string(),
+        };
+        table.push(vec![fr_id.cell(), gpio_pin.cell(), reg.cell()]);
+    }
+    table.table().title(
+        vec!["ID".cell().bold(true), "Gpio Pin".cell().bold(true), "Regulator Type".cell().bold(true)]
+    ).bold(true)
+
+}
 #[derive(Subcommand, Debug)]
 pub enum FluidCommands {
     #[command(about = "Add a fluid regulator")]
@@ -183,10 +209,11 @@ impl MainCommandHandler for ShowFluidArgs {
                 .map_err(|e| UdmError::ApiFailure(format!("{}", e)));
             match response {
                 Ok(response) => {
-                    log::debug!("Got response {:?}", response);
-                    for data in response.into_inner().fluids {
-                        println!("{:?}", data);
-                    }
+                    log::debug!("Got response {:?}", &response);
+                    let fluids = response.into_inner().fluids;
+                    println!("Found {} results", &fluids.len());
+                    let table = create_tables(fluids);
+                    println!("{}", table.display().unwrap());
                     Ok(())
                 },
                 Err(err) => {
