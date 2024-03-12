@@ -11,7 +11,6 @@ use sea_query::InsertStatement;
 use sea_query::Query;
 use sea_query::UpdateStatement;
 
-
 tonic::include_proto!("fhs_types");
 
 impl RegulatorType {

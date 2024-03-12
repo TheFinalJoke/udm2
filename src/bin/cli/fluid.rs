@@ -4,6 +4,10 @@ use crate::cli::helpers::UdmGrpcActions;
 use crate::cli::helpers::UdmServerOptions;
 use clap::Args;
 use clap::Subcommand;
+use cli_table::Cell;
+use cli_table::Style;
+use cli_table::Table;
+use cli_table::TableStruct;
 use lib::error::UdmError;
 use lib::rpc_types::fhs_types::FluidRegulator;
 use lib::rpc_types::fhs_types::RegulatorType;
@@ -13,13 +17,9 @@ use lib::rpc_types::service_types::FetchData;
 use lib::rpc_types::service_types::ModifyFluidRegulatorRequest;
 use lib::rpc_types::service_types::RemoveFluidRegulatorRequest;
 use lib::UdmResult;
-use cli_table::Cell;
-use cli_table::Style;
-use cli_table::Table;
-use cli_table::TableStruct;
 use tonic::async_trait;
 
-fn create_tables(data: Vec<FluidRegulator>) -> TableStruct{
+fn create_tables(data: Vec<FluidRegulator>) -> TableStruct {
     let mut table = Vec::new();
     for fluid in data {
         let fr_id = match &fluid.fr_id {
@@ -31,15 +31,22 @@ fn create_tables(data: Vec<FluidRegulator>) -> TableStruct{
             None => "Not Set".to_string(),
         };
         let reg = match fluid.regulator_type {
-            Some(reg) => RegulatorType::try_from(reg).unwrap_or(RegulatorType::Unspecified).as_str_name().to_string(),
+            Some(reg) => RegulatorType::try_from(reg)
+                .unwrap_or(RegulatorType::Unspecified)
+                .as_str_name()
+                .to_string(),
             None => "Not Set".to_string(),
         };
         table.push(vec![fr_id.cell(), gpio_pin.cell(), reg.cell()]);
     }
-    table.table().title(
-        vec!["ID".cell().bold(true), "Gpio Pin".cell().bold(true), "Regulator Type".cell().bold(true)]
-    ).bold(true)
-
+    table
+        .table()
+        .title(vec![
+            "ID".cell().bold(true),
+            "Gpio Pin".cell().bold(true),
+            "Regulator Type".cell().bold(true),
+        ])
+        .bold(true)
 }
 #[derive(Subcommand, Debug)]
 pub enum FluidCommands {
@@ -215,13 +222,12 @@ impl MainCommandHandler for ShowFluidArgs {
                     let table = create_tables(fluids);
                     println!("{}", table.display().unwrap());
                     Ok(())
-                },
+                }
                 Err(err) => {
-                    println!("Error: Could not show FRs due to: {}", err.to_string());
+                    println!("Error: Could not show FRs due to: {}", err);
                     Ok(())
-                },
+                }
             }
-                
         }
     }
 }
@@ -237,9 +243,7 @@ impl ShowFluidArgs {
         println!("To build a query it will be <field><operation><values>");
         println!("fr_id=1");
         println!("^^ will query fr_id=1");
-        println!("Another example of multiple values, fr_id IN 1 2");
-        println!("");
-        println!("You and also do comma seperated for multiple queries at once");
+        println!("Another example of multiple values, fr_id = 1");
     }
 }
 #[derive(Args, Debug)]

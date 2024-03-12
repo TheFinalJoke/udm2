@@ -143,13 +143,13 @@ impl UdmService for DaemonServerContext {
                 log::debug!("Collected data {:?}", frs);
                 Ok(CollectFluidRegulatorsResponse { fluids: frs }.to_response())
             }
-            Err(e) =>  {
+            Err(e) => {
                 log::error!("There was an error collecting {}", e.to_string());
                 Err(Status::cancelled(format!(
-                "Failed to query the database: {}",
-                e.to_string()
-            )))
-        },
+                    "Failed to query the database: {}",
+                    e
+                )))
+            }
         }
     }
     async fn add_recipe(

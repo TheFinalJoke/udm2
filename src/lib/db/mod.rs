@@ -22,7 +22,7 @@ pub mod sqlite;
 // This represents the table operations itself.
 // Connection and Manipulation will be handled into a different struct
 pub trait SqlTransactionsFactory {
-    fn column_to_str(&self) -> &'static str; 
+    fn column_to_str(&self) -> &'static str;
     fn from_str(value: &'static str) -> Option<Self>
     where
         Self: Sized;
@@ -170,8 +170,8 @@ impl TryFrom<String> for FluidRegulationSchema {
             "gpio_pin" => Ok(FluidRegulationSchema::GpioPin),
             "regulator_type" => Ok(FluidRegulationSchema::RegulatorType),
             _ => Err(UdmError::ApiFailure("Failed to collect Column".to_string())),
-            }
         }
+    }
 }
 #[derive(Iden, Eq, PartialEq, Debug)]
 #[iden = "Ingredient"]
@@ -232,7 +232,9 @@ impl TryFrom<String> for IngredientSchema {
             "ingredient_type" => Ok(Self::IngredientType),
             "fr_id" => Ok(Self::FrId),
             "instruction_id" => Ok(Self::InstructionId),
-            _ => Err(UdmError::ApiFailure("Failed to collect IngredientSchema Column".to_string())),
+            _ => Err(UdmError::ApiFailure(
+                "Failed to collect IngredientSchema Column".to_string(),
+            )),
         }
     }
 }
@@ -336,7 +338,9 @@ impl TryFrom<String> for InstructionSchema {
             "instruction_id" => Ok(Self::InstructionId),
             "instruction_detail" => Ok(Self::InstructionDetail),
             "instruction_name" => Ok(Self::InstructionName),
-            _ => Err(UdmError::ApiFailure("Failed to collect InstructionSchema column".to_string())),
+            _ => Err(UdmError::ApiFailure(
+                "Failed to collect InstructionSchema column".to_string(),
+            )),
         }
     }
 }
@@ -404,7 +408,9 @@ impl TryFrom<String> for InstructionToRecipeSchema {
             "recipe_id" => Ok(Self::RecipeId),
             "instruction_id" => Ok(Self::InstructionId),
             "instruction_order" => Ok(Self::InstructionOrder),
-            _ => Err(UdmError::ApiFailure("Failed to collect InstructionToRecipeSchema Column".to_string())),
+            _ => Err(UdmError::ApiFailure(
+                "Failed to collect InstructionToRecipeSchema Column".to_string(),
+            )),
         }
     }
 }

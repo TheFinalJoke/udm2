@@ -1,11 +1,11 @@
 use crate::db::FluidRegulationSchema;
 use crate::error::UdmError;
 use crate::UdmResult;
+use log::debug;
 use regex::Regex;
 use sea_query::Expr;
 use sea_query::SimpleExpr;
 use tonic::Response;
-use log::debug;
 tonic::include_proto!("service_types");
 
 pub trait ServiceRequest {}
@@ -51,7 +51,6 @@ impl ServiceResponse for ModifyIngredientResponse {}
 impl ServiceResponse for ResetResponse {}
 impl ServiceResponse for GenericRemovalResponse {}
 
-
 impl FetchData {
     pub fn to_fetch_data_vec(user_input: &str) -> UdmResult<Vec<FetchData>> {
         let capture_regex: &str = r"(?P<field>[a-z_\s]+)(?P<operation>=|!=|in|!in|<|<=|>=|>|like|!like|is|!is)(?P<value>[a-zA-Z_\d\\s]+)(?:,|$)";
@@ -64,8 +63,7 @@ impl FetchData {
                     .unwrap()
                     .into(),
                 values: captures["value"]
-                    .split(",")
-                    .into_iter()
+                    .split(',')
                     .map(|val| val.to_string())
                     .collect(),
             })
@@ -75,8 +73,12 @@ impl FetchData {
     }
     pub fn to_simple_expr<T: sea_query::Iden + 'static>(&self, column: T) -> UdmResult<SimpleExpr> {
         let vals = self.values.to_owned();
-        match Operation::try_from(self.operation).map_err(|_| UdmError::InvalidInput("Could not parse the operation".to_string()))? {
-            Operation::Unspecified => Err(UdmError::ApiFailure("Operation not specified".to_string())),
+        match Operation::try_from(self.operation)
+            .map_err(|_| UdmError::InvalidInput("Could not parse the operation".to_string()))?
+        {
+            Operation::Unspecified => {
+                Err(UdmError::ApiFailure("Operation not specified".to_string()))
+            }
             Operation::Equal => Ok(Expr::col(column).eq(vals)),
             Operation::NotEqual => Ok(Expr::col(column).ne(vals)),
             Operation::In => Ok(Expr::col(column).is_in(vec![vals])),
@@ -140,5 +142,4 @@ impl Operation {
             Operation::NotIs => "NOT IS",
         }
     }
-
 }
