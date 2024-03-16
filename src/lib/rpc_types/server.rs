@@ -172,9 +172,28 @@ impl UdmService for DaemonServerContext {
     }
     async fn add_instruction(
         &self,
-        _request: Request<AddInstructionRequest>,
+        request: Request<AddInstructionRequest>,
     ) -> Result<Response<AddInstructionResponse>, Status> {
-        todo!()
+        log::debug!("Got request {:?}", request);
+        let instruction = request
+            .into_inner()
+            .instruction
+            .ok_or_else(|| Status::cancelled("Invalid request to add fluid regulator"))?;
+        let query = instruction
+            .gen_insert_query()
+            .to_string(PostgresQueryBuilder);
+        let input_result = self.connection.insert(query).await;
+        match input_result {
+            Ok(instruction_id) => {
+                let instruction_response: Response<AddInstructionResponse> =
+                    AddInstructionResponse { instruction_id }.to_response();
+                Ok(instruction_response)
+            }
+            Err(e) => Err(Status::data_loss(format!(
+                "Failed to insert into database: {}",
+                e
+            ))),
+        }
     }
     async fn remove_instruction(
         &self,

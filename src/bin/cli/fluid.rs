@@ -16,6 +16,7 @@ use lib::rpc_types::service_types::CollectFluidRegulatorsRequest;
 use lib::rpc_types::service_types::FetchData;
 use lib::rpc_types::service_types::ModifyFluidRegulatorRequest;
 use lib::rpc_types::service_types::RemoveFluidRegulatorRequest;
+use lib::rpc_types::FieldValidation;
 use lib::UdmResult;
 use tonic::async_trait;
 

@@ -1,6 +1,7 @@
 use crate::db::executor::GenQueries;
 use crate::db::FluidRegulationSchema;
 use crate::error::UdmError;
+use crate::rpc_types::FieldValidation;
 use crate::UdmResult;
 use anyhow::Error as AnyError;
 use async_trait::async_trait;
@@ -59,8 +60,8 @@ impl GenQueries for FluidRegulator {
     }
 }
 
-impl FluidRegulator {
-    pub fn validate_all_fields(&self) -> UdmResult<()> {
+impl FieldValidation for FluidRegulator {
+    fn validate_all_fields(&self) -> UdmResult<()> {
         if self.fr_id.is_none() || self.regulator_type.is_none() || self.gpio_pin.is_none() {
             return Err(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",
@@ -68,7 +69,7 @@ impl FluidRegulator {
         }
         Ok(())
     }
-    pub fn validate_without_id_fields(&self) -> UdmResult<()> {
+    fn validate_without_id_fields(&self) -> UdmResult<()> {
         if self.regulator_type.is_none() || self.gpio_pin.is_none() {
             return Err(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",

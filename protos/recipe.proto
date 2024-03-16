@@ -18,9 +18,9 @@ enum DrinkSize {
   DRINK_SIZE_EXTRA_LARGE = 5;
 }
 message Instruction {
-  int32 id = 1;
-  string instruction_detail = 2;
-  optional recipe_types.Ingredient ingredient = 3;
+  optional int32 id = 1;
+  optional string instruction_detail = 2;
+  optional string instruction_name = 3;
 }
 
 message Ingredient {
@@ -29,12 +29,10 @@ message Ingredient {
   bool is_active = 3;
   bool is_alcoholic = 4;
   optional fhs_types.FluidRegulator regulator = 5;
-  oneof amount {
-    string custom_amount = 6;
-    float fluid_oz = 7;
-  };
-  string description = 8;
-  IngredientType ingredient_type = 9;
+  float amount = 6;
+  string description = 7;
+  IngredientType ingredient_type = 8;
+  optional recipe_types.Instruction instruction = 9;
 }
 
 message Recipe {
@@ -42,4 +40,6 @@ message Recipe {
   string name = 2;
   DrinkSize size = 3;
   map<int32, Instruction> instructions = 4;
+  bool user_input = 5;
+  string description = 6;
 }

@@ -23,7 +23,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         match commands {
             cli::UdmCommand::Recipe(_user_input) => todo!(),
             cli::UdmCommand::Ingredient(_user_input) => todo!(),
-            cli::UdmCommand::Instruction(_user_input) => todo!(),
+            cli::UdmCommand::Instruction(user_input) => {
+                let _ = user_input.handle_command(server_options).await;
+            },
             cli::UdmCommand::Fluid(user_input) => {
                 let _ = user_input.handle_command(server_options).await;
             }
