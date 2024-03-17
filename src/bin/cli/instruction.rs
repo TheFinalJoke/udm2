@@ -4,6 +4,7 @@ use clap::Subcommand;
 use lib::error::UdmError;
 use lib::rpc_types::recipe_types::Instruction;
 use lib::rpc_types::service_types::AddInstructionRequest;
+use lib::rpc_types::service_types::ModifyInstructionRequest;
 use lib::rpc_types::FieldValidation;
 use lib::UdmResult;
 
@@ -45,6 +46,7 @@ pub struct AddInstructionArgs {
     #[arg(short='d', long)]
     instruction_detail: Option<String>,
 }
+
 impl UdmGrpcActions<Instruction> for AddInstructionArgs {
     fn sanatize_input(&self) -> UdmResult<Instruction> {
         if let Some(raw_input) = &self.raw {
@@ -115,5 +117,46 @@ pub struct UpdateInstructionArgs {
     #[arg(short = 'd', long = "details", help = "Instruction Details")]
     detail: Option<String>,
     #[arg(short = 'n', long = "name", help = "Instruction Name")]
-    name: Option<i32>,
+    name: Option<String>,
+}
+impl UdmGrpcActions<Instruction> for UpdateInstructionArgs {
+    fn sanatize_input(&self) -> UdmResult<Instruction> {
+        if let Some(raw_input) = &self.raw {
+            log::debug!("Json passed: {}", &raw_input);
+            let instruction: Instruction = serde_json::from_str(raw_input)
+                .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
+            instruction.validate_all_fields()?;
+            return Ok(instruction);
+        }
+        if self.instruction_id.is_none() || self.detail.is_none() || self.name.is_none() {
+            return Err(UdmError::InvalidInput(String::from(
+                "`Not all required fields were passed`",
+            )));
+        }
+        Ok(Instruction {
+            id: self.instruction_id,
+            instruction_detail: self.detail.clone(),
+            instruction_name: self.name.clone(),
+        })
+    }
+}
+#[async_trait]
+impl MainCommandHandler for UpdateInstructionArgs {
+    async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()> {
+        let instruction = self.sanatize_input().unwrap_or_else(|e| {
+            log::error!("{}", e);
+            std::process::exit(2)
+        });
+        let mut open_connection = options.connect().await?;
+        let response = open_connection
+            .update_instruction(ModifyInstructionRequest { instruction: Some(instruction) })
+            .await
+            .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
+        log::debug!("Got response {:?}", response);
+        log::info!(
+            "Updated database, got ID back {}",
+            response.into_inner().instruction_id
+        );
+        Ok(())
+    }
 }

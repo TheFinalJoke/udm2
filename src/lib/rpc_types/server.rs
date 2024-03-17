@@ -203,9 +203,25 @@ impl UdmService for DaemonServerContext {
     }
     async fn update_instruction(
         &self,
-        _request: Request<ModifyInstructionRequest>,
+        request: Request<ModifyInstructionRequest>,
     ) -> Result<Response<ModifyInstructionResponse>, Status> {
-        todo!()
+        log::debug!("Got {:?}", request);
+        let instruction = request
+            .into_inner()
+            .instruction
+            .ok_or_else(|| Status::cancelled("Invalid request to remove fluid regulator"))?;
+        let query = instruction.gen_update_query().to_string(PostgresQueryBuilder);
+        let result = self.connection.update(query).await;
+        match result {
+            Ok(id) => {
+                let response = ModifyInstructionResponse {instruction_id: id  }.to_response();
+                Ok(response)
+            }
+            Err(e) => Err(Status::data_loss(format!(
+                "Failed to update into database: {}",
+                e
+            ))),
+        }
     }
     async fn add_ingredient(
         &self,

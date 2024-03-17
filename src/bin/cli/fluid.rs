@@ -232,7 +232,7 @@ impl MainCommandHandler for ShowFluidArgs {
         }
     }
 }
-impl UdmGrpcActions<Vec<FetchData>> for ShowFluidArgs {
+impl ShowFluidArgs {
     fn sanatize_input(&self) -> UdmResult<Vec<FetchData>> {
         let collected_queries =
             FetchData::to_fetch_data_vec(self.query_options.clone().unwrap().as_str())?;

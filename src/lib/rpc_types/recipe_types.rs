@@ -86,3 +86,4 @@ impl TryFrom<Row> for Instruction {
         })
     }
 }
+
