@@ -210,11 +210,13 @@ impl UdmService for DaemonServerContext {
             .into_inner()
             .instruction
             .ok_or_else(|| Status::cancelled("Invalid request to remove fluid regulator"))?;
-        let query = instruction.gen_update_query().to_string(PostgresQueryBuilder);
+        let query = instruction
+            .gen_update_query()
+            .to_string(PostgresQueryBuilder);
         let result = self.connection.update(query).await;
         match result {
             Ok(id) => {
-                let response = ModifyInstructionResponse {instruction_id: id  }.to_response();
+                let response = ModifyInstructionResponse { instruction_id: id }.to_response();
                 Ok(response)
             }
             Err(e) => Err(Status::data_loss(format!(

@@ -39,11 +39,11 @@ impl MainCommandHandler for InstructionCommands {
 pub struct AddInstructionArgs {
     #[arg(long, value_name = "JSON", help = "Raw json to transform")]
     raw: Option<String>,
-    #[arg(short='i', long)]
+    #[arg(short = 'i', long)]
     instruction_id: Option<i32>,
-    #[arg(short='n', long)]
+    #[arg(short = 'n', long)]
     instruction_name: Option<String>,
-    #[arg(short='d', long)]
+    #[arg(short = 'd', long)]
     instruction_detail: Option<String>,
 }
 
@@ -149,7 +149,9 @@ impl MainCommandHandler for UpdateInstructionArgs {
         });
         let mut open_connection = options.connect().await?;
         let response = open_connection
-            .update_instruction(ModifyInstructionRequest { instruction: Some(instruction) })
+            .update_instruction(ModifyInstructionRequest {
+                instruction: Some(instruction),
+            })
             .await
             .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
         log::debug!("Got response {:?}", response);
