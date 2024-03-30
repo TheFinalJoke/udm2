@@ -38,7 +38,8 @@
             "args": [
                 "--config-file",
                 ".config/local.toml",
-                "-vvv"
+                "-vvv",
+                "--test"
             ],
             "cwd": "${workspaceFolder}",
             "env": {

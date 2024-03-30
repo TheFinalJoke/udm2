@@ -2,7 +2,6 @@ use crate::db::{DatabaseTransactionsFactory, DbConnection};
 use crate::parsers::settings::{self, SqliteConfigurer};
 use crate::UdmResult;
 use async_trait::async_trait;
-use log;
 use std::path::Path;
 use tokio_postgres::Row;
 use tokio_rusqlite::Connection;
@@ -32,11 +31,11 @@ impl DbConnection for OpenSqliteConnection {
 impl OpenSqliteConnection {
     pub async fn new(settings: settings::SqliteConfigurer) -> Self {
         let path = Path::new(&settings.db_path);
-        log::info!("Using {} as the path for the database", path.display());
+        tracing::info!("Using {} as the path for the database", path.display());
         let conn = tokio_rusqlite::Connection::open(path)
             .await
             .unwrap_or_else(|e| panic!("Error connection to {} due to: {:?}", path.display(), e));
-        log::info!("Established Connection with sqlite file");
+        tracing::info!("Established Connection with sqlite file");
         OpenSqliteConnection {
             connection: conn,
             settings,
@@ -48,14 +47,14 @@ impl OpenSqliteConnection {
 impl DatabaseTransactionsFactory for OpenSqliteConnection {
     async fn collect_all_current_tables(&mut self) -> UdmResult<Vec<String>> {
         todo!()
-        // log::debug!("Getting current tables in db");
+        // tracing::debug!("Getting current tables in db");
         // let mut stmt = self.connection.prepare("SELECT name FROM main.sqlite_master WHERE type='table'")?;
         // let table_rows = stmt.query_map([], |rows| rows.get(0))?;
         // let mut tables: Vec<String> = Vec::new();
         // for row in table_rows {
         //     tables.push(row?);
         // }
-        // log::trace!("Data: tables {:?}", tables);
+        // tracing::trace!("Data: tables {:?}", tables);
         // Ok(tables)
     }
 
@@ -69,12 +68,12 @@ impl DatabaseTransactionsFactory for OpenSqliteConnection {
         //     db::InstructionToRecipeSchema::create_table(SqliteQueryBuilder),
         // ]
         // .join("; ");
-        // log::debug!("Ensure schmea is defined and exists");
+        // tracing::debug!("Ensure schmea is defined and exists");
         // let mut batch = rusqlite::Batch::new(&self.connection, &tables);
         // while let Some(mut stmt) = batch.next().unwrap_or_else(|e| {
         //     panic!("Failure creating the schema {:?} with query {:?}", e, batch)
         // }) {
-        //     log::trace!("Using Batched query {:?}", stmt);
+        //     tracing::trace!("Using Batched query {:?}", stmt);
         //     stmt.execute([]).unwrap_or_else(|e| {
         //         panic!(
         //             "Failure creating the schema {:?} with query {:?}",
@@ -83,7 +82,7 @@ impl DatabaseTransactionsFactory for OpenSqliteConnection {
         //         )
         //     });
         // }
-        // log::debug!("Tables created");
+        // tracing::debug!("Tables created");
         // Ok(())
     }
     async fn truncate_schema(&self) -> UdmResult<()> {

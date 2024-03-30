@@ -1,7 +1,8 @@
 extern crate log;
 use clap::Parser;
 use cli::helpers::UdmServerOptions;
-use lib::logger;
+use lib::logger::UdmLogger;
+use lib::logger::UdmLoggerType;
 
 use std::error::Error;
 
@@ -12,8 +13,8 @@ pub mod cli;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let cli_opts = cli::UdmCli::parse();
-    logger::MyLogger::init(cli_opts.verbose, None)?;
-    log::info!("Initialized logger");
+    UdmLogger::init(UdmLoggerType::BIN, cli_opts.verbose, None, false)?;
+    tracing::info!("Initialized logger");
     let server_options = UdmServerOptions {
         host: cli_opts.udm_server.to_string(),
         port: cli_opts.udm_port,

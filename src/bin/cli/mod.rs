@@ -101,11 +101,11 @@ impl MainCommandHandler for ResetCommands {
             .map_err(|e| UdmError::ApiFailure(format!("{}", e)));
         match reset {
             Ok(_) => {
-                log::info!("Successfully reset the tables");
+                tracing::info!("Successfully reset the tables");
                 Ok(())
             }
             Err(e) => {
-                log::error!("Failed to reset tables: {}", e.to_string());
+                tracing::error!("Failed to reset tables: {}", e.to_string());
                 Err(e)
             }
         }

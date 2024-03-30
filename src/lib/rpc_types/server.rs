@@ -39,7 +39,6 @@ use crate::rpc_types::service_types::ServiceResponse;
 use crate::UdmResult;
 use anyhow::Result;
 use itertools::Itertools;
-use log;
 use sea_query::PostgresQueryBuilder;
 use std::net::SocketAddr;
 use tonic::transport::Server;
@@ -70,7 +69,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<AddFluidRegulatorRequest>,
     ) -> Result<Response<AddFluidRegulatorResponse>, Status> {
-        log::debug!("Got request {:?}", request);
+        tracing::debug!("Got request {:?}", request);
         let fr = request
             .into_inner()
             .fluid
@@ -92,7 +91,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<RemoveFluidRegulatorRequest>,
     ) -> Result<Response<GenericRemovalResponse>, Status> {
-        log::debug!("Got Request {:?}", request);
+        tracing::debug!("Got Request {:?}", request);
         let fr_id = request.into_inner().fr_id;
         let query = FluidRegulator::gen_remove_query(fr_id).to_string(PostgresQueryBuilder);
         let delete_result = self.connection.delete(query).await;
@@ -108,7 +107,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<ModifyFluidRegulatorRequest>,
     ) -> Result<Response<ModifyFluidRegulatorResponse>, Status> {
-        log::debug!("Got {:?}", request);
+        tracing::debug!("Got {:?}", request);
         let fr = request
             .into_inner()
             .fluid
@@ -130,7 +129,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<CollectFluidRegulatorsRequest>,
     ) -> Result<Response<CollectFluidRegulatorsResponse>, Status> {
-        log::debug!("Got {:?}", request);
+        tracing::debug!("Got {:?}", request);
         let exprs = request
             .into_inner()
             .get_expressions()
@@ -144,12 +143,12 @@ impl UdmService for DaemonServerContext {
                     .into_iter()
                     .map(|row| FluidRegulator::try_from(row).unwrap())
                     .collect_vec();
-                log::info!("Successfully collected fluid regulators");
-                log::debug!("Collected data {:?}", frs);
+                tracing::info!("Successfully collected fluid regulators");
+                tracing::debug!("Collected data {:?}", frs);
                 Ok(CollectFluidRegulatorsResponse { fluids: frs }.to_response())
             }
             Err(e) => {
-                log::error!("There was an error collecting {}", e.to_string());
+                tracing::error!("There was an error collecting {}", e.to_string());
                 Err(Status::cancelled(format!(
                     "Failed to query the database: {}",
                     e
@@ -179,7 +178,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<AddInstructionRequest>,
     ) -> Result<Response<AddInstructionResponse>, Status> {
-        log::debug!("Got request {:?}", request);
+        tracing::debug!("Got request {:?}", request);
         let instruction = request
             .into_inner()
             .instruction
@@ -204,7 +203,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<RemoveInstructionRequest>,
     ) -> Result<Response<GenericRemovalResponse>, Status> {
-        log::debug!("Got Request {:?}", request);
+        tracing::debug!("Got Request {:?}", request);
         let instruction_id = request.into_inner().instruction_id;
         let query = Instruction::gen_remove_query(instruction_id).to_string(PostgresQueryBuilder);
         let delete_result = self.connection.delete(query).await;
@@ -220,7 +219,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<CollectInstructionRequest>,
     ) -> Result<Response<CollectInstructionResponse>, Status> {
-        log::debug!("Got {:?}", request);
+        tracing::debug!("Got {:?}", request);
         let exprs = request
             .into_inner()
             .get_expressions()
@@ -234,12 +233,12 @@ impl UdmService for DaemonServerContext {
                     .into_iter()
                     .map(|row| Instruction::try_from(row).unwrap())
                     .collect_vec();
-                log::info!("Successfully collected instructions");
-                log::debug!("Collected data {:?}", instructions);
+                tracing::info!("Successfully collected instructions");
+                tracing::debug!("Collected data {:?}", instructions);
                 Ok(CollectInstructionResponse { instructions }.to_response())
             }
             Err(e) => {
-                log::error!("There was an error collecting {}", e.to_string());
+                tracing::error!("There was an error collecting {}", e.to_string());
                 Err(Status::cancelled(format!(
                     "Failed to query the database: {}",
                     e
@@ -251,7 +250,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<ModifyInstructionRequest>,
     ) -> Result<Response<ModifyInstructionResponse>, Status> {
-        log::debug!("Got {:?}", request);
+        tracing::debug!("Got {:?}", request);
         let instruction = request
             .into_inner()
             .instruction
@@ -293,12 +292,12 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<ResetRequest>,
     ) -> Result<Response<ResetResponse>, Status> {
-        log::info!("Got request {:?}", request);
+        tracing::info!("Got request {:?}", request);
         let dropped_result = self.connection.truncate_schema().await;
-        log::info!("the dropped Result {:?}", &dropped_result);
+        tracing::info!("the dropped Result {:?}", &dropped_result);
         match dropped_result {
             Ok(_) => {
-                log::info!("Successfully dropped rows");
+                tracing::info!("Successfully dropped rows");
                 Ok(ResetResponse {}.to_response())
             }
             Err(err) => Err(Status::cancelled(format!("Failed to drop rows: {}", err))),
@@ -310,7 +309,7 @@ pub async fn start_server(
     service: UdmServiceServer<DaemonServerContext>,
     addr: SocketAddr,
 ) -> UdmResult<()> {
-    log::info!("Running Udm Service on {:?}", &addr);
+    tracing::info!("Running Udm Service on {:?}", &addr);
     let _ = Server::builder().add_service(service).serve(addr).await;
     Ok(())
 }

@@ -17,6 +17,8 @@ pub enum UdmError {
     ApiFailure(String),
     #[error("Error Parsing: {0}")]
     ParsingError(#[from] RegexError),
+    #[error("Error Setting Up Logger: {0}")]
+    LoggerError(String),
 }
 
 impl From<String> for UdmError {
@@ -27,7 +29,7 @@ impl From<String> for UdmError {
 
 impl UdmError {
     pub fn log_and_exit(msg: Box<dyn GenericError>, exit_code: i32) {
-        log::error!("{}", format!("{}", msg));
+        tracing::error!("{}", format!("{}", msg));
         std::process::exit(exit_code)
     }
 }

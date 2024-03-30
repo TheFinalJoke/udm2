@@ -20,7 +20,7 @@ pub trait GenQueries {
         let mut binding = Query::select();
         let query = binding.column(Asterisk).from(table);
         for clause in wheres {
-            log::debug!("Adding expres to query: {:?}", &clause);
+            tracing::debug!("Adding expres to query: {:?}", &clause);
             query.and_where(clause);
         }
         query.to_owned()

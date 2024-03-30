@@ -27,12 +27,12 @@ impl FileRetrieve {
 }
 impl Retrieval<Config> for FileRetrieve {
     fn retreieve<FileRetrieve>(self) -> Result<Config, String> {
-        log::info!("Using Path {} to build a config", &self.path.display());
+        tracing::info!("Using Path {} to build a config", &self.path.display());
         let file_format = if self.path.as_path().extension().unwrap() == "toml" {
-            log::info!("Found file to be TOML");
+            tracing::info!("Found file to be TOML");
             FileFormat::Toml
         } else {
-            log::info!("Found file to be YAML");
+            tracing::info!("Found file to be YAML");
             FileFormat::Yaml
         };
         let settings = Config::builder()
@@ -41,7 +41,7 @@ impl Retrieval<Config> for FileRetrieve {
                 file_format,
             ))
             .build();
-        log::trace!("Settings ConfigBuild {:?}", &settings);
+        tracing::trace!("Settings ConfigBuild {:?}", &settings);
         Ok(settings.unwrap_or_else(|error| panic!("Failed to get Config {}", error)))
     }
 }

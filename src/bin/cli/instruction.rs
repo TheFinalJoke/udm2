@@ -60,7 +60,7 @@ pub struct AddInstructionArgs {
 impl UdmGrpcActions<Instruction> for AddInstructionArgs {
     fn sanatize_input(&self) -> UdmResult<Instruction> {
         if let Some(raw_input) = &self.raw {
-            log::debug!("Json passed: {}", &raw_input);
+            tracing::debug!("Json passed: {}", &raw_input);
             let instruction: Instruction = serde_json::from_str(raw_input)
                 .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
             instruction.validate_without_id_fields()?;
@@ -83,7 +83,7 @@ impl UdmGrpcActions<Instruction> for AddInstructionArgs {
 impl MainCommandHandler for AddInstructionArgs {
     async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()> {
         let instruction = self.sanatize_input().unwrap_or_else(|e| {
-            log::error!("{}", e);
+            tracing::error!("{}", e);
             std::process::exit(2)
         });
         let mut open_connection = options.connect().await?;
@@ -93,8 +93,8 @@ impl MainCommandHandler for AddInstructionArgs {
             })
             .await
             .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
-        log::debug!("Got response {:?}", response);
-        log::info!(
+        tracing::debug!("Got response {:?}", response);
+        tracing::info!(
             "Inserted into database, got ID back {}",
             response.into_inner().instruction_id
         );
@@ -135,7 +135,7 @@ impl MainCommandHandler for ShowInstructionArgs {
                 .map_err(|e| UdmError::ApiFailure(format!("{}", e)));
             match response {
                 Ok(response) => {
-                    log::debug!("Got response {:?}", &response);
+                    tracing::debug!("Got response {:?}", &response);
                     let instructions = response.into_inner().instructions;
                     println!("Found {} results", &instructions.len());
                     let table = self.create_tables(instructions);
@@ -217,13 +217,13 @@ impl MainCommandHandler for RemoveInstructionArgs {
         let req = RemoveInstructionRequest { instruction_id: id };
         let mut open_conn = options.connect().await?;
         let response = open_conn.remove_instruction(req).await;
-        log::debug!("Got response {:?}", response);
+        tracing::debug!("Got response {:?}", response);
         match response {
             Ok(_) => {
-                log::info!("Successfully removed from database");
+                tracing::info!("Successfully removed from database");
             }
             Err(err) => {
-                log::error!("Error removing from db: {}", err.to_string())
+                tracing::error!("Error removing from db: {}", err.to_string())
             }
         }
         Ok(())
@@ -244,7 +244,7 @@ pub struct UpdateInstructionArgs {
 impl UdmGrpcActions<Instruction> for UpdateInstructionArgs {
     fn sanatize_input(&self) -> UdmResult<Instruction> {
         if let Some(raw_input) = &self.raw {
-            log::debug!("Json passed: {}", &raw_input);
+            tracing::debug!("Json passed: {}", &raw_input);
             let instruction: Instruction = serde_json::from_str(raw_input)
                 .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
             instruction.validate_all_fields()?;
@@ -266,7 +266,7 @@ impl UdmGrpcActions<Instruction> for UpdateInstructionArgs {
 impl MainCommandHandler for UpdateInstructionArgs {
     async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()> {
         let instruction = self.sanatize_input().unwrap_or_else(|e| {
-            log::error!("{}", e);
+            tracing::error!("{}", e);
             std::process::exit(2)
         });
         let mut open_connection = options.connect().await?;
@@ -276,8 +276,8 @@ impl MainCommandHandler for UpdateInstructionArgs {
             })
             .await
             .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
-        log::debug!("Got response {:?}", response);
-        log::info!(
+        tracing::debug!("Got response {:?}", response);
+        tracing::info!(
             "Updated database, got ID back {}",
             response.into_inner().instruction_id
         );

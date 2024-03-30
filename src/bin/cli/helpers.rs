@@ -1,7 +1,6 @@
 use cli_table::TableStruct;
 use lib::rpc_types::server::udm_service_client::UdmServiceClient;
 use lib::UdmResult;
-use log;
 
 pub trait UdmGrpcActions<T> {
     fn sanatize_input(&self) -> UdmResult<T>;
@@ -29,7 +28,7 @@ impl UdmServerOptions {
         let client = UdmServiceClient::connect(udm_server)
             .await
             .unwrap_or_else(|e| {
-                log::error!("Could not connect to UDM Server {}", e);
+                tracing::error!("Could not connect to UDM Server {}", e);
                 std::process::exit(1)
             });
         Ok(client)

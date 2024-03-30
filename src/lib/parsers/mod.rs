@@ -1,6 +1,5 @@
 use crate::error;
 use crate::UdmResult;
-use log;
 use serde::Deserialize;
 use std::fmt::Debug;
 use std::sync::Arc;
@@ -15,6 +14,6 @@ pub fn validate_configurer(configurer: Arc<settings::UdmConfigurer>) -> UdmResul
             "A database is not set, Valid configs are postgres and sqlite",
         )));
     }
-    log::info!("Configuration has been validated. NO ERRORS!");
+    tracing::info!("Configuration has been validated. NO ERRORS!");
     Ok(())
 }

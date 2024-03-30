@@ -1,4 +1,3 @@
-use log;
 use std::fmt::Display;
 use tokio_postgres::Row;
 use tonic::async_trait;
@@ -82,10 +81,10 @@ pub enum DbType {
 impl DbType {
     pub fn load_db(udm_configurer: Arc<settings::UdmConfigurer>) -> Self {
         if let Some(postgres_configurer) = udm_configurer.daemon.postgres.clone() {
-            log::info!("Using postgres as the Database");
+            tracing::info!("Using postgres as the Database");
             Self::Postgres(postgres_configurer)
         } else if let Some(sqlite_configurer) = udm_configurer.daemon.sqlite.clone() {
-            log::info!("Using sqlite as the database");
+            tracing::info!("Using sqlite as the database");
             Self::Sqlite(sqlite_configurer)
         } else {
             panic!("Could not determine database to use and load")

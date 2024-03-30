@@ -18,6 +18,9 @@ pub struct DaemonCli {
     )]
     pub config_file: PathBuf,
 
+    #[arg(short, long, default_value = "false")]
+    pub test: bool,
+
     #[command(subcommand)]
     command: Option<UdmCommands>,
 }
@@ -27,6 +30,7 @@ impl Default for DaemonCli {
             verbose: Verbosity::default(),
             config_file: Path::new("/etc/udm/default.toml").to_path_buf(),
             command: None,
+            test: false,
         }
     }
 }
@@ -37,6 +41,7 @@ impl DaemonCli {
             verbose: Verbosity::default(),
             config_file: Path::new(config_file).to_path_buf(),
             command: None,
+            test: false,
         }
     }
 }

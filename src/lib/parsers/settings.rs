@@ -107,7 +107,7 @@ impl PostgresConfigurer {
         if let Some(pass) = pass_var {
             pass.into_string().unwrap()
         } else {
-            log::error!("Postgres option requires a password");
+            tracing::error!("Postgres option requires a password");
             std::process::exit(30)
         }
     }

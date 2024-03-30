@@ -2,11 +2,11 @@ use crate::db::FluidRegulationSchema;
 use crate::db::InstructionSchema;
 use crate::error::UdmError;
 use crate::UdmResult;
-use log::debug;
 use regex::Regex;
 use sea_query::Expr;
 use sea_query::SimpleExpr;
 use tonic::Response;
+use tracing::debug;
 tonic::include_proto!("service_types");
 
 pub trait ServiceRequest {}
