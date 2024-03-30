@@ -82,14 +82,13 @@ impl UdmLogger {
                 Ok(())
             }
             UdmLoggerType::BIN => {
-                let cli_layer =
-                    tracing_subscriber::fmt::layer()
-                        .pretty()
-                        .with_file(false)
-                        .compact()
-                        .with_filter(LevelFilter::from_level(convert_log_level_to_tracing_level(
-                            verbose.log_level().unwrap(),
-                        )));
+                let cli_layer = tracing_subscriber::fmt::layer()
+                    .pretty()
+                    .with_file(false)
+                    .compact()
+                    .with_filter(LevelFilter::from_level(convert_log_level_to_tracing_level(
+                        verbose.log_level().unwrap(),
+                    )));
                 tracing_subscriber::registry().with(cli_layer).init();
                 Ok(())
             }
