@@ -93,11 +93,15 @@ message RemoveRecipeRequest {
 message AddInstructionRequest {
   recipe_types.Instruction instruction = 1;
 }
-
 message AddInstructionResponse {
   int32 instruction_id = 1;
 }
-
+message CollectInstructionRequest {
+  repeated FetchData expressions = 1;
+}
+message CollectInstructionResponse {
+  repeated recipe_types.Instruction instructions = 1;
+}
 message GetInstructionRequest {
   int32 instruction_id = 1;
 }

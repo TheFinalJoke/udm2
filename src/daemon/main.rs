@@ -8,26 +8,28 @@ use std::error::Error;
 use std::net::IpAddr;
 use std::net::Ipv4Addr;
 use std::net::SocketAddr;
-use std::rc::Rc;
 use std::sync::Arc;
 pub mod cli;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let cli_opts = cli::DaemonCli::parse();
-    let debug_level = logger::get_log_level(cli_opts.debug);
-    logger::MyLogger::init(debug_level)?;
+
+    let config_file =
+        lib::FileRetrieve::new(cli_opts.config_file.clone()).retreieve::<config::Config>()?;
+    let configeror = Arc::new(config_file.try_deserialize::<parsers::settings::UdmConfigurer>()?);
+    logger::MyLogger::init(
+        cli_opts.verbose,
+        Some(configeror.daemon.log_file_path.as_str()),
+    )?;
     log::info!(
-        "Initialized logger, collecting Config File {}",
+        "Initialized logger, collected Config File {}",
         &cli_opts.config_file.display()
     );
-    let config_file = lib::FileRetrieve::new(cli_opts.config_file).retreieve::<config::Config>()?;
-
-    let configeror = Rc::new(config_file.try_deserialize::<parsers::settings::UdmConfigurer>()?);
     log::debug!("Using configuration: {:?}", &configeror);
-    lib::parsers::validate_configurer(Rc::clone(&configeror)).unwrap_or_else(|e| panic!("{}", e));
+    lib::parsers::validate_configurer(Arc::clone(&configeror)).unwrap_or_else(|e| panic!("{}", e));
     // Load in the Correct Db Settings and establish connection
-    let db_type = Arc::new(db::DbType::load_db(Rc::clone(&configeror)));
+    let db_type = Arc::new(db::DbType::load_db(Arc::clone(&configeror)));
     let mut connection = db_type.establish_connection().await;
     log::info!("Initializing database");
     let _ = connection
@@ -37,7 +39,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let addr = SocketAddr::new(
         IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-        Rc::clone(&configeror).udm.port.try_into()?,
+        Arc::clone(&configeror).udm.port.try_into()?,
     );
     log::info!("Attempting to start server on {}", &addr);
     let db_metadata = DbMetaData::new(Arc::clone(&db_type));

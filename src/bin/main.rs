@@ -12,8 +12,7 @@ pub mod cli;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let cli_opts = cli::UdmCli::parse();
-    let debug_level = logger::get_log_level(cli_opts.debug);
-    logger::MyLogger::init(debug_level).unwrap();
+    logger::MyLogger::init(cli_opts.verbose, None)?;
     log::info!("Initialized logger");
     let server_options = UdmServerOptions {
         host: cli_opts.udm_server.to_string(),

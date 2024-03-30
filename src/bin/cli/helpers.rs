@@ -1,3 +1,4 @@
+use cli_table::TableStruct;
 use lib::rpc_types::server::udm_service_client::UdmServiceClient;
 use lib::UdmResult;
 use log;
@@ -11,6 +12,11 @@ pub trait MainCommandHandler {
     async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()>;
 }
 
+pub(crate) trait ShowHandler<T>: MainCommandHandler {
+    fn show_example();
+    fn create_tables(&self, data: Vec<T>) -> TableStruct;
+    fn get_schema_columns();
+}
 #[derive(Debug)]
 pub struct UdmServerOptions {
     pub host: String,

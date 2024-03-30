@@ -21,7 +21,7 @@ tonic = "0.10.2"
 prost = "0.12.3"
 tokio = { version = "1.34.0", features = ["macros", "rt-multi-thread"] }
 log = "0.4.20"
-env_logger ={ version = "0.10.1"}
+env_logger ={ version = "0.11.3"}
 rusqlite = { version = "0.30.0", features = ["bundled"] }
 mockall = "0.12.1"
 config = "0.13.4"
@@ -42,6 +42,8 @@ serde_json = "1.0.113"
 anyhow = "1.0.80"
 regex = "1.10.3"
 cli-table = "0.4.7"
+clap-verbosity-flag = "2.2.0"
+pretty_env_logger = "0.5.0"
 
 [build-dependencies]
 tonic-build = "0.10.2"

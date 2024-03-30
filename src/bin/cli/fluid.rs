@@ -1,5 +1,6 @@
 use crate::cli::helpers::ensure_removal;
 use crate::cli::helpers::MainCommandHandler;
+use crate::cli::helpers::ShowHandler;
 use crate::cli::helpers::UdmGrpcActions;
 use crate::cli::helpers::UdmServerOptions;
 use clap::Args;
@@ -8,6 +9,7 @@ use cli_table::Cell;
 use cli_table::Style;
 use cli_table::Table;
 use cli_table::TableStruct;
+use lib::db::FluidRegulationSchema;
 use lib::error::UdmError;
 use lib::rpc_types::fhs_types::FluidRegulator;
 use lib::rpc_types::fhs_types::RegulatorType;
@@ -20,35 +22,6 @@ use lib::rpc_types::FieldValidation;
 use lib::UdmResult;
 use tonic::async_trait;
 
-fn create_tables(data: Vec<FluidRegulator>) -> TableStruct {
-    let mut table = Vec::new();
-    for fluid in data {
-        let fr_id = match &fluid.fr_id {
-            Some(id) => format!("{}", id),
-            None => "Not Set".to_string(),
-        };
-        let gpio_pin: String = match &fluid.gpio_pin {
-            Some(pin) => format!("{}", pin),
-            None => "Not Set".to_string(),
-        };
-        let reg = match fluid.regulator_type {
-            Some(reg) => RegulatorType::try_from(reg)
-                .unwrap_or(RegulatorType::Unspecified)
-                .as_str_name()
-                .to_string(),
-            None => "Not Set".to_string(),
-        };
-        table.push(vec![fr_id.cell(), gpio_pin.cell(), reg.cell()]);
-    }
-    table
-        .table()
-        .title(vec![
-            "ID".cell().bold(true),
-            "Gpio Pin".cell().bold(true),
-            "Regulator Type".cell().bold(true),
-        ])
-        .bold(true)
-}
 #[derive(Subcommand, Debug)]
 pub enum FluidCommands {
     #[command(about = "Add a fluid regulator")]
@@ -199,12 +172,17 @@ pub struct ShowFluidArgs {
     query_options: Option<String>,
     #[arg(long, short = 'e', help = "Example queries", default_value = "false")]
     example: bool,
+    #[arg(long, short = 's', help = "show_fields", default_value = "false")]
+    show_fields: bool,
 }
 #[async_trait]
 impl MainCommandHandler for ShowFluidArgs {
     async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()> {
         if self.example {
-            self.show_example();
+            Self::show_example();
+            Ok(())
+        } else if self.show_fields {
+            Self::get_schema_columns();
             Ok(())
         } else {
             let fetched = self.sanatize_input()?;
@@ -220,7 +198,7 @@ impl MainCommandHandler for ShowFluidArgs {
                     log::debug!("Got response {:?}", &response);
                     let fluids = response.into_inner().fluids;
                     println!("Found {} results", &fluids.len());
-                    let table = create_tables(fluids);
+                    let table = self.create_tables(fluids);
                     println!("{}", table.display().unwrap());
                     Ok(())
                 }
@@ -232,6 +210,48 @@ impl MainCommandHandler for ShowFluidArgs {
         }
     }
 }
+impl ShowHandler<FluidRegulator> for ShowFluidArgs {
+    fn show_example() {
+        println!("To build a query it will be <field><operation><values>");
+        println!("fr_id=1");
+        println!("^^ will query fr_id=1");
+        println!("Another example of multiple values, fr_id = 1");
+        Self::get_schema_columns();
+    }
+
+    fn create_tables(&self, data: Vec<FluidRegulator>) -> TableStruct {
+        let mut table = Vec::new();
+        for fluid in data {
+            let fr_id = match &fluid.fr_id {
+                Some(id) => format!("{}", id),
+                None => "Not Set".to_string(),
+            };
+            let gpio_pin: String = match &fluid.gpio_pin {
+                Some(pin) => format!("{}", pin),
+                None => "Not Set".to_string(),
+            };
+            let reg = match fluid.regulator_type {
+                Some(reg) => RegulatorType::try_from(reg)
+                    .unwrap_or(RegulatorType::Unspecified)
+                    .as_str_name()
+                    .to_string(),
+                None => "Not Set".to_string(),
+            };
+            table.push(vec![fr_id.cell(), gpio_pin.cell(), reg.cell()]);
+        }
+        table
+            .table()
+            .title(vec![
+                "ID".cell().bold(true),
+                "Gpio Pin".cell().bold(true),
+                "Regulator Type".cell().bold(true),
+            ])
+            .bold(true)
+    }
+    fn get_schema_columns() {
+        println!("{}", FluidRegulationSchema::FrId);
+    }
+}
 impl ShowFluidArgs {
     fn sanatize_input(&self) -> UdmResult<Vec<FetchData>> {
         let collected_queries =
@@ -239,14 +259,7 @@ impl ShowFluidArgs {
         Ok(collected_queries)
     }
 }
-impl ShowFluidArgs {
-    pub(crate) fn show_example(&self) {
-        println!("To build a query it will be <field><operation><values>");
-        println!("fr_id=1");
-        println!("^^ will query fr_id=1");
-        println!("Another example of multiple values, fr_id = 1");
-    }
-}
+
 #[derive(Args, Debug)]
 pub struct RemoveFluidArgs {
     #[arg(short, long, help = "Remove fluid regulator by ID", required = true)]
@@ -311,7 +324,6 @@ mod tests {
             fr_id: Some(1),
             regulator_type: Some(RegulatorType::Valve.into()),
             gpio_pin: Some(12),
-            ..Default::default()
         };
         assert_eq!(fr.unwrap(), expected_result)
     }
@@ -345,7 +357,6 @@ mod tests {
             fr_id: Some(1),
             regulator_type: Some(RegulatorType::Valve.into()),
             gpio_pin: Some(12),
-            ..Default::default()
         };
         assert_eq!(fr.unwrap(), expected_result)
     }
@@ -373,7 +384,7 @@ mod tests {
             gpio_pin: Some(12),
         };
         let fr = add_fluid.sanatize_input();
-        assert_eq!(fr.is_err(), true)
+        assert!(fr.is_err())
     }
     #[test]
     fn test_sanatize_input_update_raw_not_all_valued() {
@@ -399,6 +410,6 @@ mod tests {
             gpio_pin: Some(12),
         };
         let fr: UdmResult<FluidRegulator> = update_fluid.sanatize_input();
-        assert_eq!(fr.is_err(), true)
+        assert!(fr.is_err(), "{}", true)
     }
 }

@@ -29,6 +29,7 @@ impl UdmConfig for Configurer {}
 pub struct DaemonConfigurer {
     pub postgres: Option<PostgresConfigurer>,
     pub sqlite: Option<SqliteConfigurer>,
+    pub log_file_path: String,
 }
 
 impl Default for DaemonConfigurer {
@@ -36,6 +37,7 @@ impl Default for DaemonConfigurer {
         Self {
             postgres: Some(PostgresConfigurer::default()),
             sqlite: None,
+            log_file_path: "/var/log/udm/udm_daemon".to_string(),
         }
     }
 }

@@ -6,22 +6,21 @@ pub mod helpers;
 pub mod ingredient;
 pub mod instruction;
 pub mod recipe;
+use self::helpers::MainCommandHandler;
 use crate::cli::helpers::UdmServerOptions;
 use async_trait::async_trait;
+use clap_verbosity_flag::Verbosity;
 use lib::error::UdmError;
 use lib::rpc_types::service_types::EntityType;
 use lib::rpc_types::service_types::ResetRequest;
 use lib::rpc_types::service_types::ResetType;
 use lib::UdmResult;
 
-use self::helpers::MainCommandHandler;
-
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct UdmCli {
-    /// Turn debugging information on
-    #[arg(short, long, action = clap::ArgAction::Count, help="Turn on debugging, the more (d)s more verbose")]
-    pub debug: u8,
+    #[command(flatten)]
+    pub verbose: Verbosity,
 
     #[arg(
         short = 's',
@@ -43,7 +42,7 @@ pub struct UdmCli {
 impl Default for UdmCli {
     fn default() -> Self {
         Self {
-            debug: 0,
+            verbose: Verbosity::default(),
             udm_server: std::net::Ipv4Addr::new(127, 0, 0, 1),
             udm_port: 19211,
             command: None,
@@ -52,9 +51,9 @@ impl Default for UdmCli {
 }
 
 impl UdmCli {
-    pub fn new(debug: u8) -> Self {
+    pub fn new(verbosity: Verbosity) -> Self {
         Self {
-            debug,
+            verbose: verbosity,
             udm_server: std::net::Ipv4Addr::new(127, 0, 0, 1),
             udm_port: 19211,
             command: None,

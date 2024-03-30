@@ -38,7 +38,7 @@
             "args": [
                 "--config-file",
                 ".config/local.toml",
-                "-ddddd"
+                "-vvv"
             ],
             "cwd": "${workspaceFolder}",
             "env": {

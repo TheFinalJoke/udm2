@@ -1,9 +1,11 @@
 use log;
+use std::fmt::Display;
 use tokio_postgres::Row;
 use tonic::async_trait;
 
 use crate::error::UdmError;
 use crate::parsers::settings;
+use crate::rpc_types::fhs_types::RegulatorType;
 use crate::UdmResult;
 use sea_query::foreign_key::ForeignKeyAction;
 use sea_query::foreign_key::ForeignKeyCreateStatement;
@@ -11,7 +13,6 @@ use sea_query::value::Value;
 use sea_query::ColumnDef;
 use sea_query::Iden;
 use sea_query::Table;
-use std::rc::Rc;
 use std::sync::Arc;
 pub mod executor;
 pub mod postgres;
@@ -21,7 +22,7 @@ pub mod sqlite;
 
 // This represents the table operations itself.
 // Connection and Manipulation will be handled into a different struct
-pub trait SqlTransactionsFactory {
+pub trait SqlTransactionsFactory: Display {
     fn column_to_str(&self) -> &'static str;
     fn from_str(value: &'static str) -> Option<Self>
     where
@@ -79,7 +80,7 @@ pub enum DbType {
     Sqlite(settings::SqliteConfigurer),
 }
 impl DbType {
-    pub fn load_db(udm_configurer: Rc<settings::UdmConfigurer>) -> Self {
+    pub fn load_db(udm_configurer: Arc<settings::UdmConfigurer>) -> Self {
         if let Some(postgres_configurer) = udm_configurer.daemon.postgres.clone() {
             log::info!("Using postgres as the Database");
             Self::Postgres(postgres_configurer)
@@ -133,6 +134,19 @@ impl SqlTransactionsFactory for FluidRegulationSchema {
     }
 }
 
+impl Display for FluidRegulationSchema {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Valid Fields are:\n\
+        fr_id: int\n\
+        gpio_pin: int\n\
+        regulator_type: {:?}
+        ",
+            RegulatorType::get_possible_values()
+        )
+    }
+}
 impl SqlTableTransactionsFactory for FluidRegulationSchema {
     fn create_table(builder: impl sea_query::backend::SchemaBuilder) -> String {
         Table::create()
@@ -216,6 +230,24 @@ impl SqlTransactionsFactory for IngredientSchema {
             "instruction_id" => Some(Self::InstructionId),
             _ => None,
         }
+    }
+}
+impl Display for IngredientSchema {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Valid Fields are:\n\
+        ingredient_id: int\n\
+        name: string\n\
+        alcoholic: bool\n\
+        description: string\n\
+        is_active: bool\n\
+        amount: int\n\
+        ingredient_type: int\n\
+        fr_id: int\n\
+        instruction_id: int\n\
+        "
+        )
     }
 }
 impl TryFrom<String> for IngredientSchema {
@@ -330,6 +362,18 @@ impl SqlTransactionsFactory for InstructionSchema {
         }
     }
 }
+impl Display for InstructionSchema {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Valid Fields are:\n\
+        instruction_id: int\n\
+        instruction_detail: int\n\
+        instruction_name: int\n\
+        "
+        )
+    }
+}
 impl TryFrom<String> for InstructionSchema {
     type Error = UdmError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -398,6 +442,18 @@ impl SqlTransactionsFactory for InstructionToRecipeSchema {
             "instruction_order" => Some(Self::InstructionOrder),
             _ => None,
         }
+    }
+}
+impl Display for InstructionToRecipeSchema {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Valid Fields are:\n\
+        recipe_id: int\n\
+        instruction_id: int\n\
+        instruction_order: int\n\
+        "
+        )
     }
 }
 impl TryFrom<String> for InstructionToRecipeSchema {
@@ -482,6 +538,20 @@ impl SqlTransactionsFactory for RecipeSchema {
             "description" => Some(Self::Description),
             _ => None,
         }
+    }
+}
+impl Display for RecipeSchema {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Valid Fields are:\n\
+        recipe_id: int\n\
+        name: string\n\
+        user_input: bool\n\
+        drink_size: int\n\
+        description: string\n\
+        "
+        )
     }
 }
 impl TryFrom<String> for RecipeSchema {

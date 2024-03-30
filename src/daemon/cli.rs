@@ -1,12 +1,13 @@
-use clap::{Parser, Subcommand};
-use std::path::{Path, PathBuf};
-
+use clap::Parser;
+use clap::Subcommand;
+use clap_verbosity_flag::Verbosity;
+use std::path::Path;
+use std::path::PathBuf;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct DaemonCli {
-    /// Turn debugging information on
-    #[arg(short, long, action = clap::ArgAction::Count, help="Turn on debugging, the more (d)s more verbose")]
-    pub debug: u8,
+    #[command(flatten)]
+    pub verbose: clap_verbosity_flag::Verbosity,
 
     #[arg(
         short,
@@ -23,7 +24,7 @@ pub struct DaemonCli {
 impl Default for DaemonCli {
     fn default() -> Self {
         Self {
-            debug: 3,
+            verbose: Verbosity::default(),
             config_file: Path::new("/etc/udm/default.toml").to_path_buf(),
             command: None,
         }
@@ -31,9 +32,9 @@ impl Default for DaemonCli {
 }
 
 impl DaemonCli {
-    pub fn new(debug: u8, config_file: &str) -> Self {
+    pub fn new(config_file: &str) -> Self {
         Self {
-            debug,
+            verbose: Verbosity::default(),
             config_file: Path::new(config_file).to_path_buf(),
             command: None,
         }

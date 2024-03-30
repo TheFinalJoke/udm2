@@ -1,4 +1,5 @@
 use crate::db::FluidRegulationSchema;
+use crate::db::InstructionSchema;
 use crate::error::UdmError;
 use crate::UdmResult;
 use log::debug;
@@ -18,6 +19,9 @@ pub trait ServiceResponse: Clone {
     }
 }
 
+pub trait CollectExpressions {
+    fn get_expressions(&self) -> UdmResult<Vec<SimpleExpr>>;
+}
 impl ServiceRequest for AddFluidRegulatorRequest {}
 impl ServiceRequest for ModifyFluidRegulatorRequest {}
 impl ServiceRequest for RemoveFluidRegulatorRequest {}
@@ -35,6 +39,7 @@ impl ServiceRequest for RemoveIngredientRequest {}
 impl ServiceRequest for GetIngredientRequest {}
 impl ServiceRequest for ModifyIngredientRequest {}
 impl ServiceRequest for ResetRequest {}
+impl ServiceRequest for CollectInstructionRequest {}
 
 impl ServiceResponse for AddFluidRegulatorResponse {}
 impl ServiceResponse for ModifyFluidRegulatorResponse {}
@@ -44,6 +49,7 @@ impl ServiceResponse for GetRecipeResponse {}
 impl ServiceResponse for ModifyRecipeResponse {}
 impl ServiceResponse for AddInstructionResponse {}
 impl ServiceResponse for GetInstructionResponse {}
+impl ServiceResponse for CollectInstructionResponse {}
 impl ServiceResponse for ModifyInstructionResponse {}
 impl ServiceResponse for AddIngredientResponse {}
 impl ServiceResponse for GetIngredientResponse {}
@@ -94,12 +100,25 @@ impl FetchData {
         }
     }
 }
-impl CollectFluidRegulatorsRequest {
-    pub fn get_expressions(&self) -> UdmResult<Vec<SimpleExpr>> {
+impl CollectExpressions for CollectFluidRegulatorsRequest {
+    fn get_expressions(&self) -> UdmResult<Vec<SimpleExpr>> {
         let mut exprs = Vec::new();
         for expr in &self.expressions {
             let cloned_data = expr.column.clone();
             let col = FluidRegulationSchema::try_from(cloned_data)?;
+            let simple_expr = expr.to_simple_expr(col)?;
+            debug!("Got simple expr: {:?}", simple_expr);
+            exprs.push(simple_expr)
+        }
+        Ok(exprs)
+    }
+}
+impl CollectExpressions for CollectInstructionRequest {
+    fn get_expressions(&self) -> UdmResult<Vec<SimpleExpr>> {
+        let mut exprs = Vec::new();
+        for expr in &self.expressions {
+            let cloned_data = expr.column.clone();
+            let col = InstructionSchema::try_from(cloned_data)?;
             let simple_expr = expr.to_simple_expr(col)?;
             debug!("Got simple expr: {:?}", simple_expr);
             exprs.push(simple_expr)

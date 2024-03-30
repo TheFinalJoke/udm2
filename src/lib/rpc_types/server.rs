@@ -2,7 +2,9 @@ use crate::db::executor::GenQueries;
 use crate::db::DbConnection;
 use crate::db::DbMetaData;
 use crate::db::FluidRegulationSchema;
+use crate::db::InstructionSchema;
 use crate::rpc_types::fhs_types::FluidRegulator;
+use crate::rpc_types::recipe_types::Instruction;
 use crate::rpc_types::server::udm_service_server::UdmService;
 use crate::rpc_types::server::udm_service_server::UdmServiceServer;
 use crate::rpc_types::service_types::AddFluidRegulatorRequest;
@@ -13,8 +15,11 @@ use crate::rpc_types::service_types::AddInstructionRequest;
 use crate::rpc_types::service_types::AddInstructionResponse;
 use crate::rpc_types::service_types::AddRecipeRequest;
 use crate::rpc_types::service_types::AddRecipeResponse;
+use crate::rpc_types::service_types::CollectExpressions;
 use crate::rpc_types::service_types::CollectFluidRegulatorsRequest;
 use crate::rpc_types::service_types::CollectFluidRegulatorsResponse;
+use crate::rpc_types::service_types::CollectInstructionRequest;
+use crate::rpc_types::service_types::CollectInstructionResponse;
 use crate::rpc_types::service_types::GenericRemovalResponse;
 use crate::rpc_types::service_types::ModifyFluidRegulatorRequest;
 use crate::rpc_types::service_types::ModifyFluidRegulatorResponse;
@@ -197,9 +202,50 @@ impl UdmService for DaemonServerContext {
     }
     async fn remove_instruction(
         &self,
-        _request: Request<RemoveInstructionRequest>,
+        request: Request<RemoveInstructionRequest>,
     ) -> Result<Response<GenericRemovalResponse>, Status> {
-        todo!()
+        log::debug!("Got Request {:?}", request);
+        let instruction_id = request.into_inner().instruction_id;
+        let query = Instruction::gen_remove_query(instruction_id).to_string(PostgresQueryBuilder);
+        let delete_result = self.connection.delete(query).await;
+        match delete_result {
+            Ok(_) => {
+                let remove_response = GenericRemovalResponse {}.to_response();
+                Ok(remove_response)
+            }
+            Err(e) => Err(Status::aborted(e.to_string())),
+        }
+    }
+    async fn collect_instructions(
+        &self,
+        request: Request<CollectInstructionRequest>,
+    ) -> Result<Response<CollectInstructionResponse>, Status> {
+        log::debug!("Got {:?}", request);
+        let exprs = request
+            .into_inner()
+            .get_expressions()
+            .map_err(|e| Status::cancelled(e.to_string()))?;
+        let query = Instruction::gen_select_query_on_fields(InstructionSchema::Table, exprs)
+            .to_string(PostgresQueryBuilder);
+        let results = self.connection.select(query).await;
+        match results {
+            Ok(results) => {
+                let instructions: Vec<Instruction> = results
+                    .into_iter()
+                    .map(|row| Instruction::try_from(row).unwrap())
+                    .collect_vec();
+                log::info!("Successfully collected instructions");
+                log::debug!("Collected data {:?}", instructions);
+                Ok(CollectInstructionResponse { instructions }.to_response())
+            }
+            Err(e) => {
+                log::error!("There was an error collecting {}", e.to_string());
+                Err(Status::cancelled(format!(
+                    "Failed to query the database: {}",
+                    e
+                )))
+            }
+        }
     }
     async fn update_instruction(
         &self,
@@ -209,7 +255,7 @@ impl UdmService for DaemonServerContext {
         let instruction = request
             .into_inner()
             .instruction
-            .ok_or_else(|| Status::cancelled("Invalid request to remove fluid regulator"))?;
+            .ok_or_else(|| Status::cancelled("Invalid request to remove instruction"))?;
         let query = instruction
             .gen_update_query()
             .to_string(PostgresQueryBuilder);

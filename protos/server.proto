@@ -31,8 +31,8 @@ service UdmService {
   rpc AddInstruction(service_types.AddInstructionRequest)
       returns (service_types.AddInstructionResponse);
     
-  // Same here
-  // rpc Collect Instructions
+  rpc CollectInstructions(service_types.CollectInstructionRequest)
+      returns (service_types.CollectInstructionResponse);
 
   rpc RemoveInstruction(service_types.RemoveInstructionRequest)
       returns (service_types.GenericRemovalResponse);

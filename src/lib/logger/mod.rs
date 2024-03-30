@@ -1,56 +1,20 @@
-use env_logger::filter::{Builder, Filter};
-use log::{LevelFilter, Log, Metadata, Record, SetLoggerError};
-
-const FILTER_ENV: &str = "RUST_LOG";
-
-pub struct MyLogger {
-    pub inner: Filter,
-}
-// TODO(TheFinalJoke): Build implmentation that prints specific colors and writes to a file
+use clap_verbosity_flag::Verbosity;
+use log::SetLoggerError;
+use pretty_env_logger::env_logger::Env;
+use pretty_env_logger::env_logger::WriteStyle;
+pub struct MyLogger {}
+// writes to a file
 impl MyLogger {
-    pub fn new(level: Option<LevelFilter>) -> MyLogger {
-        let mut build = Builder::from_env(FILTER_ENV);
-        if level.is_some() | level.is_some() && level.unwrap() != LevelFilter::Off {
-            build.filter_level(level.unwrap());
+    pub fn init(verbose: Verbosity, _log_file_path: Option<&str>) -> Result<(), SetLoggerError> {
+        let mut build = pretty_env_logger::formatted_builder();
+        build.write_style(WriteStyle::Always);
+        if verbose.is_present() {
+            build.filter(None, verbose.log_level_filter());
+        } else {
+            let env = Env::default().default_filter_or("off");
+            build.parse_env(env);
         }
-        MyLogger {
-            inner: build.build(),
-        }
-    }
-    pub fn init(level: LevelFilter) -> Result<(), SetLoggerError> {
-        let logger = Self::new(Some(level));
-
-        log::set_max_level(logger.inner.filter());
-        log::set_boxed_logger(Box::new(logger))
-    }
-}
-impl Default for MyLogger {
-    fn default() -> Self {
-        Self::new(None)
-    }
-}
-impl Log for MyLogger {
-    fn enabled(&self, metadata: &Metadata) -> bool {
-        self.inner.enabled(metadata)
-    }
-    // TODO: Set Colors To Specific Levels
-    fn log(&self, record: &Record) {
-        // Check if the record is matched by the logger before logging
-        if self.inner.matches(record) {
-            println!("[{}:{}] {}", record.level(), record.target(), record.args());
-        }
-    }
-
-    fn flush(&self) {}
-}
-
-pub fn get_log_level(debug_cli: u8) -> LevelFilter {
-    match debug_cli {
-        1 => log::LevelFilter::Error,
-        2 => log::LevelFilter::Warn,
-        3 => log::LevelFilter::Info,
-        4 => log::LevelFilter::Debug,
-        5 => log::LevelFilter::Trace,
-        _ => log::LevelFilter::Info, // Default this to info
+        build.init();
+        Ok(())
     }
 }
