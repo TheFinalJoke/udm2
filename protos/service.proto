@@ -136,7 +136,12 @@ message AddIngredientRequest {
 message AddIngredientResponse {
   int32 ingredient_id = 1;
 }
-
+message CollectIngredientRequest {
+  repeated FetchData expressions = 1;
+}
+message CollectIngredientResponse {
+  repeated recipe_types.Ingredient ingredients = 1;
+}
 message RemoveIngredientRequest {
   int32 ingredient_id = 1;
 }

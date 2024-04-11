@@ -19,6 +19,7 @@ use lib::rpc_types::service_types::FetchData;
 use lib::rpc_types::service_types::ModifyFluidRegulatorRequest;
 use lib::rpc_types::service_types::RemoveFluidRegulatorRequest;
 use lib::rpc_types::FieldValidation;
+use lib::rpc_types::MultipleValues;
 use lib::UdmResult;
 use tonic::async_trait;
 
@@ -48,7 +49,12 @@ impl MainCommandHandler for FluidCommands {
 
 #[derive(Args, Debug)]
 pub struct AddFluidArgs {
-    #[arg(long, value_name = "JSON", help = "Raw json to transform")]
+    #[arg(
+        long,
+        value_name = "JSON",
+        help = "Raw json to transform",
+        exclusive = true
+    )]
     raw: Option<String>,
     #[arg(short, long, help = "Specify the ID")]
     fr_id: Option<i32>,
@@ -251,8 +257,6 @@ impl ShowHandler<FluidRegulator> for ShowFluidArgs {
     fn get_schema_columns() {
         println!("{}", FluidRegulationSchema::FrId);
     }
-}
-impl ShowFluidArgs {
     fn sanatize_input(&self) -> UdmResult<Vec<FetchData>> {
         let collected_queries =
             FetchData::to_fetch_data_vec(self.query_options.clone().unwrap().as_str())?;
@@ -264,6 +268,13 @@ impl ShowFluidArgs {
 pub struct RemoveFluidArgs {
     #[arg(short, long, help = "Remove fluid regulator by ID", required = true)]
     fr_id: Option<i32>,
+    #[arg(
+        short,
+        long,
+        help = "Does not prompt, you are absolutely sure",
+        default_value = "false"
+    )]
+    yes: bool,
 }
 #[async_trait]
 impl MainCommandHandler for RemoveFluidArgs {
@@ -271,7 +282,9 @@ impl MainCommandHandler for RemoveFluidArgs {
         let id = self.fr_id.ok_or_else(|| {
             UdmError::InvalidInput("Invalid input to remove fluid regulator".to_string())
         })?;
-        let _ = ensure_removal();
+        if !self.yes {
+            let _ = ensure_removal();
+        }
         let req = RemoveFluidRegulatorRequest { fr_id: id };
         let mut open_conn = options.connect().await?;
         let response = open_conn.remove_fluid_regulator(req).await;

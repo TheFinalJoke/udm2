@@ -2,6 +2,7 @@ use crate::db::executor::GenQueries;
 use crate::db::FluidRegulationSchema;
 use crate::error::UdmError;
 use crate::rpc_types::FieldValidation;
+use crate::rpc_types::MultipleValues;
 use crate::UdmResult;
 use anyhow::Error as AnyError;
 use async_trait::async_trait;
@@ -11,19 +12,9 @@ use sea_query::Expr;
 use sea_query::InsertStatement;
 use sea_query::Query;
 use sea_query::UpdateStatement;
+use std::fmt::Display;
 
 tonic::include_proto!("fhs_types");
-
-impl RegulatorType {
-    pub fn get_possible_values() -> Vec<&'static str> {
-        [
-            RegulatorType::Pump.as_str_name(),
-            RegulatorType::Tap.as_str_name(),
-            RegulatorType::Valve.as_str_name(),
-        ]
-        .to_vec()
-    }
-}
 
 #[async_trait]
 impl GenQueries for FluidRegulator {
@@ -87,6 +78,22 @@ impl TryFrom<Row> for FluidRegulator {
             regulator_type: value.try_get(1)?,
             gpio_pin: value.try_get(2)?,
         })
+    }
+}
+
+impl MultipleValues for RegulatorType {
+    fn get_possible_values() -> Vec<&'static str> {
+        [
+            RegulatorType::Pump.as_str_name(),
+            RegulatorType::Tap.as_str_name(),
+            RegulatorType::Valve.as_str_name(),
+        ]
+        .to_vec()
+    }
+}
+impl Display for RegulatorType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 

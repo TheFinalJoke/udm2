@@ -5,6 +5,7 @@ use tonic::async_trait;
 use crate::error::UdmError;
 use crate::parsers::settings;
 use crate::rpc_types::fhs_types::RegulatorType;
+use crate::rpc_types::MultipleValues;
 use crate::UdmResult;
 use sea_query::foreign_key::ForeignKeyAction;
 use sea_query::foreign_key::ForeignKeyCreateStatement;

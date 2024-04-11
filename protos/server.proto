@@ -43,7 +43,8 @@ service UdmService {
   rpc AddIngredient(service_types.AddIngredientRequest)
       returns (service_types.AddIngredientResponse);
   
-  // rpc CollectIngredient
+  rpc CollectIngredients(service_types.CollectIngredientRequest)
+      returns (service_types.CollectIngredientResponse);
 
   rpc RemoveIngredient(service_types.RemoveIngredientRequest)
       returns (service_types.GenericRemovalResponse);

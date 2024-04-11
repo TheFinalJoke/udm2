@@ -18,13 +18,13 @@ enum DrinkSize {
   DRINK_SIZE_EXTRA_LARGE = 5;
 }
 message Instruction {
-  optional int32 id = 1;
-  optional string instruction_detail = 2;
-  optional string instruction_name = 3;
+  int32 id = 1;
+  string instruction_detail = 2;
+  string instruction_name = 3;
 }
 
 message Ingredient {
-  int64 id = 1;
+  int32 id = 1;
   string name = 2;
   bool is_active = 3;
   bool is_alcoholic = 4;

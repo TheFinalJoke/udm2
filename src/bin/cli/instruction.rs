@@ -47,27 +47,32 @@ impl MainCommandHandler for InstructionCommands {
 }
 #[derive(Args, Debug)]
 pub struct AddInstructionArgs {
-    #[arg(long, value_name = "JSON", help = "Raw json to transform")]
-    raw: Option<String>,
+    #[arg(
+        long,
+        value_name = "JSON",
+        help = "Raw json to transform",
+        exclusive = true
+    )]
+    raw: String,
     #[arg(short = 'i', long)]
-    instruction_id: Option<i32>,
+    instruction_id: i32,
     #[arg(short = 'n', long)]
-    instruction_name: Option<String>,
+    instruction_name: String,
     #[arg(short = 'd', long)]
-    instruction_detail: Option<String>,
+    instruction_detail: String,
 }
 
 impl UdmGrpcActions<Instruction> for AddInstructionArgs {
     fn sanatize_input(&self) -> UdmResult<Instruction> {
-        if let Some(raw_input) = &self.raw {
-            tracing::debug!("Json passed: {}", &raw_input);
-            let instruction: Instruction = serde_json::from_str(raw_input)
+        if !&self.raw.is_empty() {
+            tracing::debug!("Json passed: {}", &self.raw);
+            let instruction: Instruction = serde_json::from_str(&self.raw)
                 .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
             instruction.validate_without_id_fields()?;
             return Ok(instruction);
         }
 
-        if self.instruction_name.is_none() || self.instruction_detail.is_none() {
+        if self.instruction_name.is_empty() || self.instruction_detail.is_empty() {
             return Err(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",
             )));
@@ -162,19 +167,11 @@ impl ShowHandler<Instruction> for ShowInstructionArgs {
     fn create_tables(&self, data: Vec<Instruction>) -> TableStruct {
         let mut table = Vec::new();
         for instruction in data {
-            let instruction_id = match &instruction.id {
-                Some(id) => format!("{}", id),
-                None => "Not Set".to_string(),
-            };
-            let name = match &instruction.instruction_name {
-                Some(name) => name.to_string(),
-                None => "Not Set".to_string(),
-            };
-            let detail = match instruction.instruction_detail {
-                Some(name) => name.to_string(),
-                None => "Not Set".to_string(),
-            };
-            table.push(vec![instruction_id.cell(), name.cell(), detail.cell()]);
+            table.push(vec![
+                instruction.id.cell(),
+                instruction.instruction_name.cell(),
+                instruction.instruction_detail.cell(),
+            ]);
         }
         table
             .table()
@@ -189,8 +186,6 @@ impl ShowHandler<Instruction> for ShowInstructionArgs {
     fn get_schema_columns() {
         println!("{}", InstructionSchema::InstructionId);
     }
-}
-impl ShowInstructionArgs {
     fn sanatize_input(&self) -> UdmResult<Vec<FetchData>> {
         if self.query_options.is_none() {
             return Err(UdmError::InvalidInput(
@@ -204,16 +199,25 @@ impl ShowInstructionArgs {
 }
 #[derive(Args, Debug)]
 pub struct RemoveInstructionArgs {
-    #[arg(short, long)]
+    #[arg(short, long, required = true)]
     instruction_id: Option<i32>,
+    #[arg(
+        short,
+        long,
+        help = "Does not prompt, you are absolutely sure",
+        default_value = "false"
+    )]
+    yes: bool,
 }
 #[async_trait]
 impl MainCommandHandler for RemoveInstructionArgs {
     async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()> {
         let id = self.instruction_id.ok_or_else(|| {
-            UdmError::InvalidInput("Invalid input to remove fluid regulator".to_string())
+            UdmError::InvalidInput("Invalid input to remove Instruction".to_string())
         })?;
-        let _ = ensure_removal();
+        if !self.yes {
+            let _ = ensure_removal();
+        }
         let req = RemoveInstructionRequest { instruction_id: id };
         let mut open_conn = options.connect().await?;
         let response = open_conn.remove_instruction(req).await;
@@ -233,33 +237,50 @@ impl MainCommandHandler for RemoveInstructionArgs {
 #[derive(Args, Debug)]
 pub struct UpdateInstructionArgs {
     #[arg(long, value_name = "JSON", help = "Raw json to transform")]
-    raw: Option<String>,
+    raw: String,
     #[arg(short, long, help = "Specify the ID")]
-    instruction_id: Option<i32>,
+    instruction_id: i32,
     #[arg(short = 'd', long = "details", help = "Instruction Details")]
-    detail: Option<String>,
+    detail: String,
     #[arg(short = 'n', long = "name", help = "Instruction Name")]
-    name: Option<String>,
+    name: String,
 }
 impl UdmGrpcActions<Instruction> for UpdateInstructionArgs {
     fn sanatize_input(&self) -> UdmResult<Instruction> {
-        if let Some(raw_input) = &self.raw {
-            tracing::debug!("Json passed: {}", &raw_input);
-            let instruction: Instruction = serde_json::from_str(raw_input)
+        if !self.raw.is_empty() {
+            tracing::debug!("Json passed: {}", &self.raw);
+            let instruction: Instruction = serde_json::from_str(&self.raw)
                 .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
             instruction.validate_all_fields()?;
             return Ok(instruction);
         }
-        if self.instruction_id.is_none() || self.detail.is_none() || self.name.is_none() {
-            return Err(UdmError::InvalidInput(String::from(
-                "`Not all required fields were passed`",
-            )));
-        }
-        Ok(Instruction {
-            id: self.instruction_id,
-            instruction_detail: self.detail.clone(),
-            instruction_name: self.name.clone(),
+        self.validate_all_fields()?;
+        self.try_into()
+    }
+}
+impl TryFrom<&UpdateInstructionArgs> for Instruction {
+    type Error = UdmError;
+
+    fn try_from(value: &UpdateInstructionArgs) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: value.instruction_id,
+            instruction_detail: value.detail.clone(),
+            instruction_name: value.name.clone(),
         })
+    }
+}
+impl FieldValidation for UpdateInstructionArgs {
+    fn validate_all_fields(&self) -> UdmResult<()> {
+        if self.instruction_id == 0 {
+            return Err(UdmError::InvalidInput(
+                "Ingredient ID is not set".to_string(),
+            ));
+        }
+        Ok(())
+    }
+
+    fn validate_without_id_fields(&self) -> UdmResult<()> {
+        unimplemented!()
     }
 }
 #[async_trait]

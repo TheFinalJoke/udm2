@@ -1,5 +1,6 @@
 use cli_table::TableStruct;
 use lib::rpc_types::server::udm_service_client::UdmServiceClient;
+use lib::rpc_types::service_types::FetchData;
 use lib::UdmResult;
 
 pub trait UdmGrpcActions<T> {
@@ -15,6 +16,7 @@ pub(crate) trait ShowHandler<T>: MainCommandHandler {
     fn show_example();
     fn create_tables(&self, data: Vec<T>) -> TableStruct;
     fn get_schema_columns();
+    fn sanatize_input(&self) -> UdmResult<Vec<FetchData>>;
 }
 #[derive(Debug)]
 pub struct UdmServerOptions {

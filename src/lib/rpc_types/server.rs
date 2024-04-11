@@ -18,6 +18,8 @@ use crate::rpc_types::service_types::AddRecipeResponse;
 use crate::rpc_types::service_types::CollectExpressions;
 use crate::rpc_types::service_types::CollectFluidRegulatorsRequest;
 use crate::rpc_types::service_types::CollectFluidRegulatorsResponse;
+use crate::rpc_types::service_types::CollectIngredientRequest;
+use crate::rpc_types::service_types::CollectIngredientResponse;
 use crate::rpc_types::service_types::CollectInstructionRequest;
 use crate::rpc_types::service_types::CollectInstructionResponse;
 use crate::rpc_types::service_types::GenericRemovalResponse;
@@ -272,9 +274,28 @@ impl UdmService for DaemonServerContext {
     }
     async fn add_ingredient(
         &self,
-        _request: Request<AddIngredientRequest>,
+        request: Request<AddIngredientRequest>,
     ) -> Result<Response<AddIngredientResponse>, Status> {
-        todo!()
+        tracing::debug!("Got request {:?}", request);
+        let ingredient = request
+            .into_inner()
+            .ingredient
+            .ok_or_else(|| Status::cancelled("Invalid request to add ingredient"))?;
+        let query = ingredient
+            .gen_insert_query()
+            .to_string(PostgresQueryBuilder);
+        let input_result = self.connection.insert(query).await;
+        match input_result {
+            Ok(ingredient_id) => {
+                let ingredient_response: Response<AddIngredientResponse> =
+                    AddIngredientResponse { ingredient_id }.to_response();
+                Ok(ingredient_response)
+            }
+            Err(e) => Err(Status::data_loss(format!(
+                "Failed to insert into database: {}",
+                e
+            ))),
+        }
     }
     async fn remove_ingredient(
         &self,
@@ -286,6 +307,12 @@ impl UdmService for DaemonServerContext {
         &self,
         _request: Request<ModifyIngredientRequest>,
     ) -> Result<Response<ModifyIngredientResponse>, Status> {
+        todo!()
+    }
+    async fn collect_ingredients(
+        &self,
+        _request: Request<CollectIngredientRequest>,
+    ) -> Result<Response<CollectIngredientResponse>, Status> {
         todo!()
     }
     async fn reset_db(
