@@ -58,23 +58,43 @@ pub struct AddIngredientArgs {
         help = "Raw json to transform",
         exclusive = true
     )]
-    raw: String,
-    #[arg(short, long, help = "Specify the ID")]
-    ingredient_id: i32,
-    #[arg(short, long, help = "Name of the ingreident")]
-    name: String,
-    #[arg(short, long, help = "If an ingredient in alcoholic")]
-    is_alcoholic: bool,
-    #[arg(short, long, help = "If an ingredient tied to a Fluid Device")]
-    fr_id: i32,
-    #[arg(short, long, help = "Amount of an ingredient")]
-    amount: f32,
-    #[arg(short, long, help = "Description of the Ingredient")]
-    description: String,
-    #[arg(short, long, help = "Type of ingredient", value_parser=IngredientType::get_possible_values())]
-    ingredient_type: i32,
+    raw: Option<String>,
+    #[arg(long = "id", help = "Specify the ID")]
+    ingredient_id: Option<i32>,
     #[arg(
         short,
+        long,
+        help = "Name of the ingreident",
+        required_unless_present = "raw"
+    )]
+    name: Option<String>,
+    #[arg(
+        short = 'l',
+        long,
+        help = "If an ingredient in alcoholic",
+        default_value = "false"
+    )]
+    is_alcoholic: bool,
+    #[arg(short, long, help = "If an ingredient tied to a Fluid Device")]
+    fr_id: Option<i32>,
+    #[arg(
+        short,
+        long,
+        help = "Amount of an ingredient",
+        required_unless_present = "raw"
+    )]
+    amount: Option<f32>,
+    #[arg(
+        short,
+        long,
+        help = "Description of the Ingredient",
+        required_unless_present = "raw"
+    )]
+    description: Option<String>,
+    #[arg(short = 't', long, help = "Type of ingredient", value_parser=IngredientType::get_possible_values(), required_unless_present="raw")]
+    ingredient_type: Option<String>,
+    #[arg(
+        short = 'i',
         long,
         help = "The Instruction that goes along with the ingredient"
     )]
@@ -95,11 +115,18 @@ impl MainCommandHandler for AddIngredientArgs {
                 ingredient: Some(ingredient),
             })
             .await
-            .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
+            .map_err(|e| {
+                tracing::error!("{}", &e.to_string());
+                UdmError::ApiFailure(format!("{}", e))
+            })?;
         tracing::debug!("Got response {:?}", response);
         tracing::info!(
             "Inserted into database, got ID back {}",
-            response.into_inner().ingredient_id
+            response.get_ref().ingredient_id
+        );
+        println!(
+            "Inserted into database: ID {}",
+            response.get_ref().ingredient_id
         );
         Ok(())
     }
@@ -109,17 +136,28 @@ impl TryFrom<&AddIngredientArgs> for Ingredient {
 
     fn try_from(value: &AddIngredientArgs) -> Result<Self, Self::Error> {
         Ok(Self {
-            id: value.ingredient_id,
-            name: value.name.clone(),
+            id: value.ingredient_id.unwrap_or_default(),
+            name: value.name.clone().unwrap(),
             is_active: false,
             is_alcoholic: value.is_alcoholic,
-            regulator: Some(FluidRegulator {
-                fr_id: Some(value.fr_id),
-                ..Default::default()
-            }),
-            amount: value.amount,
-            description: value.description.clone(),
-            ingredient_type: value.ingredient_type,
+            regulator: {
+                value.fr_id.map(|fr_id| FluidRegulator {
+                    fr_id: Some(fr_id),
+                    ..Default::default()
+                })
+            },
+            amount: value.amount.unwrap(),
+            description: value.description.clone().unwrap(),
+            ingredient_type: {
+                value
+                    .ingredient_type
+                    .clone()
+                    .map_or(IngredientType::Unspecified, |itype| {
+                        IngredientType::from_str_name(itype.as_str())
+                            .unwrap_or(IngredientType::Unspecified)
+                    })
+            }
+            .into(),
             instruction: {
                 value.instruction_id.map(|id| Instruction {
                     id,
@@ -131,9 +169,9 @@ impl TryFrom<&AddIngredientArgs> for Ingredient {
 }
 impl UdmGrpcActions<Ingredient> for AddIngredientArgs {
     fn sanatize_input(&self) -> UdmResult<Ingredient> {
-        if !self.raw.is_empty() {
-            tracing::debug!("Json passed: {}", &self.raw);
-            let ingredient: Ingredient = serde_json::from_str(&self.raw)
+        if self.raw.is_some() {
+            tracing::debug!("Json passed: {}", &self.raw.clone().unwrap());
+            let ingredient: Ingredient = serde_json::from_str(&self.raw.clone().unwrap())
                 .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
             ingredient.validate_without_id_fields()?;
             return Ok(ingredient);
@@ -144,10 +182,10 @@ impl UdmGrpcActions<Ingredient> for AddIngredientArgs {
 }
 impl FieldValidation for AddIngredientArgs {
     fn validate_all_fields(&self) -> UdmResult<()> {
-        if self.ingredient_id == 0
-            || self.name.is_empty()
-            || self.description.is_empty()
-            || self.ingredient_type == 0
+        if self.ingredient_id == Some(0)
+            || self.name.clone().unwrap_or_default().is_empty()
+            || self.description.clone().unwrap_or_default().is_empty()
+            || self.ingredient_type.clone().unwrap_or_default().is_empty()
         {
             return Err(UdmError::InvalidInput(
                 "Not all values are present".to_string(),
@@ -157,7 +195,10 @@ impl FieldValidation for AddIngredientArgs {
     }
 
     fn validate_without_id_fields(&self) -> UdmResult<()> {
-        if self.name.is_empty() || self.description.is_empty() || self.ingredient_type == 0 {
+        if self.name.clone().unwrap_or_default().is_empty()
+            || self.description.clone().unwrap_or_default().is_empty()
+            || self.ingredient_type.clone().unwrap_or_default().is_empty()
+        {
             return Err(UdmError::InvalidInput(
                 "Not all values are present".to_string(),
             ));
@@ -178,22 +219,28 @@ pub struct UpdateIngredientArgs {
     ingredient_id: i32,
     #[arg(short, long, help = "Name of the ingreident")]
     name: String,
-    #[arg(short, long, help = "If an ingredient in alcoholic")]
+    #[arg(short = 'c', long, help = "If an ingredient in alcoholic")]
     is_alcoholic: bool,
     #[arg(short, long, help = "If an ingredient tied to a Fluid Device")]
-    fr_id: i32,
+    fr_id: Option<i32>,
     #[arg(short, long, help = "Amount of an ingredient")]
     amount: f32,
     #[arg(short, long, help = "Description of the Ingredient")]
     description: String,
-    #[arg(short, long, help = "Type of ingredient", value_parser=IngredientType::get_possible_values())]
+    #[arg(short = 't', long, help = "Type of ingredient", value_parser=IngredientType::get_possible_values())]
     ingredient_type: i32,
-    #[arg(
-        short,
-        long,
-        help = "The Instruction that goes along with the ingredient"
-    )]
+    #[arg(long, help = "The Instruction that goes along with the ingredient")]
     instruction_id: Option<i32>,
+    #[arg(
+        long,
+        help = "Force an update to Fluid Regulator (Warning: Overrides existing Data)"
+    )]
+    update_fr: bool,
+    #[arg(
+        long,
+        help = "Force an update to Instruction (Warning: Overrides existing Data)"
+    )]
+    update_instruction: bool,
 }
 
 #[async_trait]
@@ -207,6 +254,8 @@ impl MainCommandHandler for UpdateIngredientArgs {
         let response = open_connection
             .update_ingredient(ModifyIngredientRequest {
                 ingredient: Some(ingredient),
+                update_fr: self.update_fr,
+                update_instruction: self.update_instruction,
             })
             .await
             .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
@@ -255,7 +304,7 @@ impl TryFrom<&UpdateIngredientArgs> for Ingredient {
             is_active: false,
             is_alcoholic: value.is_alcoholic,
             regulator: Some(FluidRegulator {
-                fr_id: Some(value.fr_id),
+                fr_id: value.fr_id,
                 ..Default::default()
             }),
             amount: value.amount,
@@ -405,6 +454,7 @@ impl MainCommandHandler for RemoveIngredientArgs {
         match response {
             Ok(_) => {
                 tracing::info!("Successfully removed from database");
+                println!("Successfully removed from database")
             }
             Err(err) => {
                 tracing::error!("Error removing from db: {}", err.to_string())

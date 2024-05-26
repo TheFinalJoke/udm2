@@ -306,16 +306,16 @@ impl SqlTableTransactionsFactory for IngredientSchema {
                     .name("fk_fluidregulation")
                     .from(Self::Table, Self::FrId)
                     .to(FluidRegulationSchema::Table, FluidRegulationSchema::FrId)
-                    .on_delete(ForeignKeyAction::Cascade)
-                    .on_update(ForeignKeyAction::Cascade),
+                    .on_delete(ForeignKeyAction::SetNull)
+                    .on_update(ForeignKeyAction::SetNull),
             )
             .foreign_key(
                 ForeignKeyCreateStatement::new()
                     .name("fk_instruction")
                     .from(Self::Table, Self::InstructionId)
                     .to(InstructionSchema::Table, InstructionSchema::InstructionId)
-                    .on_delete(ForeignKeyAction::Cascade)
-                    .on_update(ForeignKeyAction::Cascade),
+                    .on_delete(ForeignKeyAction::SetNull)
+                    .on_update(ForeignKeyAction::SetNull),
             )
             .build(builder)
     }
@@ -482,16 +482,16 @@ impl SqlTableTransactionsFactory for InstructionToRecipeSchema {
                     .name("fk_recipe")
                     .from(Self::Table, Self::RecipeId)
                     .to(RecipeSchema::Table, RecipeSchema::RecipeId)
-                    .on_delete(ForeignKeyAction::Cascade)
-                    .on_update(ForeignKeyAction::Cascade),
+                    .on_delete(ForeignKeyAction::SetNull)
+                    .on_update(ForeignKeyAction::SetNull),
             )
             .foreign_key(
                 ForeignKeyCreateStatement::new()
                     .name("fk_instruction")
                     .from(Self::Table, Self::InstructionId)
                     .to(InstructionSchema::Table, InstructionSchema::InstructionId)
-                    .on_delete(ForeignKeyAction::Cascade)
-                    .on_update(ForeignKeyAction::Cascade),
+                    .on_delete(ForeignKeyAction::SetNull)
+                    .on_update(ForeignKeyAction::SetNull),
             )
             .col(ColumnDef::new(Self::InstructionOrder).integer().not_null())
             .build(builder)

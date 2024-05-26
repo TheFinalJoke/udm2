@@ -123,6 +123,8 @@ message ModifyInstructionResponse {
 
 message ModifyIngredientRequest {
   recipe_types.Ingredient ingredient = 1;
+  bool update_fr = 2;
+  bool update_instruction = 3;
 }
 
 message ModifyIngredientResponse {
