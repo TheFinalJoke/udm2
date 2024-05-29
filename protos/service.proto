@@ -90,6 +90,12 @@ message ModifyRecipeResponse {
 message RemoveRecipeRequest {
   int32 recipe_id = 1;
 }
+message CollectRecipeRequest {
+  repeated FetchData expressions = 1;
+}
+message CollectRecipeResponse {
+  repeated recipe_types.Recipe recipes = 1;
+}
 message AddInstructionRequest {
   recipe_types.Instruction instruction = 1;
 }

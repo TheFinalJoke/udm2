@@ -21,7 +21,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     };
     if let Some(commands) = &cli_opts.command {
         match commands {
-            cli::UdmCommand::Recipe(_user_input) => todo!(),
+            cli::UdmCommand::Recipe(user_input) => {
+                let _ = user_input.handle_command(server_options).await;
+            }
             cli::UdmCommand::Ingredient(user_input) => {
                 let _ = user_input.handle_command(server_options).await;
             }

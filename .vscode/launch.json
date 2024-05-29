@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "type": "lldb",
             "request": "launch",
@@ -38,7 +39,7 @@
             "args": [
                 "--config-file",
                 ".config/local.toml",
-                "-vvv",
+                "-vvvv",
                 "--test"
             ],
             "cwd": "${workspaceFolder}",

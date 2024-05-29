@@ -4,6 +4,7 @@ use crate::db::DbMetaData;
 use crate::db::FluidRegulationSchema;
 use crate::db::IngredientSchema;
 use crate::db::InstructionSchema;
+use crate::db::RecipeSchema;
 use crate::rpc_types::fhs_types::FluidRegulator;
 use crate::rpc_types::recipe_types::Ingredient;
 use crate::rpc_types::recipe_types::Instruction;
@@ -24,8 +25,11 @@ use crate::rpc_types::service_types::CollectIngredientRequest;
 use crate::rpc_types::service_types::CollectIngredientResponse;
 use crate::rpc_types::service_types::CollectInstructionRequest;
 use crate::rpc_types::service_types::CollectInstructionResponse;
+use crate::rpc_types::service_types::CollectRecipeRequest;
+use crate::rpc_types::service_types::CollectRecipeResponse;
 use crate::rpc_types::service_types::FetchData;
 use crate::rpc_types::service_types::GenericRemovalResponse;
+use crate::rpc_types::service_types::InstructionToRecipeMetadata;
 use crate::rpc_types::service_types::ModifyFluidRegulatorRequest;
 use crate::rpc_types::service_types::ModifyFluidRegulatorResponse;
 use crate::rpc_types::service_types::ModifyIngredientRequest;
@@ -42,9 +46,11 @@ use crate::rpc_types::service_types::RemoveRecipeRequest;
 use crate::rpc_types::service_types::ResetRequest;
 use crate::rpc_types::service_types::ResetResponse;
 use crate::rpc_types::service_types::ServiceResponse;
+use crate::rpc_types::Recipe;
 use crate::UdmResult;
 use anyhow::Result;
-use futures::stream::{self, StreamExt};
+use futures::stream;
+use futures::stream::StreamExt;
 use itertools::Itertools;
 use sea_query::PostgresQueryBuilder;
 use std::net::SocketAddr;
@@ -166,21 +172,172 @@ impl UdmService for DaemonServerContext {
     }
     async fn add_recipe(
         &self,
-        _request: Request<AddRecipeRequest>,
+        request: Request<AddRecipeRequest>,
     ) -> Result<Response<AddRecipeResponse>, Status> {
-        todo!()
+        tracing::debug!("Got {:?}", request);
+        let recipe = request
+            .get_ref()
+            .clone()
+            .recipe
+            .ok_or_else(|| Status::cancelled("Invalid request to add recipe"))?;
+        let query = recipe.gen_insert_query().to_string(PostgresQueryBuilder);
+        let response = self.connection.insert(query).await;
+        match response {
+            Ok(recipe_id) => {
+                // Insert instruction order into db
+                for (position, instruction) in recipe.instructions {
+                    let order = InstructionToRecipeMetadata {
+                        recipe_id,
+                        instruction_id: instruction.id,
+                        instruction_order: position,
+                    };
+                    let order_query = order.gen_insert_query().to_string(PostgresQueryBuilder);
+                    self.connection.insert(order_query).await.map_err(|e| {
+                        let message = format!("Failed to query the database: {}", e);
+                        tracing::error!(message);
+                        Status::cancelled(message)
+                    })?;
+                }
+                let response = AddRecipeResponse { recipe_id }.to_response();
+                Ok(response)
+            }
+            Err(e) => {
+                format!("Failed to insert into database: {}", e);
+                Err(Status::data_loss(format!(
+                    "Failed to insert into database: {}",
+                    e
+                )))
+            }
+        }
     }
     async fn remove_recipe(
         &self,
-        _request: Request<RemoveRecipeRequest>,
+        request: Request<RemoveRecipeRequest>,
     ) -> Result<Response<GenericRemovalResponse>, Status> {
-        todo!()
+        tracing::debug!("Got Request {:?}", request);
+        let recipe_id = request.get_ref().recipe_id;
+        let query = FluidRegulator::gen_remove_query(recipe_id).to_string(PostgresQueryBuilder);
+        let delete_result = self.connection.delete(query).await;
+        match delete_result {
+            Ok(_) => {
+                let remove_response = GenericRemovalResponse {}.to_response();
+                Ok(remove_response)
+            }
+            Err(e) => Err(Status::aborted(e.to_string())),
+        }
     }
     async fn update_recipe(
         &self,
-        _request: Request<ModifyRecipeRequest>,
+        request: Request<ModifyRecipeRequest>,
     ) -> Result<Response<ModifyRecipeResponse>, Status> {
-        todo!()
+        tracing::debug!("Got {:?}", request);
+        let recipe = request
+            .get_ref()
+            .clone()
+            .recipe
+            .ok_or_else(|| Status::cancelled("Invalid request to add recipe"))?;
+        let query = recipe.gen_update_query().to_string(PostgresQueryBuilder);
+        let response = self.connection.insert(query).await;
+        match response {
+            Ok(recipe_id) => {
+                // Insert instruction order into db
+                for (position, instruction) in recipe.instructions {
+                    let order = InstructionToRecipeMetadata {
+                        recipe_id,
+                        instruction_id: instruction.id,
+                        instruction_order: position,
+                    };
+                    let order_query = order.gen_insert_query().to_string(PostgresQueryBuilder);
+                    self.connection.update(order_query).await.map_err(|e| {
+                        Status::cancelled(format!("Failed to query the database: {}", e))
+                    })?;
+                }
+                let response = ModifyRecipeResponse { recipe_id }.to_response();
+                Ok(response)
+            }
+            Err(e) => Err(Status::data_loss(format!(
+                "Failed to update into database: {}",
+                e
+            ))),
+        }
+    }
+    async fn collect_recipe(
+        &self,
+        request: Request<CollectRecipeRequest>,
+    ) -> Result<Response<CollectRecipeResponse>, Status> {
+        tracing::debug!("Got {:?}", request);
+        let exprs = request
+            .get_ref()
+            .get_expressions()
+            .map_err(|e| Status::cancelled(e.to_string()))?;
+        let query = Recipe::gen_select_query_on_fields(RecipeSchema::Table, exprs)
+            .to_string(PostgresQueryBuilder);
+        let results = self.connection.select(query).await;
+        match results {
+            Ok(results) => {
+                let recipes: Vec<Recipe> = results
+                    .into_iter()
+                    .map(|row| Recipe::try_from(row).unwrap())
+                    .collect_vec();
+                let rebuilt_data: Vec<Recipe> = stream::iter(recipes)
+                    .then(|mut recipe| async {
+                        // Collection instruction
+                        let fetch_data = vec![FetchData {
+                            column: "recipe_id".to_string(),
+                            operation: Operation::Equal.into(),
+                            values: recipe.id.to_string(),
+                        }
+                        .to_simple_expr(RecipeSchema::RecipeId)
+                        .unwrap()];
+                        let data_query = InstructionToRecipeMetadata::gen_select_query_on_fields(
+                            RecipeSchema::Table,
+                            fetch_data,
+                        )
+                        .to_string(PostgresQueryBuilder);
+                        let ordered_data = self.connection.select(data_query).await;
+                        match ordered_data {
+                            Ok(data) => {
+                                let meta: Vec<_> = data
+                                    .into_iter()
+                                    .map(|row| InstructionToRecipeMetadata::try_from(row).unwrap())
+                                    .collect();
+                                let sorted: Vec<_> = meta
+                                    .into_iter()
+                                    .sorted_by_key(|row| row.instruction_order)
+                                    .collect();
+
+                                for instruct in sorted {
+                                    let instr = self
+                                        .parse_and_collect_instruction(instruct.instruction_id)
+                                        .await;
+                                    if let Some(ins) = instr {
+                                        recipe.instructions.insert(instruct.instruction_order, ins);
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                tracing::error!("{}", e.to_string())
+                            }
+                        }
+                        recipe
+                    })
+                    .collect()
+                    .await;
+                tracing::info!("Successfully collected instructions");
+                tracing::debug!("Collected data {:?}", rebuilt_data);
+                Ok(CollectRecipeResponse {
+                    recipes: rebuilt_data,
+                }
+                .to_response())
+            }
+            Err(e) => {
+                tracing::error!("There was an error collecting {}", e.to_string());
+                Err(Status::cancelled(format!(
+                    "Failed to query the database: {}",
+                    e
+                )))
+            }
+        }
     }
     async fn add_instruction(
         &self,
@@ -308,8 +465,8 @@ impl UdmService for DaemonServerContext {
         request: Request<RemoveIngredientRequest>,
     ) -> Result<Response<GenericRemovalResponse>, Status> {
         tracing::debug!("Got Request {:?}", request);
-        let fr_id = request.into_inner().ingredient_id;
-        let query = Ingredient::gen_remove_query(fr_id).to_string(PostgresQueryBuilder);
+        let ingredient_id = request.into_inner().ingredient_id;
+        let query = Ingredient::gen_remove_query(ingredient_id).to_string(PostgresQueryBuilder);
         let delete_result = self.connection.delete(query).await;
         match delete_result {
             Ok(_) => {
@@ -325,7 +482,8 @@ impl UdmService for DaemonServerContext {
     ) -> Result<Response<ModifyIngredientResponse>, Status> {
         tracing::debug!("Got Request {:?}", request);
         let ingredient = request
-            .into_inner()
+            .get_ref()
+            .clone()
             .ingredient
             .ok_or_else(|| Status::cancelled("Invalid request to remove instruction"))?;
         let query = ingredient
@@ -334,20 +492,20 @@ impl UdmService for DaemonServerContext {
         let ingredient_update_result = self.connection.update(query).await;
         match ingredient_update_result {
             Ok(ingredient_id) => {
-                // if request.update_fr {
-                //     if let Some(fr) = ingredient.regulator {
-                //         let request = ModifyFluidRegulatorRequest { fluid: Some(fr) };
-                //         let _ = self.update_fluid_regulator(request.into_request()).await?;
-                //     }
-                // }
-                // if request.update_instruction {
-                //     if let Some(instruction) = ingredient.instruction {
-                //         let request = ModifyInstructionRequest {
-                //             instruction: Some(instruction),
-                //         };
-                //         let _ = self.update_instruction(request.into_request()).await?;
-                //     }
-                // }
+                if request.get_ref().update_fr {
+                    if let Some(fr) = ingredient.regulator {
+                        let request = ModifyFluidRegulatorRequest { fluid: Some(fr) };
+                        let _ = self.update_fluid_regulator(request.into_request()).await?;
+                    }
+                }
+                if request.get_ref().update_instruction {
+                    if let Some(instruction) = ingredient.instruction {
+                        let request = ModifyInstructionRequest {
+                            instruction: Some(instruction),
+                        };
+                        let _ = self.update_instruction(request.into_request()).await?;
+                    }
+                }
 
                 Ok(ModifyIngredientResponse { ingredient_id }.to_response())
             }

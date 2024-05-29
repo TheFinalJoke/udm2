@@ -18,9 +18,9 @@ service UdmService {
 
   rpc AddRecipe(service_types.AddRecipeRequest) 
       returns (service_types.AddRecipeResponse);
-    
-  // Same here for recipes
-  // rpc CollectRecipe()
+
+  rpc CollectRecipe(service_types.CollectRecipeRequest) 
+      returns (service_types.CollectRecipeResponse);
 
   rpc RemoveRecipe(service_types.RemoveRecipeRequest)
       returns (service_types.GenericRemovalResponse);

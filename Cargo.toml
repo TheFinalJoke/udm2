@@ -26,7 +26,7 @@ rusqlite = { version = "0.31.0", features = ["bundled"] }
 mockall = "0.12.1"
 config = "0.14.0"
 clap = { version = "4.4.11", features = ["derive"] }
-itertools = "0.12.0"
+itertools = "0.13.0"
 libsqlite3-sys = { version = "0.28.0", features = ["bundled"] }
 sea-query = "0.30.5"
 serde = "1.0.193"

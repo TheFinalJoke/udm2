@@ -1,6 +1,7 @@
 use crate::db::FluidRegulationSchema;
 use crate::db::IngredientSchema;
 use crate::db::InstructionSchema;
+use crate::db::RecipeSchema;
 use crate::error::UdmError;
 use crate::UdmResult;
 use regex::Regex;
@@ -41,6 +42,7 @@ impl ServiceRequest for GetIngredientRequest {}
 impl ServiceRequest for ModifyIngredientRequest {}
 impl ServiceRequest for ResetRequest {}
 impl ServiceRequest for CollectInstructionRequest {}
+impl ServiceRequest for CollectRecipeRequest {}
 
 impl ServiceResponse for AddFluidRegulatorResponse {}
 impl ServiceResponse for ModifyFluidRegulatorResponse {}
@@ -58,6 +60,7 @@ impl ServiceResponse for ModifyIngredientResponse {}
 impl ServiceResponse for ResetResponse {}
 impl ServiceResponse for GenericRemovalResponse {}
 impl ServiceResponse for CollectIngredientResponse {}
+impl ServiceResponse for CollectRecipeResponse {}
 
 impl FetchData {
     pub fn to_fetch_data_vec(user_input: &str) -> UdmResult<Vec<FetchData>> {
@@ -141,6 +144,20 @@ impl CollectExpressions for CollectIngredientRequest {
         Ok(exprs)
     }
 }
+impl CollectExpressions for CollectRecipeRequest {
+    fn get_expressions(&self) -> UdmResult<Vec<SimpleExpr>> {
+        let mut exprs = Vec::new();
+        for expr in &self.expressions {
+            let cloned_data = expr.column.clone();
+            let col = RecipeSchema::try_from(cloned_data)?;
+            let simple_expr = expr.to_simple_expr(col)?;
+            debug!("Got simple expr: {:?}", simple_expr);
+            exprs.push(simple_expr)
+        }
+        Ok(exprs)
+    }
+}
+
 impl Operation {
     pub fn to_operation(user_input: &str) -> Option<Operation> {
         match user_input {
@@ -176,4 +193,9 @@ impl Operation {
             Operation::NotIs => "NOT IS",
         }
     }
+}
+pub struct InstructionToRecipeMetadata {
+    pub(crate) recipe_id: i32,
+    pub(crate) instruction_id: i32,
+    pub(crate) instruction_order: i32,
 }

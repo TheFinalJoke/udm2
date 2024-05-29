@@ -1,11 +1,15 @@
 tonic::include_proto!("recipe_types");
 
+use std::collections::HashMap;
 use std::fmt::Display;
 
 use crate::db::executor::GenQueries;
 use crate::db::IngredientSchema;
 use crate::db::InstructionSchema;
+use crate::db::InstructionToRecipeSchema;
+use crate::db::RecipeSchema;
 use crate::error::UdmError;
+use crate::rpc_types::service_types::InstructionToRecipeMetadata;
 use crate::rpc_types::FieldValidation;
 use crate::rpc_types::FluidRegulator;
 use crate::rpc_types::MultipleValues;
@@ -227,6 +231,139 @@ impl GenQueries for Ingredient {
             .values(values)
             .and_where(Expr::col(IngredientSchema::IngredientId).eq(self.id))
             .returning(Query::returning().column(IngredientSchema::IngredientId))
+            .to_owned()
+    }
+}
+impl TryFrom<Row> for Recipe {
+    type Error = AnyError;
+
+    fn try_from(value: Row) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: value.try_get(0)?,
+            name: value.try_get(1)?,
+            user_input: value.try_get(2)?,
+            size: value.try_get(3)?,
+            description: value.try_get(4)?,
+            instructions: HashMap::new(),
+        })
+    }
+}
+impl MultipleValues for DrinkSize {
+    fn get_possible_values() -> Vec<&'static str> {
+        [
+            DrinkSize::Unspecified.as_str_name(),
+            DrinkSize::Small.as_str_name(),
+            DrinkSize::Medium.as_str_name(),
+            DrinkSize::Pint.as_str_name(),
+            DrinkSize::Large.as_str_name(),
+            DrinkSize::ExtraLarge.as_str_name(),
+        ]
+        .to_vec()
+    }
+}
+
+impl Display for DrinkSize {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[async_trait]
+impl GenQueries for Recipe {
+    fn gen_insert_query(&self) -> InsertStatement {
+        let columns = vec![
+            RecipeSchema::Name,
+            RecipeSchema::UserInput,
+            RecipeSchema::DrinkSize,
+            RecipeSchema::Description,
+        ];
+        let values = vec![
+            self.name.clone().into(),
+            self.user_input.into(),
+            self.size.into(),
+            self.description.clone().into(),
+        ];
+        Query::insert()
+            .into_table(RecipeSchema::Table)
+            .columns(columns)
+            .values_panic(values)
+            .returning(Query::returning().column(RecipeSchema::RecipeId))
+            .to_owned()
+    }
+    fn gen_remove_query(id: i32) -> DeleteStatement {
+        Query::delete()
+            .from_table(RecipeSchema::Table)
+            .and_where(Expr::col(RecipeSchema::RecipeId).eq(id))
+            .to_owned()
+    }
+    fn gen_update_query(&self) -> UpdateStatement {
+        let values = vec![
+            (RecipeSchema::Name, self.name.clone().into()),
+            (RecipeSchema::Description, self.description.clone().into()),
+            (RecipeSchema::UserInput, self.user_input.into()),
+            (RecipeSchema::DrinkSize, self.size.into()),
+        ];
+        Query::update()
+            .table(RecipeSchema::Table)
+            .values(values)
+            .and_where(Expr::col(RecipeSchema::RecipeId).eq(self.id))
+            .returning(Query::returning().column(RecipeSchema::RecipeId))
+            .to_owned()
+    }
+}
+impl TryFrom<Row> for InstructionToRecipeMetadata {
+    type Error = AnyError;
+
+    fn try_from(value: Row) -> Result<Self, Self::Error> {
+        Ok(Self {
+            recipe_id: value.try_get(0)?,
+            instruction_id: value.try_get(1)?,
+            instruction_order: value.try_get(2)?,
+        })
+    }
+}
+#[async_trait]
+impl GenQueries for InstructionToRecipeMetadata {
+    fn gen_insert_query(&self) -> InsertStatement {
+        let columns = vec![
+            InstructionToRecipeSchema::RecipeId,
+            InstructionToRecipeSchema::InstructionId,
+            InstructionToRecipeSchema::InstructionOrder,
+        ];
+        let values = vec![
+            self.recipe_id.into(),
+            self.instruction_id.into(),
+            self.instruction_order.into(),
+        ];
+        Query::insert()
+            .into_table(IngredientSchema::Table)
+            .columns(columns)
+            .values_panic(values)
+            .returning(Query::returning().column(RecipeSchema::RecipeId))
+            .to_owned()
+    }
+    fn gen_remove_query(id: i32) -> DeleteStatement {
+        Query::delete()
+            .from_table(RecipeSchema::Table)
+            .and_where(Expr::col(RecipeSchema::RecipeId).eq(id))
+            .to_owned()
+    }
+    fn gen_update_query(&self) -> UpdateStatement {
+        let values = vec![
+            (InstructionToRecipeSchema::RecipeId, self.recipe_id.into()),
+            (
+                InstructionToRecipeSchema::InstructionId,
+                self.instruction_id.into(),
+            ),
+            (
+                InstructionToRecipeSchema::InstructionOrder,
+                self.instruction_order.into(),
+            ),
+        ];
+        Query::update()
+            .table(RecipeSchema::Table)
+            .values(values)
+            .and_where(Expr::col(InstructionToRecipeSchema::RecipeId).eq(self.recipe_id))
             .to_owned()
     }
 }

@@ -22,8 +22,14 @@ pub struct OpenPostgresConnection {
 impl DbConnection for OpenPostgresConnection {
     async fn insert(&self, stmt: String) -> UdmResult<i32> {
         tracing::info!("Received insert call query: {}", &stmt);
-        let prepared = self.conn.prepare(stmt.as_str()).await?;
-        let row = self.conn.query_one(&prepared, &[]).await?;
+        let prepared = self.conn.prepare(stmt.as_str()).await.map_err(|e| {
+            tracing::error!("{}", e.to_string());
+            UdmError::ApiFailure(e.to_string())
+        })?;
+        let row = self.conn.query_one(&prepared, &[]).await.map_err(|e| {
+            tracing::error!("{}", e.to_string());
+            UdmError::ApiFailure(e.to_string())
+        })?;
         let data: UdmResult<i32> = row
             .try_get(0)
             .map_err(|e| UdmError::ApiFailure(e.to_string()));
@@ -33,14 +39,20 @@ impl DbConnection for OpenPostgresConnection {
     async fn delete(&self, stmt: String) -> UdmResult<()> {
         tracing::info!("Received delete call query: {}", &stmt);
         let prepared = self.conn.prepare(stmt.as_str()).await?;
-        let result = self.conn.query_opt(&prepared, &[]).await;
+        let result = self.conn.query_opt(&prepared, &[]).await.map_err(|e| {
+            tracing::error!("{}", e.to_string());
+            UdmError::ApiFailure(e.to_string())
+        })?;
         tracing::debug!("Result from deleting from db: {:?}", &result);
         Ok(())
     }
     async fn update(&self, stmt: String) -> UdmResult<i32> {
         tracing::info!("Received update call query: {}", &stmt);
         let prepared = self.conn.prepare(stmt.as_str()).await?;
-        let row = self.conn.query_one(&prepared, &[]).await?;
+        let row = self.conn.query_one(&prepared, &[]).await.map_err(|e| {
+            tracing::error!("{}", e.to_string());
+            UdmError::ApiFailure(e.to_string())
+        })?;
         let data: UdmResult<i32> = row
             .try_get(0)
             .map_err(|e| UdmError::ApiFailure(e.to_string()));
@@ -50,7 +62,10 @@ impl DbConnection for OpenPostgresConnection {
     async fn select(&self, stmt: String) -> UdmResult<Vec<Row>> {
         tracing::info!("Received update call query: {}", &stmt);
         let prepared = self.conn.prepare(stmt.as_str()).await?;
-        let rows = self.conn.query(&prepared, &[]).await?;
+        let rows = self.conn.query(&prepared, &[]).await.map_err(|e| {
+            tracing::error!("{}", e.to_string());
+            UdmError::ApiFailure(e.to_string())
+        })?;
         tracing::debug!("Result from inserting into db {:?}", &rows);
         Ok(rows)
     }
