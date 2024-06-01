@@ -33,7 +33,7 @@ pub enum IngredientCommands {
     Show(ShowIngredientArgs),
     #[command(about = "Remove current Ingredient ")]
     Remove(RemoveIngredientArgs),
-    #[command(about = "Update a fluid regulator")]
+    #[command(about = "Update an Ingredient")]
     Update(UpdateIngredientArgs),
 }
 
