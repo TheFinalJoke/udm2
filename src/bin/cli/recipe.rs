@@ -193,7 +193,9 @@ impl ShowHandler<Recipe> for ShowRecipeArgs {
             table.push(vec![
                 recipe.id.cell(),
                 recipe.name.cell(),
-                recipe.size.cell(),
+                DrinkSize::try_from(recipe.size)
+                    .unwrap_or(DrinkSize::Unspecified)
+                    .cell(),
                 recipe.user_input.cell(),
                 recipe.description.cell(),
             ]);

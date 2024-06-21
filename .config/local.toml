@@ -2,7 +2,7 @@
 # port = 19211
 
 [daemon]
-log_file_path = "./udm_daemon"
+log_file_path = "./udm_daemon.log"
 
 # [daemon.sqlite]
 # db_path = "/workspaces/udm/.config/test_udm.db"

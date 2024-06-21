@@ -27,7 +27,20 @@ service UdmService {
 
   rpc UpdateRecipe(service_types.ModifyRecipeRequest)
       returns (service_types.ModifyRecipeResponse);
-    
+  
+  rpc AddRecipeInstructionOrder(service_types.AddRecipeInstOrderRequest) 
+      returns (service_types.AddRecipeInstOrderResponse);
+
+  // protolint:disable MAX_LINE_LENGTH
+  rpc CollectRecipeInstructionOrder(service_types.CollectRecipeInstOrderRequest) 
+      returns (service_types.CollectRecipeInstOrderResponse);
+
+  rpc RemoveRecipeInstructionOrder(service_types.RemoveRecipeInstOrderRequest)
+      returns (service_types.GenericRemovalResponse);
+
+  rpc UpdateRecipeInstructionOrder(service_types.UpdateRecipeInstOrderRequest)
+      returns (service_types.GenericEmpty);
+
   rpc AddInstruction(service_types.AddInstructionRequest)
       returns (service_types.AddInstructionResponse);
     
@@ -51,7 +64,7 @@ service UdmService {
     
   rpc UpdateIngredient(service_types.ModifyIngredientRequest)
       returns (service_types.ModifyIngredientResponse);
-
+      
   rpc ResetDb(service_types.ResetRequest)
       returns (service_types.ResetResponse);
   

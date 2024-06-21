@@ -1,9 +1,11 @@
 use crate::db::FluidRegulationSchema;
 use crate::db::IngredientSchema;
 use crate::db::InstructionSchema;
+use crate::db::InstructionToRecipeSchema;
 use crate::db::RecipeSchema;
 use crate::error::UdmError;
 use crate::UdmResult;
+use anyhow::Error as AnyError;
 use regex::Regex;
 use sea_query::Expr;
 use sea_query::SimpleExpr;
@@ -43,6 +45,10 @@ impl ServiceRequest for ModifyIngredientRequest {}
 impl ServiceRequest for ResetRequest {}
 impl ServiceRequest for CollectInstructionRequest {}
 impl ServiceRequest for CollectRecipeRequest {}
+impl ServiceRequest for UpdateRecipeInstOrderRequest {}
+impl ServiceRequest for AddRecipeInstOrderRequest {}
+impl ServiceRequest for CollectRecipeInstOrderRequest {}
+impl ServiceRequest for RemoveRecipeInstOrderRequest {}
 
 impl ServiceResponse for AddFluidRegulatorResponse {}
 impl ServiceResponse for ModifyFluidRegulatorResponse {}
@@ -61,6 +67,9 @@ impl ServiceResponse for ResetResponse {}
 impl ServiceResponse for GenericRemovalResponse {}
 impl ServiceResponse for CollectIngredientResponse {}
 impl ServiceResponse for CollectRecipeResponse {}
+impl ServiceResponse for AddRecipeInstOrderResponse {}
+impl ServiceResponse for CollectRecipeInstOrderResponse {}
+impl ServiceResponse for GenericEmpty {}
 
 impl FetchData {
     pub fn to_fetch_data_vec(user_input: &str) -> UdmResult<Vec<FetchData>> {
@@ -157,7 +166,19 @@ impl CollectExpressions for CollectRecipeRequest {
         Ok(exprs)
     }
 }
-
+impl CollectExpressions for CollectRecipeInstOrderRequest {
+    fn get_expressions(&self) -> UdmResult<Vec<SimpleExpr>> {
+        let mut exprs = Vec::new();
+        for expr in &self.expressions {
+            let cloned_data = expr.column.clone();
+            let col = InstructionToRecipeSchema::try_from(cloned_data)?;
+            let simple_expr = expr.to_simple_expr(col)?;
+            debug!("Got simple expr: {:?}", simple_expr);
+            exprs.push(simple_expr)
+        }
+        Ok(exprs)
+    }
+}
 impl Operation {
     pub fn to_operation(user_input: &str) -> Option<Operation> {
         match user_input {
@@ -194,8 +215,33 @@ impl Operation {
         }
     }
 }
-pub struct InstructionToRecipeMetadata {
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+pub(crate) struct InstructionToRecipeMetadata {
+    pub(crate) id: Option<i32>,
     pub(crate) recipe_id: i32,
     pub(crate) instruction_id: i32,
     pub(crate) instruction_order: i32,
+}
+
+impl TryFrom<RecipeInstructionOrder> for InstructionToRecipeMetadata {
+    type Error = AnyError;
+    fn try_from(value: RecipeInstructionOrder) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: value.id,
+            recipe_id: value.recipe_id,
+            instruction_id: value.instruction_id,
+            instruction_order: value.position,
+        })
+    }
+}
+impl TryFrom<InstructionToRecipeMetadata> for RecipeInstructionOrder {
+    type Error = AnyError;
+    fn try_from(value: InstructionToRecipeMetadata) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: value.id,
+            recipe_id: value.recipe_id,
+            instruction_id: value.instruction_id,
+            position: value.instruction_order,
+        })
+    }
 }

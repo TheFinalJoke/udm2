@@ -4,6 +4,10 @@ package service_types;
 import "fhs.proto";
 import "recipe.proto";
 
+message GenericEmpty {
+
+}
+
 enum EntityType {
   ENTITY_TYPE_UNSPECIFIED = 0;
   ENTITY_TYPE_RECIPE = 1;
@@ -96,18 +100,54 @@ message CollectRecipeRequest {
 message CollectRecipeResponse {
   repeated recipe_types.Recipe recipes = 1;
 }
+message RecipeInstructionOrder {
+  int32 recipe_id = 1;
+  int32 instruction_id = 2;
+  int32 position = 3;
+  optional int32 id = 4;
+}
+
+message AddRecipeInstOrderRequest {
+  repeated RecipeInstructionOrder recipe_orders = 1;
+}
+
+message AddRecipeInstOrderResponse {
+  repeated int32 ids = 1;
+}
+
+message CollectRecipeInstOrderRequest {
+  repeated FetchData expressions = 1;
+}
+
+message CollectRecipeInstOrderResponse {
+  repeated RecipeInstructionOrder recipe_to_instructions = 1;
+}
+
+message RemoveRecipeInstOrderRequest {
+  int32 id = 1;
+}
+
+message UpdateRecipeInstOrderRequest {
+  repeated RecipeInstructionOrder recipe_orders = 1; 
+  int32 recipe_id = 2;
+}
+
 message AddInstructionRequest {
   recipe_types.Instruction instruction = 1;
 }
+
 message AddInstructionResponse {
   int32 instruction_id = 1;
 }
+
 message CollectInstructionRequest {
   repeated FetchData expressions = 1;
 }
+
 message CollectInstructionResponse {
   repeated recipe_types.Instruction instructions = 1;
 }
+
 message GetInstructionRequest {
   int32 instruction_id = 1;
 }
@@ -144,12 +184,15 @@ message AddIngredientRequest {
 message AddIngredientResponse {
   int32 ingredient_id = 1;
 }
+
 message CollectIngredientRequest {
   repeated FetchData expressions = 1;
 }
+
 message CollectIngredientResponse {
   repeated recipe_types.Ingredient ingredients = 1;
 }
+
 message RemoveIngredientRequest {
   int32 ingredient_id = 1;
 }

@@ -53,34 +53,32 @@ pub struct AddInstructionArgs {
         help = "Raw json to transform",
         exclusive = true
     )]
-    raw: String,
-    #[arg(short = 'i', long)]
-    instruction_id: i32,
-    #[arg(short = 'n', long)]
-    instruction_name: String,
-    #[arg(short = 'd', long)]
-    instruction_detail: String,
+    raw: Option<String>,
+    #[arg(short = 'n', long, required_unless_present = "raw")]
+    instruction_name: Option<String>,
+    #[arg(short = 'd', long, required_unless_present = "raw")]
+    instruction_detail: Option<String>,
 }
 
 impl UdmGrpcActions<Instruction> for AddInstructionArgs {
     fn sanatize_input(&self) -> UdmResult<Instruction> {
-        if !&self.raw.is_empty() {
-            tracing::debug!("Json passed: {}", &self.raw);
-            let instruction: Instruction = serde_json::from_str(&self.raw)
+        if let Some(raw) = &self.raw {
+            tracing::debug!("Json passed: {}", raw);
+            let instruction: Instruction = serde_json::from_str(raw)
                 .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
             instruction.validate_without_id_fields()?;
             return Ok(instruction);
         }
 
-        if self.instruction_name.is_empty() || self.instruction_detail.is_empty() {
+        if self.instruction_name.is_none() || self.instruction_detail.is_none() {
             return Err(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",
             )));
         }
         Ok(Instruction {
-            id: self.instruction_id,
-            instruction_detail: self.instruction_detail.clone(),
-            instruction_name: self.instruction_name.clone(),
+            id: 0,
+            instruction_detail: self.instruction_detail.clone().unwrap(),
+            instruction_name: self.instruction_name.clone().unwrap(),
         })
     }
 }

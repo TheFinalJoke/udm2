@@ -26,5 +26,8 @@ pub trait GenQueries {
         query.to_owned()
     }
     fn gen_remove_query(id: i32) -> DeleteStatement;
+    fn gen_custom_remove_query(&self) -> DeleteStatement {
+        unimplemented!()
+    }
     fn gen_update_query(&self) -> UpdateStatement;
 }

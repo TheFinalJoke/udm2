@@ -421,6 +421,7 @@ impl SqlTableTransactionsFactory for InstructionSchema {
 #[iden = "InstructionToRecipe"]
 pub enum InstructionToRecipeSchema {
     Table,
+    Id,
     RecipeId,
     InstructionId,
     InstructionOrder,
@@ -429,6 +430,7 @@ impl SqlTransactionsFactory for InstructionToRecipeSchema {
     fn column_to_str(&self) -> &'static str {
         match self {
             Self::Table => "InstructionToRecipe",
+            Self::Id => "id",
             Self::RecipeId => "recipe_id",
             Self::InstructionId => "instruction_id",
             Self::InstructionOrder => "instruction_order",
@@ -449,6 +451,7 @@ impl Display for InstructionToRecipeSchema {
         write!(
             f,
             "Valid Fields are:\n\
+        id: int \n\
         recipe_id: int\n\
         instruction_id: int\n\
         instruction_order: int\n\
@@ -461,6 +464,7 @@ impl TryFrom<String> for InstructionToRecipeSchema {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         match value.as_str() {
             "InstructionToRecipe" => Ok(Self::Table),
+            "id" => Ok(Self::Id),
             "recipe_id" => Ok(Self::RecipeId),
             "instruction_id" => Ok(Self::InstructionId),
             "instruction_order" => Ok(Self::InstructionOrder),
@@ -475,6 +479,13 @@ impl SqlTableTransactionsFactory for InstructionToRecipeSchema {
         Table::create()
             .table(Self::Table)
             .if_not_exists()
+            .col(
+                ColumnDef::new(Self::Id)
+                    .integer()
+                    .auto_increment()
+                    .not_null()
+                    .primary_key(),
+            )
             .col(ColumnDef::new(Self::RecipeId).integer())
             .col(ColumnDef::new(Self::InstructionId).integer())
             .foreign_key(

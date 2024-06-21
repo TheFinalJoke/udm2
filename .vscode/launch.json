@@ -19,7 +19,8 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": ["rust"]
         },
         {
             "type": "lldb",
@@ -45,7 +46,8 @@
             "cwd": "${workspaceFolder}",
             "env": {
                 "UDM_POSTGRES_PW": "postgres"
-            }
+            },
+            "sourceLanguages": ["rust"]
         },
         {
             "type": "lldb",
@@ -64,7 +66,8 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": ["rust"]
         },
         {
             "type": "lldb",
@@ -86,7 +89,8 @@
                 "show",
                 "fr_id=1"
             ],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": ["rust"]
         },
         {
             "type": "lldb",
@@ -124,7 +128,8 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": ["rust"]
         }
     ]
 }

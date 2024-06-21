@@ -316,9 +316,10 @@ impl TryFrom<Row> for InstructionToRecipeMetadata {
 
     fn try_from(value: Row) -> Result<Self, Self::Error> {
         Ok(Self {
-            recipe_id: value.try_get(0)?,
-            instruction_id: value.try_get(1)?,
-            instruction_order: value.try_get(2)?,
+            id: value.try_get(0)?,
+            recipe_id: value.try_get(1)?,
+            instruction_id: value.try_get(2)?,
+            instruction_order: value.try_get(3)?,
         })
     }
 }
@@ -336,16 +337,26 @@ impl GenQueries for InstructionToRecipeMetadata {
             self.instruction_order.into(),
         ];
         Query::insert()
-            .into_table(IngredientSchema::Table)
+            .into_table(InstructionToRecipeSchema::Table)
             .columns(columns)
             .values_panic(values)
-            .returning(Query::returning().column(RecipeSchema::RecipeId))
+            .returning(Query::returning().column(InstructionToRecipeSchema::Id))
             .to_owned()
     }
     fn gen_remove_query(id: i32) -> DeleteStatement {
         Query::delete()
-            .from_table(RecipeSchema::Table)
-            .and_where(Expr::col(RecipeSchema::RecipeId).eq(id))
+            .from_table(InstructionToRecipeSchema::Table)
+            .and_where(Expr::col(InstructionToRecipeSchema::Id).eq(id))
+            .to_owned()
+    }
+    fn gen_custom_remove_query(&self) -> DeleteStatement {
+        Query::delete()
+            .from_table(InstructionToRecipeSchema::Table)
+            .and_where(Expr::col(InstructionToRecipeSchema::RecipeId).eq(self.recipe_id))
+            .and_where(Expr::col(InstructionToRecipeSchema::InstructionId).eq(self.instruction_id))
+            .and_where(
+                Expr::col(InstructionToRecipeSchema::InstructionOrder).eq(self.instruction_order),
+            )
             .to_owned()
     }
     fn gen_update_query(&self) -> UpdateStatement {

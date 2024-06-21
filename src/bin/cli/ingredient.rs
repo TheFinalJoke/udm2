@@ -59,8 +59,6 @@ pub struct AddIngredientArgs {
         exclusive = true
     )]
     raw: Option<String>,
-    #[arg(long = "id", help = "Specify the ID")]
-    ingredient_id: Option<i32>,
     #[arg(
         short,
         long,
@@ -136,7 +134,7 @@ impl TryFrom<&AddIngredientArgs> for Ingredient {
 
     fn try_from(value: &AddIngredientArgs) -> Result<Self, Self::Error> {
         Ok(Self {
-            id: value.ingredient_id.unwrap_or_default(),
+            id: 0,
             name: value.name.clone().unwrap(),
             is_active: false,
             is_alcoholic: value.is_alcoholic,
@@ -182,8 +180,7 @@ impl UdmGrpcActions<Ingredient> for AddIngredientArgs {
 }
 impl FieldValidation for AddIngredientArgs {
     fn validate_all_fields(&self) -> UdmResult<()> {
-        if self.ingredient_id == Some(0)
-            || self.name.clone().unwrap_or_default().is_empty()
+        if self.name.clone().unwrap_or_default().is_empty()
             || self.description.clone().unwrap_or_default().is_empty()
             || self.ingredient_type.clone().unwrap_or_default().is_empty()
         {

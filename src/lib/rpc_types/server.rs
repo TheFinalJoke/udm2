@@ -4,6 +4,7 @@ use crate::db::DbMetaData;
 use crate::db::FluidRegulationSchema;
 use crate::db::IngredientSchema;
 use crate::db::InstructionSchema;
+use crate::db::InstructionToRecipeSchema;
 use crate::db::RecipeSchema;
 use crate::rpc_types::fhs_types::FluidRegulator;
 use crate::rpc_types::recipe_types::Ingredient;
@@ -16,6 +17,8 @@ use crate::rpc_types::service_types::AddIngredientRequest;
 use crate::rpc_types::service_types::AddIngredientResponse;
 use crate::rpc_types::service_types::AddInstructionRequest;
 use crate::rpc_types::service_types::AddInstructionResponse;
+use crate::rpc_types::service_types::AddRecipeInstOrderRequest;
+use crate::rpc_types::service_types::AddRecipeInstOrderResponse;
 use crate::rpc_types::service_types::AddRecipeRequest;
 use crate::rpc_types::service_types::AddRecipeResponse;
 use crate::rpc_types::service_types::CollectExpressions;
@@ -25,9 +28,12 @@ use crate::rpc_types::service_types::CollectIngredientRequest;
 use crate::rpc_types::service_types::CollectIngredientResponse;
 use crate::rpc_types::service_types::CollectInstructionRequest;
 use crate::rpc_types::service_types::CollectInstructionResponse;
+use crate::rpc_types::service_types::CollectRecipeInstOrderRequest;
+use crate::rpc_types::service_types::CollectRecipeInstOrderResponse;
 use crate::rpc_types::service_types::CollectRecipeRequest;
 use crate::rpc_types::service_types::CollectRecipeResponse;
 use crate::rpc_types::service_types::FetchData;
+use crate::rpc_types::service_types::GenericEmpty;
 use crate::rpc_types::service_types::GenericRemovalResponse;
 use crate::rpc_types::service_types::InstructionToRecipeMetadata;
 use crate::rpc_types::service_types::ModifyFluidRegulatorRequest;
@@ -39,13 +45,16 @@ use crate::rpc_types::service_types::ModifyInstructionResponse;
 use crate::rpc_types::service_types::ModifyRecipeRequest;
 use crate::rpc_types::service_types::ModifyRecipeResponse;
 use crate::rpc_types::service_types::Operation;
+use crate::rpc_types::service_types::RecipeInstructionOrder;
 use crate::rpc_types::service_types::RemoveFluidRegulatorRequest;
 use crate::rpc_types::service_types::RemoveIngredientRequest;
 use crate::rpc_types::service_types::RemoveInstructionRequest;
+use crate::rpc_types::service_types::RemoveRecipeInstOrderRequest;
 use crate::rpc_types::service_types::RemoveRecipeRequest;
 use crate::rpc_types::service_types::ResetRequest;
 use crate::rpc_types::service_types::ResetResponse;
 use crate::rpc_types::service_types::ServiceResponse;
+use crate::rpc_types::service_types::UpdateRecipeInstOrderRequest;
 use crate::rpc_types::Recipe;
 use crate::UdmResult;
 use anyhow::Result;
@@ -53,6 +62,7 @@ use futures::stream;
 use futures::stream::StreamExt;
 use itertools::Itertools;
 use sea_query::PostgresQueryBuilder;
+use std::collections::HashSet;
 use std::net::SocketAddr;
 use tonic::transport::Server;
 use tonic::IntoRequest;
@@ -83,7 +93,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<AddFluidRegulatorRequest>,
     ) -> Result<Response<AddFluidRegulatorResponse>, Status> {
-        tracing::debug!("Got request {:?}", request);
+        tracing::debug!("Got request {request:?}");
         let fr = request
             .into_inner()
             .fluid
@@ -105,7 +115,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<RemoveFluidRegulatorRequest>,
     ) -> Result<Response<GenericRemovalResponse>, Status> {
-        tracing::debug!("Got Request {:?}", request);
+        tracing::debug!("Got Request {request:?}");
         let fr_id = request.into_inner().fr_id;
         let query = FluidRegulator::gen_remove_query(fr_id).to_string(PostgresQueryBuilder);
         let delete_result = self.connection.delete(query).await;
@@ -187,6 +197,7 @@ impl UdmService for DaemonServerContext {
                 // Insert instruction order into db
                 for (position, instruction) in recipe.instructions {
                     let order = InstructionToRecipeMetadata {
+                        id: None,
                         recipe_id,
                         instruction_id: instruction.id,
                         instruction_order: position,
@@ -214,7 +225,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<RemoveRecipeRequest>,
     ) -> Result<Response<GenericRemovalResponse>, Status> {
-        tracing::debug!("Got Request {:?}", request);
+        tracing::debug!("Got Request {request:?}");
         let recipe_id = request.get_ref().recipe_id;
         let query = FluidRegulator::gen_remove_query(recipe_id).to_string(PostgresQueryBuilder);
         let delete_result = self.connection.delete(query).await;
@@ -243,6 +254,7 @@ impl UdmService for DaemonServerContext {
                 // Insert instruction order into db
                 for (position, instruction) in recipe.instructions {
                     let order = InstructionToRecipeMetadata {
+                        id: None,
                         recipe_id,
                         instruction_id: instruction.id,
                         instruction_order: position,
@@ -261,6 +273,7 @@ impl UdmService for DaemonServerContext {
             ))),
         }
     }
+
     async fn collect_recipe(
         &self,
         request: Request<CollectRecipeRequest>,
@@ -282,41 +295,15 @@ impl UdmService for DaemonServerContext {
                 let rebuilt_data: Vec<Recipe> = stream::iter(recipes)
                     .then(|mut recipe| async {
                         // Collection instruction
-                        let fetch_data = vec![FetchData {
-                            column: "recipe_id".to_string(),
-                            operation: Operation::Equal.into(),
-                            values: recipe.id.to_string(),
-                        }
-                        .to_simple_expr(RecipeSchema::RecipeId)
-                        .unwrap()];
-                        let data_query = InstructionToRecipeMetadata::gen_select_query_on_fields(
-                            RecipeSchema::Table,
-                            fetch_data,
-                        )
-                        .to_string(PostgresQueryBuilder);
-                        let ordered_data = self.connection.select(data_query).await;
-                        match ordered_data {
-                            Ok(data) => {
-                                let meta: Vec<_> = data
-                                    .into_iter()
-                                    .map(|row| InstructionToRecipeMetadata::try_from(row).unwrap())
-                                    .collect();
-                                let sorted: Vec<_> = meta
-                                    .into_iter()
-                                    .sorted_by_key(|row| row.instruction_order)
-                                    .collect();
-
-                                for instruct in sorted {
-                                    let instr = self
-                                        .parse_and_collect_instruction(instruct.instruction_id)
-                                        .await;
-                                    if let Some(ins) = instr {
-                                        recipe.instructions.insert(instruct.instruction_order, ins);
-                                    }
-                                }
-                            }
-                            Err(e) => {
-                                tracing::error!("{}", e.to_string())
+                        let sorted = self
+                            .parse_and_collect_instructions_to_recipe_by_recipe_id(recipe.id)
+                            .await;
+                        for instruct in sorted {
+                            let instr = self
+                                .parse_and_collect_instruction(instruct.instruction_id)
+                                .await;
+                            if let Some(ins) = instr {
+                                recipe.instructions.insert(instruct.instruction_order, ins);
                             }
                         }
                         recipe
@@ -343,7 +330,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<AddInstructionRequest>,
     ) -> Result<Response<AddInstructionResponse>, Status> {
-        tracing::debug!("Got request {:?}", request);
+        tracing::debug!("Got request {request:?}");
         let instruction = request
             .into_inner()
             .instruction
@@ -368,7 +355,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<RemoveInstructionRequest>,
     ) -> Result<Response<GenericRemovalResponse>, Status> {
-        tracing::debug!("Got Request {:?}", request);
+        tracing::debug!("Got Request {request:?}");
         let instruction_id = request.into_inner().instruction_id;
         let query = Instruction::gen_remove_query(instruction_id).to_string(PostgresQueryBuilder);
         let delete_result = self.connection.delete(query).await;
@@ -439,7 +426,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<AddIngredientRequest>,
     ) -> Result<Response<AddIngredientResponse>, Status> {
-        tracing::debug!("Got request {:?}", request);
+        tracing::debug!("Got request {request:?}");
         let ingredient = request
             .into_inner()
             .ingredient
@@ -464,7 +451,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<RemoveIngredientRequest>,
     ) -> Result<Response<GenericRemovalResponse>, Status> {
-        tracing::debug!("Got Request {:?}", request);
+        tracing::debug!("Got Request {request:?}");
         let ingredient_id = request.into_inner().ingredient_id;
         let query = Ingredient::gen_remove_query(ingredient_id).to_string(PostgresQueryBuilder);
         let delete_result = self.connection.delete(query).await;
@@ -480,7 +467,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<ModifyIngredientRequest>,
     ) -> Result<Response<ModifyIngredientResponse>, Status> {
-        tracing::debug!("Got Request {:?}", request);
+        tracing::debug!("Got Request {request:?}");
         let ingredient = request
             .get_ref()
             .clone()
@@ -573,7 +560,7 @@ impl UdmService for DaemonServerContext {
         &self,
         request: Request<ResetRequest>,
     ) -> Result<Response<ResetResponse>, Status> {
-        tracing::info!("Got request {:?}", request);
+        tracing::info!("Got request {request:?}");
         let dropped_result = self.connection.truncate_schema().await;
         tracing::info!("the dropped Result {:?}", &dropped_result);
         match dropped_result {
@@ -582,6 +569,120 @@ impl UdmService for DaemonServerContext {
                 Ok(ResetResponse {}.to_response())
             }
             Err(err) => Err(Status::cancelled(format!("Failed to drop rows: {}", err))),
+        }
+    }
+    async fn update_recipe_instruction_order(
+        &self,
+        request: Request<UpdateRecipeInstOrderRequest>,
+    ) -> Result<Response<GenericEmpty>, Status> {
+        tracing::debug!("Got {:?}", request);
+        let order_requests: Vec<Option<InstructionToRecipeMetadata>> = request
+            .get_ref()
+            .recipe_orders
+            .clone()
+            .into_iter()
+            .map(|req| InstructionToRecipeMetadata::try_from(req).ok())
+            .collect_vec();
+        let filtered_requests: HashSet<InstructionToRecipeMetadata> =
+            order_requests.into_iter().flatten().collect();
+        for req in filtered_requests {
+            let query = req.gen_update_query().to_string(PostgresQueryBuilder);
+            let result = self.connection.update(query).await;
+            match result {
+                Ok(id) => tracing::info!("Updated Recipe to Instruction Collection {}", id),
+                Err(e) => {
+                    tracing::error!("Error while updating the Recipe to Instruction {}", e);
+                    return Err(Status::cancelled(
+                        "Error while updating the Recipe to Instruction {e:?}",
+                    ));
+                }
+            }
+        }
+        Ok(GenericEmpty {}.to_response())
+    }
+    async fn add_recipe_instruction_order(
+        &self,
+        request: Request<AddRecipeInstOrderRequest>,
+    ) -> Result<Response<AddRecipeInstOrderResponse>, Status> {
+        tracing::debug!("Got Request {request:?}");
+        let recipe_orders = request.into_inner().recipe_orders;
+        let ids = stream::iter(recipe_orders)
+            .filter_map(|orders| async { InstructionToRecipeMetadata::try_from(orders).ok() })
+            .then(|order| async move {
+                let query = order.gen_insert_query().to_string(PostgresQueryBuilder);
+                match self.connection.insert(query).await {
+                    Ok(id) => {
+                        tracing::info!("Successfully inserted into db {}", id);
+                        Some(id)
+                    }
+                    Err(e) => {
+                        tracing::error!("Error inserting into db {e:?}");
+                        None
+                    }
+                }
+            })
+            .filter_map(|id| async move { id })
+            .collect()
+            .await;
+        Ok(AddRecipeInstOrderResponse { ids }.to_response())
+    }
+
+    async fn collect_recipe_instruction_order(
+        &self,
+        request: Request<CollectRecipeInstOrderRequest>,
+    ) -> Result<Response<CollectRecipeInstOrderResponse>, Status> {
+        tracing::debug!("Got request {request:?}");
+        let exprs = request
+            .into_inner()
+            .get_expressions()
+            .map_err(|e| Status::cancelled(e.to_string()))?;
+        let query = InstructionToRecipeMetadata::gen_select_query_on_fields(
+            InstructionToRecipeSchema::Table,
+            exprs,
+        )
+        .to_string(PostgresQueryBuilder);
+        let results = self.connection.select(query).await;
+        match results {
+            Ok(results) => {
+                let recipe_instrs: Vec<InstructionToRecipeMetadata> = results
+                    .into_iter()
+                    .map(|row| InstructionToRecipeMetadata::try_from(row).unwrap())
+                    .collect_vec();
+                tracing::info!("Successfully collected Instructions to Recipe");
+                tracing::debug!("Collected data {:?}", recipe_instrs);
+                let recipe_to_instructions: Vec<RecipeInstructionOrder> = recipe_instrs
+                    .into_iter()
+                    .map(|orders| orders.try_into().ok().unwrap())
+                    .collect_vec();
+                Ok(CollectRecipeInstOrderResponse {
+                    recipe_to_instructions,
+                }
+                .to_response())
+            }
+            Err(e) => {
+                tracing::error!("There was an error collecting {}", e.to_string());
+                Err(Status::cancelled(format!(
+                    "Failed to query the database: {}",
+                    e
+                )))
+            }
+        }
+    }
+    async fn remove_recipe_instruction_order(
+        &self,
+        request: Request<RemoveRecipeInstOrderRequest>,
+    ) -> Result<Response<GenericRemovalResponse>, Status> {
+        tracing::debug!("Got Request {request:?}");
+        let recipe_inst_id = request.into_inner().id;
+        let query = InstructionToRecipeMetadata::gen_remove_query(recipe_inst_id)
+            .to_string(PostgresQueryBuilder);
+        let delete_result = self.connection.delete(query).await;
+        match delete_result {
+            Ok(_) => {
+                let remove_response = GenericRemovalResponse {}.to_response();
+                Ok(remove_response)
+            }
+            Err(e) => Err(Status::aborted(e.to_string())),
         }
     }
 }
@@ -616,6 +717,80 @@ impl DaemonServerContext {
             Err(e) => {
                 tracing::error!("Error Occured: {}", e);
                 None
+            }
+        }
+    }
+    async fn parse_and_collect_instructions_to_recipe_by_recipe_id(
+        &self,
+        recipe_id: i32,
+    ) -> Vec<InstructionToRecipeMetadata> {
+        // Collection instruction
+        let fetch_data = vec![FetchData {
+            column: "recipe_id".to_string(),
+            operation: Operation::Equal.into(),
+            values: recipe_id.to_string(),
+        }
+        .to_simple_expr(RecipeSchema::RecipeId)
+        .unwrap()];
+        let data_query = InstructionToRecipeMetadata::gen_select_query_on_fields(
+            InstructionToRecipeSchema::Table,
+            fetch_data,
+        )
+        .to_string(PostgresQueryBuilder);
+        let ordered_data = self.connection.select(data_query).await;
+        match ordered_data {
+            Ok(data) => {
+                let meta: Vec<_> = data
+                    .into_iter()
+                    .map(|row| InstructionToRecipeMetadata::try_from(row).unwrap())
+                    .collect();
+                let sorted: Vec<_> = meta
+                    .into_iter()
+                    .sorted_by_key(|row| row.instruction_order)
+                    .collect();
+                sorted
+            }
+            Err(err) => {
+                tracing::error!("{}", err.to_string());
+                Vec::new()
+            }
+        }
+    }
+    // Built this but do not need it anymore, but might be useful later
+    #[allow(dead_code)]
+    async fn parse_and_collect_instructions_to_recipe_by_id(
+        &self,
+        ids: Vec<i32>,
+    ) -> Vec<InstructionToRecipeMetadata> {
+        // Collection instruction
+        let fetch_data = vec![FetchData {
+            column: "id".to_string(),
+            operation: Operation::In.into(),
+            values: format!("{:?}", ids),
+        }
+        .to_simple_expr(InstructionToRecipeSchema::Id)
+        .unwrap()];
+        let data_query = InstructionToRecipeMetadata::gen_select_query_on_fields(
+            InstructionToRecipeSchema::Table,
+            fetch_data,
+        )
+        .to_string(PostgresQueryBuilder);
+        let ordered_data = self.connection.select(data_query).await;
+        match ordered_data {
+            Ok(data) => {
+                let meta: Vec<_> = data
+                    .into_iter()
+                    .map(|row| InstructionToRecipeMetadata::try_from(row).unwrap())
+                    .collect();
+                let sorted: Vec<_> = meta
+                    .into_iter()
+                    .sorted_by_key(|row| row.instruction_order)
+                    .collect();
+                sorted
+            }
+            Err(err) => {
+                tracing::error!("{}", err.to_string());
+                Vec::new()
             }
         }
     }

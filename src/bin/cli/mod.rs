@@ -6,6 +6,7 @@ pub mod helpers;
 pub mod ingredient;
 pub mod instruction;
 pub mod recipe;
+pub mod recipetoinstruction;
 use self::helpers::MainCommandHandler;
 use crate::cli::helpers::UdmServerOptions;
 use async_trait::async_trait;
@@ -71,6 +72,8 @@ pub enum UdmCommand {
     Instruction(instruction::InstructionCommands),
     #[command(about = "To interact with fluid", subcommand)]
     Fluid(fluid::FluidCommands),
+    #[command(about = "To interact with RecipeToInstruction Order", subcommand)]
+    RecipeToInstruction(recipetoinstruction::RecipeToInstructionCommands),
     #[command(about = "Reset all tables in the database")]
     Reset(ResetCommands),
 }
