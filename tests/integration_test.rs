@@ -33,8 +33,8 @@ fn ingredient_table_create() {
         r#"CREATE TABLE IF NOT EXISTS "Ingredient""#,
         r#"( "ingredient_id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" text NOT NULL, "alcoholic" boolean NOT NULL DEFAULT FALSE,"#,
         r#""description" text, "is_active" boolean NOT NULL DEFAULT FALSE, "amount" real, "ingredient_type" integer NOT NULL, "fr_id" integer, "instruction_id" integer,"#,
-        r#"FOREIGN KEY ("fr_id") REFERENCES "FluidRegulation" ("fr_id") ON DELETE CASCADE ON UPDATE CASCADE,"#,
-        r#"FOREIGN KEY ("instruction_id") REFERENCES "Instruction" ("instruction_id") ON DELETE CASCADE ON UPDATE CASCADE )"#,
+        r#"FOREIGN KEY ("fr_id") REFERENCES "FluidRegulation" ("fr_id") ON DELETE SET NULL ON UPDATE SET NULL,"#,
+        r#"FOREIGN KEY ("instruction_id") REFERENCES "Instruction" ("instruction_id") ON DELETE SET NULL ON UPDATE SET NULL )"#,
     ]
     .join(" ");
     assert_eq!(
@@ -84,9 +84,9 @@ fn instruction_table_alter() {
 fn instruction_to_recipe_table_create() {
     let query = [
         r#"CREATE TABLE IF NOT EXISTS "InstructionToRecipe""#,
-        r#"( "recipe_id" integer, "instruction_id" integer, "instruction_order" integer NOT NULL,"#,
-        r#"FOREIGN KEY ("recipe_id") REFERENCES "Recipe" ("recipe_id") ON DELETE CASCADE ON UPDATE CASCADE,"#,
-        r#"FOREIGN KEY ("instruction_id") REFERENCES "Instruction" ("instruction_id") ON DELETE CASCADE ON UPDATE CASCADE )"#
+        r#"( "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "recipe_id" integer, "instruction_id" integer, "instruction_order" integer NOT NULL,"#,
+        r#"FOREIGN KEY ("recipe_id") REFERENCES "Recipe" ("recipe_id") ON DELETE SET NULL ON UPDATE SET NULL,"#,
+        r#"FOREIGN KEY ("instruction_id") REFERENCES "Instruction" ("instruction_id") ON DELETE SET NULL ON UPDATE SET NULL )"#
     ].join(" ");
     assert_eq!(
         db::InstructionToRecipeSchema::create_table(SqliteQueryBuilder).to_string(),

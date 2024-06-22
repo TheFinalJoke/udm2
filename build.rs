@@ -18,6 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build_client(true)
         .build_server(true)
         .file_descriptor_set_path(out_dir.join("store_descriptor.bin"))
+        .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
         .compile(&["protos/server.proto"], &["protos/"])?;
     Ok(())
 }

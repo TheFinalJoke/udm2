@@ -4,6 +4,7 @@
 	"service": "udm",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 	"forwardPorts": [5432],
+	"remoteUser": "root",
 	"features": {
 		"ghcr.io/devcontainers/features/rust:1": {},
 		"ghcr.io/devcontainers-contrib/features/apt-packages:1": {},
@@ -17,7 +18,7 @@
 		"ghcr.io/devcontainers-contrib/features/act-asdf:2": {},
 		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
 	},
-	"postCreateCommand": "sudo apt update && sudo apt install -y protobuf-compiler libprotobuf-dev shellcheck && sudo bash scripts/install_protolint.sh",
+	"postCreateCommand": "apt update && apt install -y protobuf-compiler libprotobuf-dev shellcheck && bash scripts/install_protolint.sh && apt update && apt upgrade -y",
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -25,8 +26,7 @@
 				"github.vscode-github-actions",
 				"timonwong.shellcheck",
 				"qwtel.sqlite-viewer",
-				"weijan.vscode-postgresql-client2",
-				"ms-ossdata.vscode-postgresql"
+				"cweijan.vscode-postgresql-client2"
 			],
 			"settings": {
 				"rust-analyzer.cargo.buildScripts.enable": true,
@@ -41,6 +41,7 @@
 		}
 	},
 	"containerEnv": {
-		"DEBUG": "1"
+		"DEBUG": "1",
+		"UDM_POSTGRES_PW": "postgres"
 	}
 }

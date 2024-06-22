@@ -1,0 +1,174 @@
+@startuml
+package lib {
+  package db {
+    abstract class SqlTransactionsFactory {
+      + column_to_str(&self) -> &'static str
+      + from_str(value: &'static str) -> Option<Self>
+    }
+    abstract class SqlTableTransctionsFactory: 
+  }
+}
+package protos {
+  package fhs_proto {
+    enum RegulatorType {
+      + UKNOWN = 0
+      + VALVE = 1
+      + PUMP = 2
+      + TAP = 3
+    }
+    struct FluidRegulator {
+      + fr_id: optional int
+      + gpio_pin: int
+      + regulator_type: RegulatorType
+    }
+  }
+  package recipe_proto {
+    enum IngredientType {
+      FLUID = 0
+      EATABLES = 1
+    }
+    Struct Ingredient {
+      + id: int
+      + name: String
+      + is_active: Bool
+      + alcoholic: Bool
+      + regulator: Optional FluidRegulator
+      + amount: Optional float
+      + description: String
+      + ingredient_type: IngredientType
+    }
+    Struct Instruction {
+      + id: int
+      + instruction_detail: String
+      + ingredient: Optional Ingredient
+    }
+    Enum DrinkSize {
+      SMALL = 0
+      MEDIUM = 1
+      PINT = 2
+      LARGE = 3
+      EXTRA_LARGE = 4
+    }
+    Struct Recipe {
+      + id: optional int
+      + name: String
+      + user_input: Bool
+      + size: DrinkSize
+      + instructions: map<int, Ingredient>
+    }
+  }
+  package service_conf {
+    Struct Config {
+      + port: int
+    }
+  }
+  package service_proto {
+    Struct AddRecipeRequest {
+      + recipe: Recipe
+    }
+    Struct AddRecipeResponse {
+      + recipe_id: int
+    }
+    Struct GetRecipeRequest {
+      + recipe_id: int
+    }
+    Struct GetRecipeResponse {
+      + recipe: Recipe
+    }
+    Struct ModifyRecipeRequest {
+      + recipe: Recipe
+    }
+    Struct ModifyRecipeResponse {
+      + recipe_id: int
+    }
+    Struct AddInstructionRequest {
+      + instruction: Instruction
+    }
+    Struct AddInstructionResponse {
+      + instruction_id: int
+    }
+    Struct GetInstructionRequest {
+      + instruction_id: int
+    }
+    Struct GetInstructionResponse {
+      + instruction: Instruction
+    }
+    Struct ModifyInstructionRequest {
+      + instruction: Instruction
+    }
+    Struct ModifyInstructionResponse {
+      + instruction_id: int
+    }
+    Struct ModifyFluidRegulatorRequest {
+      + fluid Fluid
+    }
+    Struct ModifyFluidRegulatorResponse {
+      + fluid_id: int
+    }
+    Struct ModifyIngredientRequest {
+      + ingredient Ingredient
+    }
+    Struct ModifyIngredientResponse {
+      + ingredient_id int
+    }
+    Struct AddIngredientRequest {
+      + ingredient Ingredient
+    }
+    Struct AddIngredientResponse {
+      + ingredient_id: int
+    }
+    Struct RemoveIngredientResponse {}
+    Struct RemoveIngredientRequest {
+      + ingredient_id: int
+    }
+    Struct GetIngredientRequest {
+      + ingredient_id int
+    }
+    Struct GetIngredientResponse {
+      + ingredient Ingredient
+    }
+    interface UdmServer {
+      
+      + make_recipe(recipe: AddRecipeRequest) -> AddRecipeResponse
+      
+      + get_recipe(recipe: GetRecipeRequest) -> GetReceipeResponse
+      
+      + get_all_recipes() -> Iterator[Recipe]
+      
+      + get_active_recipes() -> Iterator[Recipe]
+      
+      + modify_recipe(recipe: ModifyRecipeRequest) -> ModifyRecipeResponse
+      
+      + get_all_fluid_regulators() -> Iterator[FluidRegulator]
+      
+      + get_all_active_fluid_regulators() -> Iterator[FluidRegulator]
+
+      + modify_fluid_regulator(ModifyFluidRegulatorRequest) -> ModifyFluidRegulatorResponse
+
+      + assign_fluid_regulator(ModifyFluidRegulatorRequest) -> ModifyFluidRegulatorResponse
+
+      + unassign_fluid_regulator(ModifyFluidRegulatorRequest) -> ModifyFluidRegulatorResponse
+      
+      + add_ingredient(request: AddIngredientRequest) -> AddIngredientResponse
+      
+      + modify_ingredient(request: ModifyIngredientRequest) -> ModifyIngredientResponse
+      
+      + remove_ingredient(request: RemoveIngredientRequest) -> RemoveIngredientResponse
+      
+      + get_ingredient(request: GetIngredientRequest) -> GetIngredientResponse
+      
+      + get_all_ingredient() -> Iterator[Ingredient]
+      
+      + add_instruction(request: AddInstructionRequest) -> AddInstructionResponse
+
+      + get_instruction(request: GetInstructionRequest) -> GetInstructionResponse
+      
+      + get_all_instructions() -> Iterator[Instruction]
+      
+      + get_active_instructions() -> Iterator[Instruction]
+      
+      + modify_instruction(request: ModifyInstructionRequest) -> ModifyInstructionResponse
+    }
+  }
+}
+@enduml

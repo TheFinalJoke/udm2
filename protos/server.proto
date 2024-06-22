@@ -6,4 +6,66 @@ import "service.proto";
 service UdmService {
   rpc AddFluidRegulator(service_types.AddFluidRegulatorRequest)
       returns (service_types.AddFluidRegulatorResponse);
+  
+  rpc RemoveFluidRegulator(service_types.RemoveFluidRegulatorRequest)
+      returns (service_types.GenericRemovalResponse);
+
+  rpc UpdateFluidRegulator(service_types.ModifyFluidRegulatorRequest)
+      returns (service_types.ModifyFluidRegulatorResponse);
+    
+  rpc CollectFluidRegulators(service_types.CollectFluidRegulatorsRequest)
+      returns (service_types.CollectFluidRegulatorsResponse);
+
+  rpc AddRecipe(service_types.AddRecipeRequest) 
+      returns (service_types.AddRecipeResponse);
+
+  rpc CollectRecipe(service_types.CollectRecipeRequest) 
+      returns (service_types.CollectRecipeResponse);
+
+  rpc RemoveRecipe(service_types.RemoveRecipeRequest)
+      returns (service_types.GenericRemovalResponse);
+
+  rpc UpdateRecipe(service_types.ModifyRecipeRequest)
+      returns (service_types.ModifyRecipeResponse);
+  
+  rpc AddRecipeInstructionOrder(service_types.AddRecipeInstOrderRequest) 
+      returns (service_types.AddRecipeInstOrderResponse);
+
+  // protolint:disable MAX_LINE_LENGTH
+  rpc CollectRecipeInstructionOrder(service_types.CollectRecipeInstOrderRequest) 
+      returns (service_types.CollectRecipeInstOrderResponse);
+
+  rpc RemoveRecipeInstructionOrder(service_types.RemoveRecipeInstOrderRequest)
+      returns (service_types.GenericRemovalResponse);
+
+  rpc UpdateRecipeInstructionOrder(service_types.UpdateRecipeInstOrderRequest)
+      returns (service_types.GenericEmpty);
+
+  rpc AddInstruction(service_types.AddInstructionRequest)
+      returns (service_types.AddInstructionResponse);
+    
+  rpc CollectInstructions(service_types.CollectInstructionRequest)
+      returns (service_types.CollectInstructionResponse);
+
+  rpc RemoveInstruction(service_types.RemoveInstructionRequest)
+      returns (service_types.GenericRemovalResponse);
+
+  rpc UpdateInstruction(service_types.ModifyInstructionRequest)
+      returns (service_types.ModifyInstructionResponse);
+    
+  rpc AddIngredient(service_types.AddIngredientRequest)
+      returns (service_types.AddIngredientResponse);
+  
+  rpc CollectIngredients(service_types.CollectIngredientRequest)
+      returns (service_types.CollectIngredientResponse);
+
+  rpc RemoveIngredient(service_types.RemoveIngredientRequest)
+      returns (service_types.GenericRemovalResponse);
+    
+  rpc UpdateIngredient(service_types.ModifyIngredientRequest)
+      returns (service_types.ModifyIngredientResponse);
+      
+  rpc ResetDb(service_types.ResetRequest)
+      returns (service_types.ResetResponse);
+  
 }

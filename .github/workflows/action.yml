@@ -25,6 +25,11 @@ jobs:
   build:
     name: Build, Lint, and Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      # To report GitHub Actions status checks
+      statuses: write
     steps:
     - name: Install Ubuntu pre-requirements
       run: |
@@ -32,9 +37,11 @@ jobs:
       shell: bash
     - uses: actions-rust-lang/setup-rust-toolchain@v1
     - name: Checkout Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Linting the Code Base
-      uses: super-linter/super-linter@v5.7.2
+      uses: super-linter/super-linter@v6.3.0
       env:
         DEFAULT_BRANCH: main
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -43,6 +50,8 @@ jobs:
         VALIDATE_RUST_2018: false
         VALIDATE_RUST_2015: false
         VALIDATE_RUST_CLIPPY: false
+        VALIDATE_SHELL_SHFMT: false
+        VALIDATE_CHECKOV: false
     - run: cargo build
       env: 
         PROTOC: "/usr/bin/protoc"
