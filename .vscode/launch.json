@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "type": "lldb",
             "request": "launch",
@@ -18,7 +19,8 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": ["rust"]
         },
         {
             "type": "lldb",
@@ -38,9 +40,14 @@
             "args": [
                 "--config-file",
                 ".config/local.toml",
-                "-ddddd"
+                "-vvvv",
+                "--test"
             ],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "UDM_POSTGRES_PW": "postgres"
+            },
+            "sourceLanguages": ["rust"]
         },
         {
             "type": "lldb",
@@ -59,7 +66,8 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": ["rust"]
         },
         {
             "type": "lldb",
@@ -76,8 +84,13 @@
                     "kind": "bin"
                 }
             },
-            "args": [],
-            "cwd": "${workspaceFolder}"
+            "args": [
+                "fluid",
+                "show",
+                "fr_id=1"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": ["rust"]
         },
         {
             "type": "lldb",
@@ -115,7 +128,8 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": ["rust"]
         }
     ]
 }

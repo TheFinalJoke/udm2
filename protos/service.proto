@@ -4,20 +4,80 @@ package service_types;
 import "fhs.proto";
 import "recipe.proto";
 
-message Config {
-  int64 port = 1;
+message GenericEmpty {
+
 }
 
-message AddReceipeRequest {
+enum EntityType {
+  ENTITY_TYPE_UNSPECIFIED = 0;
+  ENTITY_TYPE_RECIPE = 1;
+  ENTITY_TYPE_FLUID = 2;
+  ENTITY_TYPE_INSTRUCTION = 3;
+  ENTITY_TYPE_INGREDIENT = 4;
+}
+message Config {
+  int32 port = 1;
+}
+
+message GenericRemovalResponse {
+  
+}
+
+message ModifyFluidRegulatorRequest {
+  fhs_types.FluidRegulator fluid = 1;
+}
+
+message ModifyFluidRegulatorResponse {
+  int32 fr_id = 1;
+}
+message AddFluidRegulatorRequest {
+  fhs_types.FluidRegulator fluid = 1;
+}
+
+message RemoveFluidRegulatorRequest {
+  int32 fr_id = 1;
+}
+
+message AddFluidRegulatorResponse {
+  int32 fr_id = 1;
+}
+
+enum Operation {
+  OPERATION_UNSPECIFIED=0;
+  OPERATION_EQUAL=1;
+  OPERATION_NOT_EQUAL=2;
+  OPERATION_IN=3;
+  OPERATION_NOT_IN =4;
+  OPERATION_GREATER_THAN = 5;
+  OPERATION_GREATER_THAN_OR_EQUAL = 6;
+  OPERATION_LESS_THAN_OR_EQUAL = 7;
+  OPERATION_LESS_THAN = 8;
+  OPERATION_LIKE = 9;
+  OPERATION_NOT_LIKE = 10;
+  OPERATION_IS = 11;
+  OPERATION_NOT_IS = 12;
+}
+message FetchData {
+  string column = 1;
+  Operation operation = 2;
+  string values = 3;
+}
+message CollectFluidRegulatorsRequest {
+  repeated FetchData expressions = 1;
+}
+message CollectFluidRegulatorsResponse {
+  repeated fhs_types.FluidRegulator fluids = 1;
+}
+message AddRecipeRequest {
   recipe_types.Recipe recipe = 1;
 }
 
-message AddReceipeResponse {
-  int64 receipe_id = 1;
+message AddRecipeResponse {
+  int32 recipe_id = 1;
 }
 
 message GetRecipeRequest {
-  int64 recipe_id = 1;
+  int32 recipe_id = 1;
 }
 
 message GetRecipeResponse {
@@ -29,7 +89,47 @@ message ModifyRecipeRequest {
 }
 
 message ModifyRecipeResponse {
-  int64 recipe_id = 1;
+  int32 recipe_id = 1;
+}
+message RemoveRecipeRequest {
+  int32 recipe_id = 1;
+}
+message CollectRecipeRequest {
+  repeated FetchData expressions = 1;
+}
+message CollectRecipeResponse {
+  repeated recipe_types.Recipe recipes = 1;
+}
+message RecipeInstructionOrder {
+  int32 recipe_id = 1;
+  int32 instruction_id = 2;
+  int32 position = 3;
+  optional int32 id = 4;
+}
+
+message AddRecipeInstOrderRequest {
+  repeated RecipeInstructionOrder recipe_orders = 1;
+}
+
+message AddRecipeInstOrderResponse {
+  repeated int32 ids = 1;
+}
+
+message CollectRecipeInstOrderRequest {
+  repeated FetchData expressions = 1;
+}
+
+message CollectRecipeInstOrderResponse {
+  repeated RecipeInstructionOrder recipe_to_instructions = 1;
+}
+
+message RemoveRecipeInstOrderRequest {
+  int32 id = 1;
+}
+
+message UpdateRecipeInstOrderRequest {
+  repeated RecipeInstructionOrder recipe_orders = 1; 
+  int32 recipe_id = 2;
 }
 
 message AddInstructionRequest {
@@ -37,44 +137,44 @@ message AddInstructionRequest {
 }
 
 message AddInstructionResponse {
-  int64 instruction_id = 1;
+  int32 instruction_id = 1;
+}
+
+message CollectInstructionRequest {
+  repeated FetchData expressions = 1;
+}
+
+message CollectInstructionResponse {
+  repeated recipe_types.Instruction instructions = 1;
 }
 
 message GetInstructionRequest {
-  int64 instruction_id = 1;
+  int32 instruction_id = 1;
 }
 
 message GetInstructionResponse {
   recipe_types.Instruction instruction = 1;
 }
 
+message RemoveInstructionRequest {
+  int32 instruction_id = 1;
+}
 message ModifyInstructionRequest {
   recipe_types.Instruction instruction = 1;
 }
 
 message ModifyInstructionResponse {
-  int64 instruction_id = 1;
+  int32 instruction_id = 1;
 }
 
-message ModifyFluidRegulatorRequest {
-  int64 fu_id = 1;
-}
-
-message ModifyFluidRegulatorResponse {
-  fhs_types.FluidRegulator fluid = 1;
-}
-message AddFluidRegulatorRequest {
-  fhs_types.FluidRegulator fluid = 1;
-}
-message AddFluidRegulatorResponse {
-  int64 fu_id = 1;
-}
 message ModifyIngredientRequest {
   recipe_types.Ingredient ingredient = 1;
+  bool update_fr = 2;
+  bool update_instruction = 3;
 }
 
 message ModifyIngredientResponse {
-  int64 ingredient_id = 1;
+  int32 ingredient_id = 1;
 }
 
 message AddIngredientRequest {
@@ -82,21 +182,37 @@ message AddIngredientRequest {
 }
 
 message AddIngredientResponse {
-  int64 ingredient_id = 1;
+  int32 ingredient_id = 1;
 }
 
-message RemoveIngredientResponse {
+message CollectIngredientRequest {
+  repeated FetchData expressions = 1;
+}
 
+message CollectIngredientResponse {
+  repeated recipe_types.Ingredient ingredients = 1;
 }
 
 message RemoveIngredientRequest {
-  int64 ingredient_id = 1;
+  int32 ingredient_id = 1;
 }
 
 message GetIngredientRequest {
-  int64 ingredient_id = 1;
+  int32 ingredient_id = 1;
 }
 
 message GetIngredientResponse {
   recipe_types.Ingredient ingredient = 1;
+}
+enum ResetType {
+  RESET_TYPE_UNSPECIFIED = 0;
+  RESET_TYPE_ALL = 1;
+}
+message ResetRequest {
+  EntityType entity = 1;
+  ResetType reset_type = 2;
+}
+
+message ResetResponse {
+  
 }
