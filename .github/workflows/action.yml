@@ -44,6 +44,7 @@ jobs:
       uses: super-linter/super-linter@v6.6.0
       env:
         DEFAULT_BRANCH: main
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         VALIDATE_MARKDOWN: false
         VALIDATE_JSCPD: false
         VALIDATE_RUST_2018: false
