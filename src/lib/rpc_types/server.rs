@@ -64,6 +64,7 @@ use futures::stream;
 use futures::stream::StreamExt;
 use itertools::Itertools;
 use sea_query::PostgresQueryBuilder;
+use signal_hook_tokio::SignalsInfo;
 use std::collections::HashSet;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -76,6 +77,7 @@ use tracing;
 
 tonic::include_proto!("server");
 
+pub trait GrpcServerFactory {}
 pub struct DaemonServerContext {
     pub connection: Box<dyn DbConnection>,
     pub addr: SocketAddr,
@@ -810,7 +812,7 @@ impl SqlDaemonServer {
             addr,
         }
     }
-    pub async fn start_server(&self) -> UdmResult<()> {
+    async fn build_context(&self) -> DaemonServerContext {
         let db_type = Arc::new(DbType::load_db(Arc::clone(&self.configuration)));
         let mut connection = db_type.establish_connection().await;
         tracing::info!("Initializing database");
@@ -820,7 +822,10 @@ impl SqlDaemonServer {
             .map_err(|e| format!("Failed to create database schema {}", e));
         tracing::info!("Attempting to Udm Sql Daemon Service on {}", self.addr);
         let db_metadata = DbMetaData::new(Arc::clone(&db_type));
-        let daemon_server = DaemonServerContext::new(connection, self.addr, db_metadata);
+        DaemonServerContext::new(connection, self.addr, db_metadata)
+    }
+    pub async fn start_server(&self) -> UdmResult<()> {
+        let daemon_server = self.build_context().await;
         let udm_service = UdmServiceServer::new(daemon_server);
         tracing::info!("Running Udm Sql Daemon Service on {:?}", self.addr);
         let _ = Server::builder()
@@ -829,4 +834,18 @@ impl SqlDaemonServer {
             .await;
         Ok(())
     }
+    pub async fn start_server_with_signal(&self, mut signal: SignalsInfo) -> UdmResult<()> {
+        let daemon_server = self.build_context().await;
+        let udm_service = UdmServiceServer::new(daemon_server);
+        tracing::info!("Running Udm Sql Daemon Service on {:?}", self.addr);
+        let _ = Server::builder()
+            .add_service(udm_service)
+            .serve_with_shutdown(self.addr, async {
+                let _ = signal.next().await;
+                tracing::info!("Got a termination signal");
+            })
+            .await;
+        Ok(())
+    }
 }
+impl GrpcServerFactory for SqlDaemonServer {}
