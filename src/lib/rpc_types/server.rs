@@ -1,11 +1,13 @@
 use crate::db::executor::GenQueries;
 use crate::db::DbConnection;
 use crate::db::DbMetaData;
+use crate::db::DbType;
 use crate::db::FluidRegulationSchema;
 use crate::db::IngredientSchema;
 use crate::db::InstructionSchema;
 use crate::db::InstructionToRecipeSchema;
 use crate::db::RecipeSchema;
+use crate::parsers::settings::UdmConfigurer;
 use crate::rpc_types::fhs_types::FluidRegulator;
 use crate::rpc_types::recipe_types::Ingredient;
 use crate::rpc_types::recipe_types::Instruction;
@@ -62,16 +64,20 @@ use futures::stream;
 use futures::stream::StreamExt;
 use itertools::Itertools;
 use sea_query::PostgresQueryBuilder;
+use signal_hook_tokio::SignalsInfo;
 use std::collections::HashSet;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use tonic::transport::Server;
 use tonic::IntoRequest;
 use tonic::Request;
 use tonic::Response;
 use tonic::Status;
+use tracing;
 
 tonic::include_proto!("server");
 
+pub trait GrpcServerFactory {}
 pub struct DaemonServerContext {
     pub connection: Box<dyn DbConnection>,
     pub addr: SocketAddr,
@@ -795,12 +801,51 @@ impl DaemonServerContext {
         }
     }
 }
-
-pub async fn start_server(
-    service: UdmServiceServer<DaemonServerContext>,
+pub struct SqlDaemonServer {
+    configuration: Arc<UdmConfigurer>,
     addr: SocketAddr,
-) -> UdmResult<()> {
-    tracing::info!("Running Udm Service on {:?}", &addr);
-    let _ = Server::builder().add_service(service).serve(addr).await;
-    Ok(())
 }
+impl SqlDaemonServer {
+    pub fn new(config: Arc<UdmConfigurer>, addr: SocketAddr) -> Self {
+        Self {
+            configuration: config,
+            addr,
+        }
+    }
+    async fn build_context(&self) -> DaemonServerContext {
+        let db_type = Arc::new(DbType::load_db(Arc::clone(&self.configuration)));
+        let mut connection = db_type.establish_connection().await;
+        tracing::info!("Initializing database");
+        let _ = connection
+            .gen_schmea()
+            .await
+            .map_err(|e| format!("Failed to create database schema {}", e));
+        tracing::info!("Attempting to Udm Sql Daemon Service on {}", self.addr);
+        let db_metadata = DbMetaData::new(Arc::clone(&db_type));
+        DaemonServerContext::new(connection, self.addr, db_metadata)
+    }
+    pub async fn start_server(&self) -> UdmResult<()> {
+        let daemon_server = self.build_context().await;
+        let udm_service = UdmServiceServer::new(daemon_server);
+        tracing::info!("Running Udm Sql Daemon Service on {:?}", self.addr);
+        let _ = Server::builder()
+            .add_service(udm_service)
+            .serve(self.addr)
+            .await;
+        Ok(())
+    }
+    pub async fn start_server_with_signal(&self, mut signal: SignalsInfo) -> UdmResult<()> {
+        let daemon_server = self.build_context().await;
+        let udm_service = UdmServiceServer::new(daemon_server);
+        tracing::info!("Running Udm Sql Daemon Service on {:?}", self.addr);
+        let _ = Server::builder()
+            .add_service(udm_service)
+            .serve_with_shutdown(self.addr, async {
+                let _ = signal.next().await;
+                tracing::info!("Got a termination signal");
+            })
+            .await;
+        Ok(())
+    }
+}
+impl GrpcServerFactory for SqlDaemonServer {}
