@@ -613,7 +613,7 @@ impl UdmService for DaemonServerContext {
         tracing::debug!("Got Request {request:?}");
         let recipe_orders = request.into_inner().recipe_orders;
         let ids = stream::iter(recipe_orders)
-            .filter_map(|orders| async { InstructionToRecipeMetadata::try_from(orders).ok() })
+            .filter_map(|orders| async move { InstructionToRecipeMetadata::try_from(orders).ok() })
             .then(|order| async move {
                 let query = order.gen_insert_query().to_string(PostgresQueryBuilder);
                 match self.connection.insert(query).await {

@@ -180,7 +180,7 @@ impl GenQueries for Ingredient {
             self.is_active.into(),
             self.ingredient_type.into(),
         ];
-        if let Some(fr) = self.regulator.clone() {
+        if let Some(fr) = self.regulator {
             if let Some(id) = fr.fr_id {
                 columns.push(IngredientSchema::FrId);
                 values.push(id.into());
@@ -218,7 +218,7 @@ impl GenQueries for Ingredient {
                 self.ingredient_type.into(),
             ),
         ];
-        if let Some(fr) = self.regulator.clone() {
+        if let Some(fr) = self.regulator {
             if let Some(id) = fr.fr_id {
                 values.push((IngredientSchema::FrId, id.into()));
             }

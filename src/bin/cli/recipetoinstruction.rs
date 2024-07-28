@@ -97,7 +97,7 @@ impl MainCommandHandler for UpdateInstructionOrderArgs {
         let mut open_connection = options.connect().await?;
         let response = open_connection
             .update_recipe_instruction_order(UpdateRecipeInstOrderRequest {
-                recipe_orders: [recipe_order.clone()].to_vec(),
+                recipe_orders: [recipe_order].to_vec(),
                 recipe_id: recipe_order.recipe_id,
             })
             .await
