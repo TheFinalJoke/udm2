@@ -171,4 +171,28 @@ package protos {
     }
   }
 }
+  package gpio_server {
+    enum GpioState {
+      LOW = 1
+      HIGH = 2
+    }
+    enum GpioDirection {
+      OUT = 1
+      IN = 2
+    }
+    enum GpioValue {
+      String str_value = 1
+      int int_value = 2
+    }
+    struct SetPinRequest {
+
+    }
+    struct SetPinResponse {
+      + Bool successful
+      + GpioState mode
+    }
+    interface UdmGpioServer {
+      + SetPin(SetPinRequest) -> SetPinResponse
+    }
+}
 @enduml
