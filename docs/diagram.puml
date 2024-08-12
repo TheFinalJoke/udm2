@@ -170,8 +170,8 @@ package protos {
       + modify_instruction(request: ModifyInstructionRequest) -> ModifyInstructionResponse
     }
   }
-}
-  package gpio_server {
+
+  package drink_controller {
     enum GpioState {
       LOW = 1
       HIGH = 2
@@ -181,18 +181,59 @@ package protos {
       IN = 2
     }
     enum GpioValue {
-      String str_value = 1
-      int int_value = 2
+      + str_value: String
+      + int_value: int
     }
-    struct SetPinRequest {
+    struct GpioMetadata {
+      + state: GpioState
+      + direciton: GpioDirection
+      + value: GpioValue
+    }
+    enum CleanType {
+      SHORT = 0,
+      NORMAL = 1,
+      HEAVY = 2,
+      CUSTOM = 3,
+    }
+    struct PourDrinkRequest {
+      + ingredients: Iterator<Ingredient> 
+    }
+    struct PourDrinkResponse {
+      + successful: bool
+      + message: String
+      + metadata: GpioMetadata 
+    }
+    struct CleanCycleRequest {
+      + fr: FluidRegulator 
+      + water_fr: FluidRegulator
+      + clean_type: CleanType
+      + duration_sec: int
+    }
+    struct CleanCycleResponse {
+      - metadata: GpioMetadata 
+      + successful: bool 
+    }
+    struct GetPumpGpioInfoRequest {
+      + fr: FluidRegulator 
+    }
+    struct GetPumpGpioInfoResponse {
+      + metadata: GpioMetadata 
+    }
+    struct StartOverrideRequest {
+      + fr: FluidRegulator
+    }
+    struct StartOverrideResponse{
+      + message: String
+    }
+    struct GenericResponse {
 
     }
-    struct SetPinResponse {
-      + Bool successful
-      + GpioState mode
+    interface DrinkController {
+      + PourDrink(PourDrinkRequest) -> PourDrinkResponse
+      + CleanCycle(CleanCycleRequest) -> CleanCycleResponse
+      + GetPumpGpioInfo(GetPumpGpioInfoRequest) -> GetPumpGpioInfoResponse
+      + StopEmergency(FluidRegulator) -> GenericResponse
     }
-    interface UdmGpioServer {
-      + SetPin(SetPinRequest) -> SetPinResponse
-    }
+}
 }
 @enduml
