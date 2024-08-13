@@ -1,0 +1,44 @@
+syntax = "proto3";
+package drink_ctrl_types;
+
+import "fhs.proto";
+import "gpio.proto";
+import "recipe.proto";
+
+enum CleanType {
+  CLEAN_TYPE_UNSPECIFIED = 0;
+  CLEAN_TYPE_SHORT = 1;
+  CLEAN_TYPE_NORMAL = 2;
+  CLEAN_TYPE_HEAVY = 3;
+  CLEAN_TYPE_CUSTOM = 4;
+}
+
+message DispenseDrinkRequest {
+  repeated recipe_types.Ingredient ingredients = 1;
+}
+
+message DispenseDrinkResponse {
+  string message = 1;
+  gpio_types.GpioMetadata metadata = 2;
+}
+
+message CleanCycleRequest {
+  fhs_types.FluidRegulator fr = 1;
+  fhs_types.FluidRegulator water_fr = 2;
+  CleanType clean_type = 3;
+  int32 duration_sec = 4;
+}
+
+message CleanCycleResponse {
+  gpio_types.GpioMetadata metadata = 1;
+  bool successful = 2;
+}
+
+message GetPumpGpioInfoRequest {
+  fhs_types.FluidRegulator fr = 1;
+}
+
+message GetPumpGpioInfoResponse {
+  gpio_types.GpioMetadata metadata = 1;
+}
+

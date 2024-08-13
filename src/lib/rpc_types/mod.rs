@@ -4,7 +4,10 @@ use std::fmt::Display;
 
 use crate::UdmResult;
 use std::fmt::Debug;
+pub mod drink_controller;
+pub mod drink_ctrl_types;
 pub mod fhs_types;
+pub mod gpio_types;
 pub mod recipe_types;
 pub mod server;
 pub mod service_types;

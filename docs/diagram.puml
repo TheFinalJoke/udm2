@@ -199,7 +199,6 @@ package protos {
       + ingredients: Iterator<Ingredient> 
     }
     struct PourDrinkResponse {
-      + successful: bool
       + message: String
       + metadata: GpioMetadata 
     }
@@ -219,17 +218,11 @@ package protos {
     struct GetPumpGpioInfoResponse {
       + metadata: GpioMetadata 
     }
-    struct StartOverrideRequest {
-      + fr: FluidRegulator
-    }
-    struct StartOverrideResponse{
-      + message: String
-    }
     struct GenericResponse {
 
     }
     interface DrinkController {
-      + PourDrink(PourDrinkRequest) -> PourDrinkResponse
+      + DispenseDrink(PourDrinkRequest) -> PourDrinkResponse
       + CleanCycle(CleanCycleRequest) -> CleanCycleResponse
       + GetPumpGpioInfo(GetPumpGpioInfoRequest) -> GetPumpGpioInfoResponse
       + StopEmergency(FluidRegulator) -> GenericResponse

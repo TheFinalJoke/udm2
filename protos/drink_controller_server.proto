@@ -1,0 +1,20 @@
+syntax = "proto3";
+package drink_ctrl_server;
+
+import "drink_controller.proto";
+import "fhs.proto";
+import "service.proto";
+
+service DrinkControllerService {
+  rpc DispenseDrink(drink_ctrl_types.DispenseDrinkRequest)
+    returns (drink_ctrl_types.DispenseDrinkResponse);
+  
+  rpc CleanCycle(drink_ctrl_types.CleanCycleRequest)
+    returns (drink_ctrl_types.CleanCycleResponse);
+  
+  rpc GetPumpGpioInfo(drink_ctrl_types.GetPumpGpioInfoRequest)
+    returns (drink_ctrl_types.GetPumpGpioInfoResponse);
+
+  rpc StopEmergency(fhs_types.FluidRegulator)
+   returns (service_types.GenericEmpty);
+}
