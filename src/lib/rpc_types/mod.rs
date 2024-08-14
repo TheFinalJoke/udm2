@@ -15,7 +15,6 @@ use crate::rpc_types::fhs_types::FluidRegulator;
 use crate::rpc_types::recipe_types::Ingredient;
 use crate::rpc_types::recipe_types::Instruction;
 use crate::rpc_types::recipe_types::Recipe;
-
 pub trait FieldValidation {
     fn validate_all_fields(&self) -> UdmResult<()>;
     fn validate_without_id_fields(&self) -> UdmResult<()>;

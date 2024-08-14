@@ -4,6 +4,8 @@ use lib::logger::UdmLogger;
 use lib::logger::UdmLoggerType;
 use lib::parsers::settings::UdmConfigurer;
 use lib::parsers::validate_configurer;
+use lib::rpc_types::drink_controller::DrinkControllerServer;
+use lib::rpc_types::server::GrpcServerFactory;
 use lib::rpc_types::server::SqlDaemonServer;
 use lib::FileRetrieve;
 use lib::Retrieval;
@@ -17,13 +19,6 @@ use tracing::debug;
 use tracing::info;
 pub mod cli;
 
-async fn test() {
-    loop {
-        tracing::info!("Long living task 1 is running...");
-        tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
-    }
-}
-
 async fn gen_sql_daemon_server(cloned_configeror: Arc<UdmConfigurer>) {
     let sql_daemon_addr = SocketAddr::new(
         IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
@@ -35,6 +30,18 @@ async fn gen_sql_daemon_server(cloned_configeror: Arc<UdmConfigurer>) {
     );
     let sql_daemon_server = SqlDaemonServer::new(cloned_configeror, sql_daemon_addr);
     let _ = sql_daemon_server.start_server().await;
+}
+async fn gen_drink_controller_server(cloned_configeror: Arc<UdmConfigurer>) {
+    let drink_controller_conf = SocketAddr::new(
+        IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+        53049, // cloned_configeror.udm.port.try_into().unwrap(), Will uncomment when config is done
+    );
+    tracing::info!(
+        "Attempting to start Drink Controller on {}",
+        &drink_controller_conf
+    );
+    let drink_controler = DrinkControllerServer::new(cloned_configeror, drink_controller_conf);
+    let _ = drink_controler.start_server().await;
 }
 fn main() -> Result<(), Box<dyn Error>> {
     let cli_opts = cli::DaemonCli::parse();
@@ -72,13 +79,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Spawn Sql Daemon Server
     runtime.block_on(async move {
         let daemon_sql_task = tokio::spawn(gen_sql_daemon_server(cloned_configeror));
-        let test_task = tokio::spawn(test());
+        let drink_contrl_task = tokio::spawn(gen_drink_controller_server(Arc::clone(&configeror)));
         tokio::select! {
             _ = daemon_sql_task => {
                 tracing::info!("Finished sql daemon server");
             }
-            _ = test_task => {
-                tracing::info!("Testing Task finishing");
+            _ = drink_contrl_task => {
+                tracing::info!("Finished Drink Controller server");
             }
         }
         tracing::info!("Finished all tasks");

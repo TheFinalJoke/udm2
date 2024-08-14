@@ -17,4 +17,7 @@ service DrinkControllerService {
 
   rpc StopEmergency(fhs_types.FluidRegulator)
    returns (service_types.GenericEmpty);
+
+  rpc PollDrinkStream(drink_ctrl_types.PollDrinkStreamRequest)
+   returns (drink_ctrl_types.PollDrinkStreamResponse);
 }

@@ -20,6 +20,7 @@ message DispenseDrinkRequest {
 message DispenseDrinkResponse {
   string message = 1;
   gpio_types.GpioMetadata metadata = 2;
+  string id = 3;
 }
 
 message CleanCycleRequest {
@@ -32,6 +33,7 @@ message CleanCycleRequest {
 message CleanCycleResponse {
   gpio_types.GpioMetadata metadata = 1;
   bool successful = 2;
+  string id = 3;
 }
 
 message GetPumpGpioInfoRequest {
@@ -42,3 +44,13 @@ message GetPumpGpioInfoResponse {
   gpio_types.GpioMetadata metadata = 1;
 }
 
+message PollDrinkStreamRequest {
+  string id = 1; //  UUID of the request
+  gpio_types.GpioMetadata metadata = 2;
+}
+
+message PollDrinkStreamResponse {
+  string id = 1; //  UUID of the request
+  gpio_types.GpioMetadata metadata = 2;
+  bool is_finished = 3;
+}

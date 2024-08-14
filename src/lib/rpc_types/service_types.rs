@@ -11,6 +11,15 @@ use sea_query::Expr;
 use sea_query::SimpleExpr;
 use tonic::Response;
 use tracing::debug;
+
+use super::drink_ctrl_types::CleanCycleRequest;
+use super::drink_ctrl_types::CleanCycleResponse;
+use super::drink_ctrl_types::DispenseDrinkRequest;
+use super::drink_ctrl_types::DispenseDrinkResponse;
+use super::drink_ctrl_types::GetPumpGpioInfoRequest;
+use super::drink_ctrl_types::GetPumpGpioInfoResponse;
+use crate::rpc_types::drink_ctrl_types::PollDrinkStreamRequest;
+use crate::rpc_types::drink_ctrl_types::PollDrinkStreamResponse;
 tonic::include_proto!("service_types");
 
 pub trait ServiceRequest {}
@@ -49,6 +58,10 @@ impl ServiceRequest for UpdateRecipeInstOrderRequest {}
 impl ServiceRequest for AddRecipeInstOrderRequest {}
 impl ServiceRequest for CollectRecipeInstOrderRequest {}
 impl ServiceRequest for RemoveRecipeInstOrderRequest {}
+impl ServiceRequest for DispenseDrinkRequest {}
+impl ServiceRequest for CleanCycleRequest {}
+impl ServiceRequest for GetPumpGpioInfoRequest {}
+impl ServiceRequest for PollDrinkStreamRequest {}
 
 impl ServiceResponse for AddFluidRegulatorResponse {}
 impl ServiceResponse for ModifyFluidRegulatorResponse {}
@@ -70,6 +83,10 @@ impl ServiceResponse for CollectRecipeResponse {}
 impl ServiceResponse for AddRecipeInstOrderResponse {}
 impl ServiceResponse for CollectRecipeInstOrderResponse {}
 impl ServiceResponse for GenericEmpty {}
+impl ServiceResponse for DispenseDrinkResponse {}
+impl ServiceResponse for CleanCycleResponse {}
+impl ServiceResponse for GetPumpGpioInfoResponse {}
+impl ServiceResponse for PollDrinkStreamResponse {}
 
 impl FetchData {
     pub fn to_fetch_data_vec(user_input: &str) -> UdmResult<Vec<FetchData>> {
