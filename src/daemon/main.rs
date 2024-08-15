@@ -34,7 +34,7 @@ async fn gen_sql_daemon_server(cloned_configeror: Arc<UdmConfigurer>) {
 async fn gen_drink_controller_server(cloned_configeror: Arc<UdmConfigurer>) {
     let drink_controller_conf = SocketAddr::new(
         IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-        53049, // cloned_configeror.udm.port.try_into().unwrap(), Will uncomment when config is done
+        cloned_configeror.drink_controller.port.try_into().unwrap(), // cloned_configeror.udm.port.try_into().unwrap(), Will uncomment when config is done
     );
     tracing::info!(
         "Attempting to start Drink Controller on {}",

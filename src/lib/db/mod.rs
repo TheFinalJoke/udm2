@@ -81,13 +81,15 @@ pub enum DbType {
 }
 impl DbType {
     pub fn load_db(udm_configurer: Arc<settings::UdmConfigurer>) -> Self {
-        if let Some(postgres_configurer) = udm_configurer.daemon.postgres.clone() {
+        if let Some(postgres_configurer) = udm_configurer.postgres.clone() {
             tracing::info!("Using postgres as the Database");
             Self::Postgres(postgres_configurer)
-        } else if let Some(sqlite_configurer) = udm_configurer.daemon.sqlite.clone() {
-            tracing::info!("Using sqlite as the database");
-            Self::Sqlite(sqlite_configurer)
-        } else {
+        }
+        // else if let Some(sqlite_configurer) = udm_configurer.daemon.clone() {
+        //     tracing::info!("Using sqlite as the database");
+        //     Self::Sqlite(sqlite_configurer)
+        // }
+        else {
             panic!("Could not determine database to use and load")
         }
     }

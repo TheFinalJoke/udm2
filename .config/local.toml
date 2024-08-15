@@ -1,5 +1,5 @@
 [udm]
-# port = 19211
+port = 19211
 
 [daemon]
 log_file_path = "./udm_daemon.log"
@@ -7,6 +7,9 @@ log_file_path = "./udm_daemon.log"
 # [daemon.sqlite]
 # db_path = "/workspaces/udm/.config/test_udm.db"
 
-[daemon.postgres]
+[postgres]
 user="postgres"
 db_port=5432
+
+[drink_controller]
+port = 53049
