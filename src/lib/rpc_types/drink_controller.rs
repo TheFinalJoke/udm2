@@ -15,7 +15,7 @@ use crate::rpc_types::fhs_types::FluidRegulator;
 // use crate::rpc_types::gpio_types::GpioValue;
 use crate::db::DbConnection;
 use crate::db::DbMetaData;
-// use crate::db::DbType;
+use crate::db::DbType;
 use crate::parsers::settings::UdmConfigurer;
 use crate::rpc_types::drink_ctrl_types::PollDrinkStreamRequest;
 use crate::rpc_types::drink_ctrl_types::PollDrinkStreamResponse;
@@ -35,20 +35,17 @@ use tonic::Status;
 tonic::include_proto!("drink_ctrl_server");
 
 pub struct DrinkControllerContext {
-    // pub connection: Box<dyn DbConnection>,
+    pub connection: Box<dyn DbConnection>,
     pub addr: SocketAddr,
-    // pub metadata: DbMetaData,
+    pub metadata: DbMetaData,
 }
 impl DrinkControllerContext {
-    // pub fn new(connection: Box<dyn DbConnection>, addr: SocketAddr, metadata: DbMetaData) -> Self {
-    //     Self {
-    //         // connection,
-    //         addr,
-    //         // metadata,
-    //     }
-    // }
-    pub fn new(addr: SocketAddr) -> Self {
-        Self { addr }
+    pub fn new(connection: Box<dyn DbConnection>, addr: SocketAddr, metadata: DbMetaData) -> Self {
+        Self {
+            connection,
+            addr,
+            metadata,
+        }
     }
 }
 pub struct DrinkControllerServer {
@@ -64,17 +61,16 @@ impl GrpcServerFactory<DrinkControllerContext> for DrinkControllerServer {
         }
     }
     async fn build_context(&self) -> DrinkControllerContext {
-        // let db_type = Arc::new(DbType::load_db(Arc::clone(&self.configuration)));
-        // let mut connection = db_type.establish_connection().await;
-        tracing::info!("Initializing database");
-        // let _ = connection
-        //     .gen_schmea()
-        //     .await
-        //     .map_err(|e| format!("Failed to create database schema {}", e));
+        let db_type = Arc::new(DbType::load_db(Arc::clone(&self.configuration)));
+        let mut connection = db_type.establish_connection().await;
+        tracing::info!("Initializing database for the drink_controller");
+        let _ = connection
+            .gen_schmea_dc()
+            .await
+            .map_err(|e| format!("Failed to create database schema {}", e));
         tracing::info!("Attempting to Drink Controller Service on {}", self.addr);
-        // let db_metadata = DbMetaData::new(Arc::clone(&db_type));
-        // DrinkControllerContext::new(connection, self.addr, db_metadata)
-        DrinkControllerContext::new(self.addr)
+        let db_metadata = DbMetaData::new(Arc::clone(&db_type));
+        DrinkControllerContext::new(connection, self.addr, db_metadata)
     }
     async fn start_server(&self) -> UdmResult<()> {
         let drink_contrl_server = self.build_context().await;

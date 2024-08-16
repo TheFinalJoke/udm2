@@ -12,4 +12,4 @@ user="postgres"
 db_port=5432
 
 [drink_controller]
-port = 53049
+port = 11922

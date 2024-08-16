@@ -49,7 +49,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let config_file = FileRetrieve::new(cli_opts.config_file.clone()).retreieve::<Config>()?;
     let configeror = Arc::new(config_file.try_deserialize::<UdmConfigurer>()?);
     UdmLogger::init(
-        UdmLoggerType::DAEMON,
+        UdmLoggerType::Main,
         cli_opts.verbose,
         Some(configeror.daemon.log_file_path.as_str()),
         cli_opts.test,
@@ -70,6 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let runtime = RuntimeBuilder::new_multi_thread()
         .enable_all()
         .worker_threads(worker_threads)
+        .thread_name("Async Thread Pool")
         .build()?;
     tracing::debug!("Finished runtime {:?}", &runtime);
     let cloned_configeror = Arc::clone(&configeror);

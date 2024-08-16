@@ -4,6 +4,7 @@ use crate::db::FluidRegulationSchema;
 use crate::db::IngredientSchema;
 use crate::db::InstructionSchema;
 use crate::db::InstructionToRecipeSchema;
+use crate::db::PumpLogSchema;
 use crate::db::RecipeSchema;
 use crate::db::SqlTableTransactionsFactory;
 use crate::error::UdmError;
@@ -118,7 +119,7 @@ impl DatabaseTransactionsFactory for OpenPostgresConnection {
         let table_rows = self.conn.query(&stmt, &[]).await;
         Self::from_row_to_vec_string(table_rows?)
     }
-    async fn gen_schmea(&mut self) -> UdmResult<()> {
+    async fn gen_schmea_daemon(&mut self) -> UdmResult<()> {
         let tables = [
             FluidRegulationSchema::create_table(sea_query::PostgresQueryBuilder),
             InstructionSchema::create_table(sea_query::PostgresQueryBuilder),
@@ -134,9 +135,17 @@ impl DatabaseTransactionsFactory for OpenPostgresConnection {
         }
         Ok(())
     }
+    async fn gen_schmea_dc(&mut self) -> UdmResult<()> {
+        let tables = [PumpLogSchema::create_table(sea_query::PostgresQueryBuilder)].join("; ");
+        tracing::debug!("Ensure schmea is defined");
+        if let Err(query_err) = self.conn.batch_execute(tables.as_str()).await {
+            tracing::error!("{}", query_err);
+            std::process::exit(20)
+        }
+        Ok(())
+    }
     async fn truncate_schema(&self) -> UdmResult<()> {
-        let tables =
-            r#""InstructionToRecipe", "Ingredient", "Recipe", "Instruction", "FluidRegulation""#;
+        let tables = r#""InstructionToRecipe", "Ingredient", "Recipe", "Instruction", "FluidRegulation", "Pumplog""#;
         let query = format!("TRUNCATE TABLE {};", tables);
         tracing::info!("Running query: {}", &query);
         self.conn

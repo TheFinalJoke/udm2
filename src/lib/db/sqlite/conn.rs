@@ -57,8 +57,10 @@ impl DatabaseTransactionsFactory for OpenSqliteConnection {
         // tracing::trace!("Data: tables {:?}", tables);
         // Ok(tables)
     }
-
-    async fn gen_schmea(&mut self) -> UdmResult<()> {
+    async fn gen_schmea_daemon(&mut self) -> UdmResult<()> {
+        todo!()
+    }
+    async fn gen_schmea_dc(&mut self) -> UdmResult<()> {
         todo!()
         // let tables = [
         //     db::FluidRegulationSchema::create_table(SqliteQueryBuilder),

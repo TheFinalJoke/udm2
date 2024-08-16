@@ -826,9 +826,9 @@ impl GrpcServerFactory<DaemonServerContext> for SqlDaemonServer {
     async fn build_context(&self) -> DaemonServerContext {
         let db_type = Arc::new(DbType::load_db(Arc::clone(&self.configuration)));
         let mut connection = db_type.establish_connection().await;
-        tracing::info!("Initializing database");
+        tracing::info!("Initializing database for Daemon Server");
         let _ = connection
-            .gen_schmea()
+            .gen_schmea_daemon()
             .await
             .map_err(|e| format!("Failed to create database schema {}", e));
         tracing::info!("Attempting to Udm Sql Daemon Service on {}", self.addr);

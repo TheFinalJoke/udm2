@@ -160,8 +160,8 @@ impl Default for DrinkControllerConfigurer {
     }
 }
 impl UdmConfig for DrinkControllerConfigurer {}
-// Defaults Funcs
 
+// Defaults Funcs
 fn default_daemon_db_path() -> String {
     String::from("/etc/udm/udm.db")
 }

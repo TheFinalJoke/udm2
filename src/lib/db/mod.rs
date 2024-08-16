@@ -49,7 +49,8 @@ pub trait SqlTableTransactionsFactory: SqlTransactionsFactory {
 #[async_trait]
 pub trait DatabaseTransactionsFactory {
     async fn collect_all_current_tables(&mut self) -> UdmResult<Vec<String>>;
-    async fn gen_schmea(&mut self) -> UdmResult<()>;
+    async fn gen_schmea_daemon(&mut self) -> UdmResult<()>;
+    async fn gen_schmea_dc(&mut self) -> UdmResult<()>;
     async fn truncate_schema(&self) -> UdmResult<()>;
 }
 
@@ -185,6 +186,83 @@ impl TryFrom<String> for FluidRegulationSchema {
             "fr_id" => Ok(FluidRegulationSchema::FrId),
             "gpio_pin" => Ok(FluidRegulationSchema::GpioPin),
             "regulator_type" => Ok(FluidRegulationSchema::RegulatorType),
+            _ => Err(UdmError::ApiFailure("Failed to collect Column".to_string())),
+        }
+    }
+}
+// Defines the Schema and how we interact with the DB.
+// The structs generated in RPC Frameworks
+// We will Transform different types
+#[derive(Iden, Eq, PartialEq, Debug)]
+#[iden = "Pumplog"]
+pub enum PumpLogSchema {
+    Table,
+    ReqId,
+    ReqType,
+    FluidId,
+}
+impl SqlTransactionsFactory for PumpLogSchema {
+    fn column_to_str(&self) -> &'static str {
+        match self {
+            Self::Table => "Pumplog",
+            PumpLogSchema::ReqId => "ReqId",
+            PumpLogSchema::ReqType => "ReqType",
+            PumpLogSchema::FluidId => "FluidId",
+        }
+    }
+    fn from_str(value: &'static str) -> Option<Self> {
+        match value {
+            "Pumplog" => Some(PumpLogSchema::Table),
+            "ReqId" => Some(PumpLogSchema::ReqId),
+            "ReqType" => Some(PumpLogSchema::ReqType),
+            "FluidId" => Some(PumpLogSchema::FluidId),
+            _ => None,
+        }
+    }
+}
+
+impl Display for PumpLogSchema {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Valid Fields are:\n\
+            req_id: int\n\
+            req_type: int\n\
+            fluid_id: int\n\
+        ",
+        )
+    }
+}
+impl SqlTableTransactionsFactory for PumpLogSchema {
+    fn create_table(builder: impl sea_query::backend::SchemaBuilder) -> String {
+        Table::create()
+            .table(Self::Table)
+            .if_not_exists()
+            .col(ColumnDef::new(Self::FluidId).integer().not_null())
+            .col(ColumnDef::new(Self::ReqId).uuid().not_null().primary_key())
+            .col(ColumnDef::new(Self::ReqType).integer())
+            .build(builder)
+    }
+
+    fn alter_table(
+        builder: impl sea_query::backend::SchemaBuilder,
+        column_def: &mut ColumnDef,
+    ) -> String {
+        Table::alter()
+            .table(Self::Table)
+            .add_column(column_def)
+            .build(builder)
+    }
+}
+
+impl TryFrom<String> for PumpLogSchema {
+    type Error = UdmError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "Pumplog" => Ok(PumpLogSchema::Table),
+            "ReqId" => Ok(PumpLogSchema::ReqId),
+            "ReqType" => Ok(PumpLogSchema::ReqType),
+            "FluidId" => Ok(PumpLogSchema::FluidId),
             _ => Err(UdmError::ApiFailure("Failed to collect Column".to_string())),
         }
     }
