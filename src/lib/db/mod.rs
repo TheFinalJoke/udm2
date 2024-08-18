@@ -17,7 +17,7 @@ use std::sync::Arc;
 pub mod executor;
 pub mod postgres;
 pub mod sqlite;
-
+// SELECT * FROM information_schema.columns WHERE table_schema = 'public' and table_name = 'FluidRegulation';
 // Build "loadable" different db types with their relevant information
 
 // This represents the table operations itself.
@@ -52,6 +52,7 @@ pub trait DatabaseTransactionsFactory {
     async fn gen_schmea_daemon(&mut self) -> UdmResult<()>;
     async fn gen_schmea_dc(&mut self) -> UdmResult<()>;
     async fn truncate_schema(&self) -> UdmResult<()>;
+    async fn check_and_alter_dbs(&self, bin_type: BinaryType) -> UdmResult<()>;
 }
 
 #[async_trait]
@@ -62,7 +63,12 @@ pub trait DbConnection: DatabaseTransactionsFactory + Send + Sync {
     async fn update(&self, stmt: String) -> UdmResult<i32>;
     async fn select(&self, stmt: String) -> UdmResult<Vec<Row>>;
 }
-
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum BinaryType {
+    Bin,
+    Daemon,
+    DrinkCtrl,
+}
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct DbMetaData {
     pub dbtype: Arc<DbType>,
@@ -116,6 +122,7 @@ pub enum FluidRegulationSchema {
     FrId, // Primary Key
     GpioPin,
     RegulatorType,
+    PumpNum,
 }
 impl SqlTransactionsFactory for FluidRegulationSchema {
     fn column_to_str(&self) -> &'static str {
@@ -124,6 +131,7 @@ impl SqlTransactionsFactory for FluidRegulationSchema {
             Self::FrId => "fr_id",
             Self::GpioPin => "gpio_pin",
             Self::RegulatorType => "regulator_type",
+            Self::PumpNum => "pump_num",
         }
     }
     fn from_str(value: &'static str) -> Option<Self> {
@@ -132,6 +140,7 @@ impl SqlTransactionsFactory for FluidRegulationSchema {
             "fr_id" => Some(FluidRegulationSchema::FrId),
             "gpio_pin" => Some(FluidRegulationSchema::GpioPin),
             "regulator_type" => Some(FluidRegulationSchema::RegulatorType),
+            "pump_num" => Some(FluidRegulationSchema::PumpNum),
             _ => None,
         }
     }
@@ -144,7 +153,8 @@ impl Display for FluidRegulationSchema {
             "Valid Fields are:\n\
         fr_id: int\n\
         gpio_pin: int\n\
-        regulator_type: {:?}
+        regulator_type: {:?}\n\
+        pump_num: int
         ",
             RegulatorType::get_possible_values()
         )
@@ -164,6 +174,7 @@ impl SqlTableTransactionsFactory for FluidRegulationSchema {
             )
             .col(ColumnDef::new(Self::RegulatorType).integer().not_null())
             .col(ColumnDef::new(Self::GpioPin).integer())
+            .col(ColumnDef::new(Self::PumpNum).integer().null())
             .build(builder)
     }
 
@@ -186,6 +197,7 @@ impl TryFrom<String> for FluidRegulationSchema {
             "fr_id" => Ok(FluidRegulationSchema::FrId),
             "gpio_pin" => Ok(FluidRegulationSchema::GpioPin),
             "regulator_type" => Ok(FluidRegulationSchema::RegulatorType),
+            "pump_num" => Ok(FluidRegulationSchema::PumpNum),
             _ => Err(UdmError::ApiFailure("Failed to collect Column".to_string())),
         }
     }

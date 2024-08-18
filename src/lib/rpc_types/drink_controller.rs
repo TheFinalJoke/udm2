@@ -31,7 +31,7 @@ use tonic::transport::Server;
 use tonic::Request;
 use tonic::Response;
 use tonic::Status;
-// use tracing;
+use tracing;
 tonic::include_proto!("drink_ctrl_server");
 
 pub struct DrinkControllerContext {
@@ -101,8 +101,13 @@ impl GrpcServerFactory<DrinkControllerContext> for DrinkControllerServer {
 impl DrinkControllerService for DrinkControllerContext {
     async fn dispense_drink(
         &self,
-        _request: Request<DispenseDrinkRequest>,
+        request: Request<DispenseDrinkRequest>,
     ) -> Result<Response<DispenseDrinkResponse>, Status> {
+        tracing::debug!("Got request {request:?}");
+        // first check if pump is running
+        // collect all the pump info
+        // set the gpio pin
+        // return data
         todo!()
     }
     async fn clean_cycle(

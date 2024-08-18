@@ -1,3 +1,4 @@
+use crate::db::BinaryType;
 use crate::db::DatabaseTransactionsFactory;
 use crate::db::DbConnection;
 use crate::db::FluidRegulationSchema;
@@ -152,5 +153,106 @@ impl DatabaseTransactionsFactory for OpenPostgresConnection {
             .batch_execute(query.as_str())
             .await
             .map_err(|e| UdmError::ApiFailure(e.to_string()))
+    }
+    async fn check_and_alter_dbs(&self, _bin_type: BinaryType) -> UdmResult<()> {
+        todo!()
+        // I hope to finish this, but will take some serious redesign
+        // let tables = match bin_type {
+        //     BinaryType::Daemon => HashMap::from([
+        //         (
+        //             FluidRegulationSchema::Table.column_to_str(),
+        //             [
+        //                 FluidRegulationSchema::FrId.column_to_str(),
+        //                 FluidRegulationSchema::GpioPin.column_to_str(),
+        //                 FluidRegulationSchema::RegulatorType.column_to_str(),
+        //                 FluidRegulationSchema::PumpNum.column_to_str(),
+        //             ]
+        //             .to_vec(),
+        //         ),
+        //         (
+        //             InstructionToRecipeSchema::Table.column_to_str(),
+        //             [
+        //                 InstructionToRecipeSchema::Id.column_to_str(),
+        //                 InstructionToRecipeSchema::InstructionId.column_to_str(),
+        //                 InstructionToRecipeSchema::InstructionOrder.column_to_str(),
+        //                 InstructionToRecipeSchema::RecipeId.column_to_str(),
+        //             ]
+        //             .to_vec(),
+        //         ),
+        //         (
+        //             IngredientSchema::Table.column_to_str(),
+        //             [
+        //                 IngredientSchema::IngredientId.column_to_str(),
+        //                 IngredientSchema::Name.column_to_str(),
+        //                 IngredientSchema::Alcoholic.column_to_str(),
+        //                 IngredientSchema::Description.column_to_str(),
+        //                 IngredientSchema::IsActive.column_to_str(),
+        //                 IngredientSchema::FrId.column_to_str(),
+        //                 IngredientSchema::Amount.column_to_str(),
+        //                 IngredientSchema::IngredientType.column_to_str(),
+        //                 IngredientSchema::InstructionId.column_to_str(),
+        //             ]
+        //             .to_vec(),
+        //         ),
+        //         (
+        //             InstructionSchema::Table.column_to_str(),
+        //             [
+        //                 InstructionSchema::InstructionId.column_to_str(),
+        //                 InstructionSchema::InstructionDetail.column_to_str(),
+        //                 InstructionSchema::InstructionName.column_to_str(),
+        //             ]
+        //             .to_vec(),
+        //         ),
+        //         (
+        //             RecipeSchema::Table.column_to_str(),
+        //             [
+        //                 RecipeSchema::RecipeId.column_to_str(),
+        //                 RecipeSchema::Name.column_to_str(),
+        //                 RecipeSchema::UserInput.column_to_str(),
+        //                 RecipeSchema::DrinkSize.column_to_str(),
+        //                 RecipeSchema::Description.column_to_str(),
+        //             ]
+        //             .to_vec(),
+        //         ),
+        //     ]),
+        //     BinaryType::DrinkCtrl => HashMap::from([(
+        //         PumpLogSchema::Table.column_to_str(),
+        //         [
+        //             PumpLogSchema::ReqId.column_to_str(),
+        //             PumpLogSchema::ReqType.column_to_str(),
+        //             PumpLogSchema::FluidId.column_to_str(),
+        //         ]
+        //         .to_vec(),
+        //     )]),
+        //     BinaryType::Bin => {
+        //         unimplemented!()
+        //     }
+        // };
+        // for (table, columns) in tables.into_iter() {
+        //     let results = self
+        //         .conn
+        //         .query(BASE_COLLECT_FIELDS, &[&table])
+        //         .await
+        //         .map_err(|e| UdmError::ApiFailure(e.to_string()))?;
+        //     for row in results {
+        //         let column = &row.try_get(0)?;
+        //         if !columns.contains(column) {
+        //             match table {
+        //                 "InstructionToRecipe" => InstructionToRecipeSchema::alter_table(
+        //                     PostgresQueryBuilder,
+        //                     InstructionToRecipeSchema::from_str(column).unwrap(),
+        //                 ),
+        //                 "Ingredient" => Schema,
+        //                 "Recipe" => Schema,
+        //                 "Instruction" => Schema,
+        //                 "FluidRegulation" => Schema,
+        //                 "Pumplog" => Schema,
+        //             }
+        //         }
+        //     }
+        // const BASE_COLLECT_FIELDS: &str =
+        //    "SELECT * FROM information_schema.columns WHERE table_schema = 'public' and table_name = $1";
+        // }
+        // Ok(())
     }
 }

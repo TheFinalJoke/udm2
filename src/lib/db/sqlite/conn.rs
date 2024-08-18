@@ -1,4 +1,4 @@
-use crate::db::{DatabaseTransactionsFactory, DbConnection};
+use crate::db::{BinaryType, DatabaseTransactionsFactory, DbConnection};
 use crate::parsers::settings::{self, SqliteConfigurer};
 use crate::UdmResult;
 use async_trait::async_trait;
@@ -88,6 +88,9 @@ impl DatabaseTransactionsFactory for OpenSqliteConnection {
         // Ok(())
     }
     async fn truncate_schema(&self) -> UdmResult<()> {
+        todo!()
+    }
+    async fn check_and_alter_dbs(&self, _bin_type: BinaryType) -> UdmResult<()> {
         todo!()
     }
 }

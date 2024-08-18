@@ -129,7 +129,6 @@ impl UdmLogger {
                 let cli_layer = tracing_subscriber::fmt::layer()
                     .pretty()
                     .with_file(false)
-                    .compact()
                     .with_thread_names(true)
                     .with_filter(LevelFilter::from_level(convert_log_level_to_tracing_level(
                         verbose.log_level().unwrap(),

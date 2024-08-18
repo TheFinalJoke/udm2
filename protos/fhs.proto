@@ -11,4 +11,5 @@ message FluidRegulator {
   optional int32 fr_id = 1;
   optional int32 gpio_pin = 2;
   optional RegulatorType regulator_type = 3;
+  optional int32 pump_num = 4;
 }
