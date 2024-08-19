@@ -60,6 +60,7 @@ use crate::rpc_types::service_types::UpdateRecipeInstOrderRequest;
 use crate::rpc_types::Recipe;
 use crate::UdmResult;
 use anyhow::Result;
+use async_trait::async_trait;
 use futures::stream;
 use futures::stream::StreamExt;
 use itertools::Itertools;
@@ -77,7 +78,6 @@ use tracing;
 
 tonic::include_proto!("server");
 
-pub trait GrpcServerFactory {}
 pub struct DaemonServerContext {
     pub connection: Box<dyn DbConnection>,
     pub addr: SocketAddr,
@@ -93,6 +93,15 @@ impl DaemonServerContext {
         }
     }
 }
+
+#[async_trait]
+pub trait GrpcServerFactory<T> {
+    fn new(config: Arc<UdmConfigurer>, addr: SocketAddr) -> Self;
+    async fn build_context(&self) -> T;
+    async fn start_server(&self) -> UdmResult<()>;
+    async fn start_server_with_signal(&self, mut signal: SignalsInfo) -> UdmResult<()>;
+}
+
 #[tonic::async_trait]
 impl UdmService for DaemonServerContext {
     async fn add_fluid_regulator(
@@ -805,8 +814,10 @@ pub struct SqlDaemonServer {
     configuration: Arc<UdmConfigurer>,
     addr: SocketAddr,
 }
-impl SqlDaemonServer {
-    pub fn new(config: Arc<UdmConfigurer>, addr: SocketAddr) -> Self {
+
+#[async_trait]
+impl GrpcServerFactory<DaemonServerContext> for SqlDaemonServer {
+    fn new(config: Arc<UdmConfigurer>, addr: SocketAddr) -> Self {
         Self {
             configuration: config,
             addr,
@@ -815,16 +826,16 @@ impl SqlDaemonServer {
     async fn build_context(&self) -> DaemonServerContext {
         let db_type = Arc::new(DbType::load_db(Arc::clone(&self.configuration)));
         let mut connection = db_type.establish_connection().await;
-        tracing::info!("Initializing database");
+        tracing::info!("Initializing database for Daemon Server");
         let _ = connection
-            .gen_schmea()
+            .gen_schmea_daemon()
             .await
             .map_err(|e| format!("Failed to create database schema {}", e));
         tracing::info!("Attempting to Udm Sql Daemon Service on {}", self.addr);
         let db_metadata = DbMetaData::new(Arc::clone(&db_type));
         DaemonServerContext::new(connection, self.addr, db_metadata)
     }
-    pub async fn start_server(&self) -> UdmResult<()> {
+    async fn start_server(&self) -> UdmResult<()> {
         let daemon_server = self.build_context().await;
         let udm_service = UdmServiceServer::new(daemon_server);
         tracing::info!("Running Udm Sql Daemon Service on {:?}", self.addr);
@@ -834,7 +845,7 @@ impl SqlDaemonServer {
             .await;
         Ok(())
     }
-    pub async fn start_server_with_signal(&self, mut signal: SignalsInfo) -> UdmResult<()> {
+    async fn start_server_with_signal(&self, mut signal: SignalsInfo) -> UdmResult<()> {
         let daemon_server = self.build_context().await;
         let udm_service = UdmServiceServer::new(daemon_server);
         tracing::info!("Running Udm Sql Daemon Service on {:?}", self.addr);
@@ -848,4 +859,3 @@ impl SqlDaemonServer {
         Ok(())
     }
 }
-impl GrpcServerFactory for SqlDaemonServer {}

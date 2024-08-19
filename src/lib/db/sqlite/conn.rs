@@ -1,11 +1,11 @@
-use crate::db::{DatabaseTransactionsFactory, DbConnection};
+use crate::db::{BinaryType, DatabaseTransactionsFactory, DbConnection};
 use crate::parsers::settings::{self, SqliteConfigurer};
 use crate::UdmResult;
 use async_trait::async_trait;
 use std::path::Path;
 use tokio_postgres::Row;
 use tokio_rusqlite::Connection;
-
+use uuid::Uuid;
 pub struct OpenSqliteConnection {
     pub connection: Connection,
     pub settings: SqliteConfigurer,
@@ -24,6 +24,9 @@ impl DbConnection for OpenSqliteConnection {
         todo!()
     }
     async fn select(&self, _stmt: String) -> UdmResult<Vec<Row>> {
+        todo!()
+    }
+    async fn insert_with_uuid(&self, _stmt: String) -> UdmResult<Uuid> {
         todo!()
     }
 }
@@ -57,8 +60,10 @@ impl DatabaseTransactionsFactory for OpenSqliteConnection {
         // tracing::trace!("Data: tables {:?}", tables);
         // Ok(tables)
     }
-
-    async fn gen_schmea(&mut self) -> UdmResult<()> {
+    async fn gen_schmea_daemon(&mut self) -> UdmResult<()> {
+        todo!()
+    }
+    async fn gen_schmea_dc(&mut self) -> UdmResult<()> {
         todo!()
         // let tables = [
         //     db::FluidRegulationSchema::create_table(SqliteQueryBuilder),
@@ -86,6 +91,9 @@ impl DatabaseTransactionsFactory for OpenSqliteConnection {
         // Ok(())
     }
     async fn truncate_schema(&self) -> UdmResult<()> {
+        todo!()
+    }
+    async fn check_and_alter_dbs(&self, _bin_type: BinaryType) -> UdmResult<()> {
         todo!()
     }
 }

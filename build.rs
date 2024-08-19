@@ -5,6 +5,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "protos/fhs.proto",
         "protos/recipe.proto",
         "protos/service.proto",
+        "protos/gpio.proto",
+        "protos/drink_controller.proto",
     ];
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     // compile protocol buffer using protoc
@@ -19,6 +21,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build_server(true)
         .file_descriptor_set_path(out_dir.join("store_descriptor.bin"))
         .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
-        .compile(&["protos/server.proto"], &["protos/"])?;
+        .compile(
+            &[
+                "protos/server.proto",
+                "protos/drink_controller_server.proto",
+            ],
+            &["protos/"],
+        )?;
     Ok(())
 }

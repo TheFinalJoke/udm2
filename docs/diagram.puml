@@ -170,5 +170,63 @@ package protos {
       + modify_instruction(request: ModifyInstructionRequest) -> ModifyInstructionResponse
     }
   }
+
+  package drink_controller {
+    enum GpioState {
+      LOW = 1
+      HIGH = 2
+    }
+    enum GpioDirection {
+      OUT = 1
+      IN = 2
+    }
+    enum GpioValue {
+      + str_value: String
+      + int_value: int
+    }
+    struct GpioMetadata {
+      + state: GpioState
+      + direciton: GpioDirection
+      + value: GpioValue
+    }
+    enum CleanType {
+      SHORT = 0,
+      NORMAL = 1,
+      HEAVY = 2,
+      CUSTOM = 3,
+    }
+    struct PourDrinkRequest {
+      + ingredients: Iterator<Ingredient> 
+    }
+    struct PourDrinkResponse {
+      + message: String
+      + metadata: GpioMetadata 
+    }
+    struct CleanCycleRequest {
+      + fr: FluidRegulator 
+      + water_fr: FluidRegulator
+      + clean_type: CleanType
+      + duration_sec: int
+    }
+    struct CleanCycleResponse {
+      - metadata: GpioMetadata 
+      + successful: bool 
+    }
+    struct GetPumpGpioInfoRequest {
+      + fr: FluidRegulator 
+    }
+    struct GetPumpGpioInfoResponse {
+      + metadata: GpioMetadata 
+    }
+    struct GenericResponse {
+
+    }
+    interface DrinkController {
+      + DispenseDrink(PourDrinkRequest) -> PourDrinkResponse
+      + CleanCycle(CleanCycleRequest) -> CleanCycleResponse
+      + GetPumpGpioInfo(GetPumpGpioInfoRequest) -> GetPumpGpioInfoResponse
+      + StopEmergency(FluidRegulator) -> GenericResponse
+    }
+}
 }
 @enduml

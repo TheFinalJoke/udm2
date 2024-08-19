@@ -66,6 +66,12 @@ pub struct AddFluidArgs {
         help = "The GPIO pin the device is connected"
     )]
     gpio_pin: Option<i32>,
+    #[arg(
+        short = 'n',
+        long = "pump_num",
+        help = "The pump number associated to it"
+    )]
+    pump_num: Option<i32>,
 }
 impl UdmGrpcActions<FluidRegulator> for AddFluidArgs {
     fn sanatize_input(&self) -> UdmResult<FluidRegulator> {
@@ -89,6 +95,7 @@ impl UdmGrpcActions<FluidRegulator> for AddFluidArgs {
                     .into(),
             ),
             gpio_pin: self.gpio_pin,
+            pump_num: self.pump_num,
         })
     }
 }
@@ -127,6 +134,12 @@ pub struct UpdateFluidArgs {
         help = "The GPIO pin the device is connected"
     )]
     gpio_pin: Option<i32>,
+    #[arg(
+        short = 'n',
+        long = "pump_num",
+        help = "The pump number associated to it"
+    )]
+    pump_num: Option<i32>,
 }
 impl UdmGrpcActions<FluidRegulator> for UpdateFluidArgs {
     fn sanatize_input(&self) -> UdmResult<FluidRegulator> {
@@ -150,6 +163,7 @@ impl UdmGrpcActions<FluidRegulator> for UpdateFluidArgs {
                     .into(),
             ),
             gpio_pin: self.gpio_pin,
+            pump_num: self.pump_num,
         })
     }
 }
@@ -314,6 +328,7 @@ mod tests {
             fr_id: None,
             reg_type: Some("REGULATOR_TYPE_VALVE".to_string()),
             gpio_pin: Some(12),
+            pump_num: Some(0),
         };
         let fr = add_fluid.sanatize_input();
         let expected_result = FluidRegulator {
@@ -331,12 +346,14 @@ mod tests {
             fr_id: None,
             reg_type: None,
             gpio_pin: None,
+            pump_num: None,
         };
         let fr = add_fluid.sanatize_input();
         let expected_result = FluidRegulator {
             fr_id: Some(1),
             regulator_type: Some(RegulatorType::Valve.into()),
             gpio_pin: Some(12),
+            pump_num: Some(0),
         };
         assert_eq!(fr.unwrap(), expected_result)
     }
@@ -347,12 +364,14 @@ mod tests {
             fr_id: Some(1),
             reg_type: Some("REGULATOR_TYPE_VALVE".to_string()),
             gpio_pin: Some(12),
+            pump_num: Some(0),
         };
         let fr: UdmResult<FluidRegulator> = update_fluid.sanatize_input();
         let expected_result = FluidRegulator {
             fr_id: Some(1),
             regulator_type: Some(RegulatorType::Valve.into()),
             gpio_pin: Some(12),
+            pump_num: Some(0),
         };
         assert_eq!(fr.unwrap(), expected_result)
     }
@@ -364,12 +383,14 @@ mod tests {
             fr_id: None,
             reg_type: None,
             gpio_pin: None,
+            pump_num: None,
         };
         let fr: UdmResult<FluidRegulator> = update_fluid.sanatize_input();
         let expected_result = FluidRegulator {
             fr_id: Some(1),
             regulator_type: Some(RegulatorType::Valve.into()),
             gpio_pin: Some(12),
+            pump_num: Some(0),
         };
         assert_eq!(fr.unwrap(), expected_result)
     }
@@ -381,6 +402,7 @@ mod tests {
             fr_id: None,
             reg_type: None,
             gpio_pin: None,
+            pump_num: None,
         };
         let fr = add_fluid.sanatize_input();
         assert_eq!(
@@ -395,6 +417,7 @@ mod tests {
             fr_id: None,
             reg_type: None,
             gpio_pin: Some(12),
+            pump_num: None,
         };
         let fr = add_fluid.sanatize_input();
         assert!(fr.is_err())
@@ -407,6 +430,7 @@ mod tests {
             fr_id: None,
             reg_type: None,
             gpio_pin: None,
+            pump_num: Some(0),
         };
         let fr: UdmResult<FluidRegulator> = update_fluid.sanatize_input();
         assert_eq!(
@@ -421,6 +445,7 @@ mod tests {
             fr_id: None,
             reg_type: Some("REGULATOR_TYPE_VALVE".to_string()),
             gpio_pin: Some(12),
+            pump_num: Some(0),
         };
         let fr: UdmResult<FluidRegulator> = update_fluid.sanatize_input();
         assert!(fr.is_err(), "{}", true)

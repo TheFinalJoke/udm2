@@ -1,7 +1,3 @@
-use std::fmt::Display;
-use tokio_postgres::Row;
-use tonic::async_trait;
-
 use crate::error::UdmError;
 use crate::parsers::settings;
 use crate::rpc_types::fhs_types::RegulatorType;
@@ -13,11 +9,15 @@ use sea_query::value::Value;
 use sea_query::ColumnDef;
 use sea_query::Iden;
 use sea_query::Table;
+use std::fmt::Display;
 use std::sync::Arc;
+use tokio_postgres::Row;
+use tonic::async_trait;
+use uuid::Uuid;
 pub mod executor;
 pub mod postgres;
 pub mod sqlite;
-
+// SELECT * FROM information_schema.columns WHERE table_schema = 'public' and table_name = 'FluidRegulation';
 // Build "loadable" different db types with their relevant information
 
 // This represents the table operations itself.
@@ -49,19 +49,27 @@ pub trait SqlTableTransactionsFactory: SqlTransactionsFactory {
 #[async_trait]
 pub trait DatabaseTransactionsFactory {
     async fn collect_all_current_tables(&mut self) -> UdmResult<Vec<String>>;
-    async fn gen_schmea(&mut self) -> UdmResult<()>;
+    async fn gen_schmea_daemon(&mut self) -> UdmResult<()>;
+    async fn gen_schmea_dc(&mut self) -> UdmResult<()>;
     async fn truncate_schema(&self) -> UdmResult<()>;
+    async fn check_and_alter_dbs(&self, bin_type: BinaryType) -> UdmResult<()>;
 }
 
 #[async_trait]
-pub trait DbConnection: DatabaseTransactionsFactory + Send + Sync {
+pub trait DbConnection: DatabaseTransactionsFactory + Send + Sync + 'static {
     // Documentation for datatypes: https://docs.rs/postgres/0.14.0/postgres/types/trait.FromSql.html#types
     async fn insert(&self, stmt: String) -> UdmResult<i32>;
+    async fn insert_with_uuid(&self, stmt: String) -> UdmResult<Uuid>;
     async fn delete(&self, stmt: String) -> UdmResult<()>;
     async fn update(&self, stmt: String) -> UdmResult<i32>;
     async fn select(&self, stmt: String) -> UdmResult<Vec<Row>>;
 }
-
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum BinaryType {
+    Bin,
+    Daemon,
+    DrinkCtrl,
+}
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct DbMetaData {
     pub dbtype: Arc<DbType>,
@@ -81,13 +89,15 @@ pub enum DbType {
 }
 impl DbType {
     pub fn load_db(udm_configurer: Arc<settings::UdmConfigurer>) -> Self {
-        if let Some(postgres_configurer) = udm_configurer.daemon.postgres.clone() {
+        if let Some(postgres_configurer) = udm_configurer.postgres.clone() {
             tracing::info!("Using postgres as the Database");
             Self::Postgres(postgres_configurer)
-        } else if let Some(sqlite_configurer) = udm_configurer.daemon.sqlite.clone() {
-            tracing::info!("Using sqlite as the database");
-            Self::Sqlite(sqlite_configurer)
-        } else {
+        }
+        // else if let Some(sqlite_configurer) = udm_configurer.daemon.clone() {
+        //     tracing::info!("Using sqlite as the database");
+        //     Self::Sqlite(sqlite_configurer)
+        // }
+        else {
             panic!("Could not determine database to use and load")
         }
     }
@@ -113,6 +123,7 @@ pub enum FluidRegulationSchema {
     FrId, // Primary Key
     GpioPin,
     RegulatorType,
+    PumpNum,
 }
 impl SqlTransactionsFactory for FluidRegulationSchema {
     fn column_to_str(&self) -> &'static str {
@@ -121,6 +132,7 @@ impl SqlTransactionsFactory for FluidRegulationSchema {
             Self::FrId => "fr_id",
             Self::GpioPin => "gpio_pin",
             Self::RegulatorType => "regulator_type",
+            Self::PumpNum => "pump_num",
         }
     }
     fn from_str(value: &'static str) -> Option<Self> {
@@ -129,6 +141,7 @@ impl SqlTransactionsFactory for FluidRegulationSchema {
             "fr_id" => Some(FluidRegulationSchema::FrId),
             "gpio_pin" => Some(FluidRegulationSchema::GpioPin),
             "regulator_type" => Some(FluidRegulationSchema::RegulatorType),
+            "pump_num" => Some(FluidRegulationSchema::PumpNum),
             _ => None,
         }
     }
@@ -141,7 +154,8 @@ impl Display for FluidRegulationSchema {
             "Valid Fields are:\n\
         fr_id: int\n\
         gpio_pin: int\n\
-        regulator_type: {:?}
+        regulator_type: {:?}\n\
+        pump_num: int
         ",
             RegulatorType::get_possible_values()
         )
@@ -161,6 +175,7 @@ impl SqlTableTransactionsFactory for FluidRegulationSchema {
             )
             .col(ColumnDef::new(Self::RegulatorType).integer().not_null())
             .col(ColumnDef::new(Self::GpioPin).integer())
+            .col(ColumnDef::new(Self::PumpNum).integer().null())
             .build(builder)
     }
 
@@ -183,6 +198,84 @@ impl TryFrom<String> for FluidRegulationSchema {
             "fr_id" => Ok(FluidRegulationSchema::FrId),
             "gpio_pin" => Ok(FluidRegulationSchema::GpioPin),
             "regulator_type" => Ok(FluidRegulationSchema::RegulatorType),
+            "pump_num" => Ok(FluidRegulationSchema::PumpNum),
+            _ => Err(UdmError::ApiFailure("Failed to collect Column".to_string())),
+        }
+    }
+}
+// Defines the Schema and how we interact with the DB.
+// The structs generated in RPC Frameworks
+// We will Transform different types
+#[derive(Iden, Eq, PartialEq, Debug)]
+#[iden = "Pumplog"]
+pub enum PumpLogSchema {
+    Table,
+    ReqId,
+    ReqType,
+    FluidId,
+}
+impl SqlTransactionsFactory for PumpLogSchema {
+    fn column_to_str(&self) -> &'static str {
+        match self {
+            Self::Table => "Pumplog",
+            PumpLogSchema::ReqId => "ReqId",
+            PumpLogSchema::ReqType => "ReqType",
+            PumpLogSchema::FluidId => "FluidId",
+        }
+    }
+    fn from_str(value: &'static str) -> Option<Self> {
+        match value {
+            "Pumplog" => Some(PumpLogSchema::Table),
+            "ReqId" => Some(PumpLogSchema::ReqId),
+            "ReqType" => Some(PumpLogSchema::ReqType),
+            "FluidId" => Some(PumpLogSchema::FluidId),
+            _ => None,
+        }
+    }
+}
+
+impl Display for PumpLogSchema {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Valid Fields are:\n\
+            req_id: int\n\
+            req_type: int\n\
+            fluid_id: int\n\
+        ",
+        )
+    }
+}
+impl SqlTableTransactionsFactory for PumpLogSchema {
+    fn create_table(builder: impl sea_query::backend::SchemaBuilder) -> String {
+        Table::create()
+            .table(Self::Table)
+            .if_not_exists()
+            .col(ColumnDef::new(Self::FluidId).integer().not_null())
+            .col(ColumnDef::new(Self::ReqId).uuid().not_null().primary_key())
+            .col(ColumnDef::new(Self::ReqType).integer())
+            .build(builder)
+    }
+
+    fn alter_table(
+        builder: impl sea_query::backend::SchemaBuilder,
+        column_def: &mut ColumnDef,
+    ) -> String {
+        Table::alter()
+            .table(Self::Table)
+            .add_column(column_def)
+            .build(builder)
+    }
+}
+
+impl TryFrom<String> for PumpLogSchema {
+    type Error = UdmError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "Pumplog" => Ok(PumpLogSchema::Table),
+            "ReqId" => Ok(PumpLogSchema::ReqId),
+            "ReqType" => Ok(PumpLogSchema::ReqType),
+            "FluidId" => Ok(PumpLogSchema::FluidId),
             _ => Err(UdmError::ApiFailure("Failed to collect Column".to_string())),
         }
     }

@@ -129,6 +129,7 @@ impl TryFrom<Row> for Ingredient {
                         fr_id: f,
                         gpio_pin: None,
                         regulator_type: None,
+                        pump_num: None,
                     })
                 })
             },

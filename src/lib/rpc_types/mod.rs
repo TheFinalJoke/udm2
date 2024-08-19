@@ -4,7 +4,10 @@ use std::fmt::Display;
 
 use crate::UdmResult;
 use std::fmt::Debug;
+pub mod drink_controller;
+pub mod drink_ctrl_types;
 pub mod fhs_types;
+pub mod gpio_types;
 pub mod recipe_types;
 pub mod server;
 pub mod service_types;
@@ -12,7 +15,6 @@ use crate::rpc_types::fhs_types::FluidRegulator;
 use crate::rpc_types::recipe_types::Ingredient;
 use crate::rpc_types::recipe_types::Instruction;
 use crate::rpc_types::recipe_types::Recipe;
-
 pub trait FieldValidation {
     fn validate_all_fields(&self) -> UdmResult<()>;
     fn validate_without_id_fields(&self) -> UdmResult<()>;
