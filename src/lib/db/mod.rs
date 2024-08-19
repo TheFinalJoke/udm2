@@ -1,7 +1,3 @@
-use std::fmt::Display;
-use tokio_postgres::Row;
-use tonic::async_trait;
-
 use crate::error::UdmError;
 use crate::parsers::settings;
 use crate::rpc_types::fhs_types::RegulatorType;
@@ -13,7 +9,11 @@ use sea_query::value::Value;
 use sea_query::ColumnDef;
 use sea_query::Iden;
 use sea_query::Table;
+use std::fmt::Display;
 use std::sync::Arc;
+use tokio_postgres::Row;
+use tonic::async_trait;
+use uuid::Uuid;
 pub mod executor;
 pub mod postgres;
 pub mod sqlite;
@@ -56,9 +56,10 @@ pub trait DatabaseTransactionsFactory {
 }
 
 #[async_trait]
-pub trait DbConnection: DatabaseTransactionsFactory + Send + Sync {
+pub trait DbConnection: DatabaseTransactionsFactory + Send + Sync + 'static {
     // Documentation for datatypes: https://docs.rs/postgres/0.14.0/postgres/types/trait.FromSql.html#types
     async fn insert(&self, stmt: String) -> UdmResult<i32>;
+    async fn insert_with_uuid(&self, stmt: String) -> UdmResult<Uuid>;
     async fn delete(&self, stmt: String) -> UdmResult<()>;
     async fn update(&self, stmt: String) -> UdmResult<i32>;
     async fn select(&self, stmt: String) -> UdmResult<Vec<Row>>;

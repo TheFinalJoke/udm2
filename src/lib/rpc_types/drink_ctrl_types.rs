@@ -1,17 +1,21 @@
 use crate::db::executor::GenQueries;
+use crate::db::DbConnection;
 use crate::db::PumpLogSchema;
 use crate::rpc_types::MultipleValues;
+use crate::UdmResult;
 use anyhow::Error as AnyHowError;
 use async_trait::async_trait;
 use postgres::row::Row;
 use sea_query::DeleteStatement;
 use sea_query::Expr;
 use sea_query::InsertStatement;
+use sea_query::PostgresQueryBuilder;
 use sea_query::Query;
 use sea_query::UpdateStatement;
 use sea_query::Value;
 use std::fmt::Display;
 use uuid::Uuid;
+
 tonic::include_proto!("drink_ctrl_types");
 
 #[repr(i32)]
@@ -88,6 +92,11 @@ impl PumpLogger {
             req_type,
             fluid_id,
         }
+    }
+    pub(crate) async fn publish(&self, connection: Box<dyn DbConnection>) -> UdmResult<Uuid> {
+        let query = self.gen_insert_query().to_string(PostgresQueryBuilder);
+        let uuid = connection.insert_with_uuid(query).await?;
+        Ok(uuid)
     }
 }
 

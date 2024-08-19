@@ -19,6 +19,8 @@ use crate::db::DbType;
 use crate::parsers::settings::UdmConfigurer;
 use crate::rpc_types::drink_ctrl_types::PollDrinkStreamRequest;
 use crate::rpc_types::drink_ctrl_types::PollDrinkStreamResponse;
+use crate::rpc_types::drink_ctrl_types::PumpLogger;
+use crate::rpc_types::drink_ctrl_types::ReqType;
 use crate::rpc_types::server::GrpcServerFactory;
 use crate::rpc_types::service_types::GenericEmpty;
 use crate::UdmResult;
@@ -33,7 +35,6 @@ use tonic::Response;
 use tonic::Status;
 use tracing;
 tonic::include_proto!("drink_ctrl_server");
-
 pub struct DrinkControllerContext {
     pub connection: Box<dyn DbConnection>,
     pub addr: SocketAddr,
@@ -118,8 +119,13 @@ impl DrinkControllerService for DrinkControllerContext {
     }
     async fn get_pump_gpio_info(
         &self,
-        _request: Request<GetPumpGpioInfoRequest>,
+        request: Request<GetPumpGpioInfoRequest>,
     ) -> Result<Response<GetPumpGpioInfoResponse>, Status> {
+        tracing::debug!("Got request {request:?}");
+        let fr_id = request.get_ref().fr.map_or(None, |fr| Some(fr));
+        let logger_request =
+            PumpLogger::new(None, ReqType::GetPumpInfo, fr.map_or(None, |fr| fr.fr_id));
+        let uuid = logger_request.publish(&*self.connection).await;
         todo!()
     }
     async fn stop_emergency(

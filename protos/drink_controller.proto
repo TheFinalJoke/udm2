@@ -42,6 +42,7 @@ message GetPumpGpioInfoRequest {
 
 message GetPumpGpioInfoResponse {
   gpio_types.GpioMetadata metadata = 1;
+  string id = 2;
 }
 
 message PollDrinkStreamRequest {

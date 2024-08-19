@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use std::path::Path;
 use tokio_postgres::Row;
 use tokio_rusqlite::Connection;
-
+use uuid::Uuid;
 pub struct OpenSqliteConnection {
     pub connection: Connection,
     pub settings: SqliteConfigurer,
@@ -24,6 +24,9 @@ impl DbConnection for OpenSqliteConnection {
         todo!()
     }
     async fn select(&self, _stmt: String) -> UdmResult<Vec<Row>> {
+        todo!()
+    }
+    async fn insert_with_uuid(&self, _stmt: String) -> UdmResult<Uuid> {
         todo!()
     }
 }

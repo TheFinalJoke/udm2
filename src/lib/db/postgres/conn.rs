@@ -12,10 +12,10 @@ use crate::error::UdmError;
 use crate::parsers::settings;
 use crate::UdmResult;
 use async_trait::async_trait;
-use tokio_postgres::Row;
-
 use tokio_postgres::Config;
 use tokio_postgres::NoTls;
+use tokio_postgres::Row;
+use uuid::Uuid;
 
 pub struct OpenPostgresConnection {
     pub conn: tokio_postgres::Client,
@@ -33,6 +33,22 @@ impl DbConnection for OpenPostgresConnection {
             UdmError::ApiFailure(e.to_string())
         })?;
         let data: UdmResult<i32> = row
+            .try_get(0)
+            .map_err(|e| UdmError::ApiFailure(e.to_string()));
+        tracing::debug!("Result from inserting into db {:?}", &data);
+        data
+    }
+    async fn insert_with_uuid(&self, stmt: String) -> UdmResult<Uuid> {
+        tracing::info!("Received insert call query: {}", &stmt);
+        let prepared = self.conn.prepare(stmt.as_str()).await.map_err(|e| {
+            tracing::error!("{}", e.to_string());
+            UdmError::ApiFailure(e.to_string())
+        })?;
+        let row = self.conn.query_one(&prepared, &[]).await.map_err(|e| {
+            tracing::error!("{}", e.to_string());
+            UdmError::ApiFailure(e.to_string())
+        })?;
+        let data: UdmResult<Uuid> = row
             .try_get(0)
             .map_err(|e| UdmError::ApiFailure(e.to_string()));
         tracing::debug!("Result from inserting into db {:?}", &data);
