@@ -110,7 +110,7 @@ impl MainCommandHandler for AddRecipeArgs {
             tracing::error!("{}", e);
             std::process::exit(2)
         });
-        let mut open_connection = options.connect().await?;
+        let mut open_connection = options.connect_to_udm().await?;
         let response = open_connection
             .add_recipe(AddRecipeRequest {
                 recipe: Some(recipe),
@@ -154,7 +154,7 @@ impl MainCommandHandler for ShowRecipeArgs {
                     std::process::exit(1)
                 }
             };
-            let mut open_connection = options.connect().await?;
+            let mut open_connection = options.connect_to_udm().await?;
             let response = open_connection
                 .collect_recipe(CollectRecipeRequest {
                     expressions: fetched,
@@ -248,7 +248,7 @@ impl MainCommandHandler for RemoveRecipeArgs {
             let _ = ensure_removal();
         }
         let req = RemoveRecipeRequest { recipe_id: id };
-        let mut open_conn = options.connect().await?;
+        let mut open_conn = options.connect_to_udm().await?;
         let response = open_conn.remove_recipe(req).await;
         tracing::debug!("Got response {:?}", response);
         match response {
@@ -298,7 +298,7 @@ impl MainCommandHandler for UpdateRecipeArgs {
             tracing::error!("{}", e);
             std::process::exit(2)
         });
-        let mut open_connection = options.connect().await?;
+        let mut open_connection = options.connect_to_udm().await?;
         let response = open_connection
             .update_recipe(ModifyRecipeRequest {
                 recipe: Some(recipe),

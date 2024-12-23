@@ -1,5 +1,8 @@
 extern crate log;
 use clap::Parser;
+use cli::helpers::DrinkControllerServerCliOptions;
+use cli::helpers::ServerOptions;
+use cli::helpers::SqlUdmServerCliOptions;
 use cli::helpers::UdmServerOptions;
 use lib::logger::UdmLogger;
 use lib::logger::UdmLoggerType;
@@ -16,9 +19,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
     UdmLogger::init(UdmLoggerType::Bin, cli_opts.verbose, None, false)?;
     tracing::info!("Initialized logger");
     let server_options = UdmServerOptions {
-        host: cli_opts.udm_server.to_string(),
-        port: cli_opts.udm_port,
+        sql_udm_server: SqlUdmServerCliOptions::new(
+            cli_opts.udm_server.to_string(),
+            cli_opts.udm_port,
+        ),
+        drink_server: DrinkControllerServerCliOptions::new(
+            cli_opts.drink_server.to_string(),
+            cli_opts.drink_ctrl_port,
+        ),
     };
+    tracing::info!("Server cli options created: {:?}", &server_options);
     if let Some(commands) = &cli_opts.command {
         match commands {
             cli::UdmCommand::Recipe(user_input) => {

@@ -810,6 +810,7 @@ impl DaemonServerContext {
         }
     }
 }
+#[derive(Clone)]
 pub struct SqlDaemonServer {
     configuration: Arc<UdmConfigurer>,
     addr: SocketAddr,

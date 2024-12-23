@@ -93,7 +93,7 @@ impl PumpLogger {
             fluid_id,
         }
     }
-    pub(crate) async fn publish(&self, connection: Box<dyn DbConnection>) -> UdmResult<Uuid> {
+    pub(crate) async fn publish(&self, connection: &dyn DbConnection) -> UdmResult<Uuid> {
         let query = self.gen_insert_query().to_string(PostgresQueryBuilder);
         let uuid = connection.insert_with_uuid(query).await?;
         Ok(uuid)

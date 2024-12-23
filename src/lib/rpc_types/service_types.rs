@@ -1,25 +1,25 @@
-use crate::db::FluidRegulationSchema;
-use crate::db::IngredientSchema;
-use crate::db::InstructionSchema;
-use crate::db::InstructionToRecipeSchema;
-use crate::db::RecipeSchema;
-use crate::error::UdmError;
-use crate::UdmResult;
-use anyhow::Error as AnyError;
-use regex::Regex;
-use sea_query::Expr;
-use sea_query::SimpleExpr;
-use tonic::Response;
-use tracing::debug;
-
 use super::drink_ctrl_types::CleanCycleRequest;
 use super::drink_ctrl_types::CleanCycleResponse;
 use super::drink_ctrl_types::DispenseDrinkRequest;
 use super::drink_ctrl_types::DispenseDrinkResponse;
 use super::drink_ctrl_types::GetPumpGpioInfoRequest;
 use super::drink_ctrl_types::GetPumpGpioInfoResponse;
+use crate::db::FluidRegulationSchema;
+use crate::db::IngredientSchema;
+use crate::db::InstructionSchema;
+use crate::db::InstructionToRecipeSchema;
+use crate::db::RecipeSchema;
+use crate::error::UdmError;
 use crate::rpc_types::drink_ctrl_types::PollDrinkStreamRequest;
 use crate::rpc_types::drink_ctrl_types::PollDrinkStreamResponse;
+use crate::UdmResult;
+use anyhow::Error as AnyError;
+use regex::Regex;
+use sea_query::Expr;
+use sea_query::SimpleExpr;
+use std::fmt::Display;
+use tonic::Response;
+use tracing::debug;
 tonic::include_proto!("service_types");
 
 pub trait ServiceRequest {}
@@ -260,5 +260,29 @@ impl TryFrom<InstructionToRecipeMetadata> for RecipeInstructionOrder {
             instruction_id: value.instruction_id,
             position: value.instruction_order,
         })
+    }
+}
+
+// Displays for Responses
+impl Display for GetPumpGpioInfoResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.metadata.is_none() {
+            let data = "ID: Unknown, \n\
+    State: Unknown \n\
+    Direction: Unknown\n\
+    Value: Unknown"
+                .to_string();
+            write!(f, "{}", data)
+        } else {
+            let metadata = self.metadata.as_ref().unwrap();
+            let data = format!(
+                "ID: {}, \n\
+    State: {} \n\
+    Direction {}\n\
+    Value: {:?}",
+                self.id, metadata.state, metadata.direction, metadata.value
+            );
+            write!(f, "{}", data)
+        }
     }
 }

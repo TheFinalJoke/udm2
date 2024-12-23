@@ -106,7 +106,7 @@ impl MainCommandHandler for AddFluidArgs {
             tracing::error!("{}", e);
             std::process::exit(2)
         });
-        let mut open_connection = options.connect().await?;
+        let mut open_connection = options.connect_to_udm().await?;
         let response = open_connection
             .add_fluid_regulator(AddFluidRegulatorRequest { fluid: Some(fr) })
             .await
@@ -174,7 +174,7 @@ impl MainCommandHandler for UpdateFluidArgs {
             tracing::error!("{}", e);
             std::process::exit(2)
         });
-        let mut open_connection = options.connect().await?;
+        let mut open_connection = options.connect_to_udm().await?;
         let response = open_connection
             .update_fluid_regulator(ModifyFluidRegulatorRequest { fluid: Some(fr) })
             .await
@@ -206,7 +206,7 @@ impl MainCommandHandler for ShowFluidArgs {
             Ok(())
         } else {
             let fetched = self.sanatize_input()?;
-            let mut open_connection = options.connect().await?;
+            let mut open_connection = options.connect_to_udm().await?;
             let response = open_connection
                 .collect_fluid_regulators(CollectFluidRegulatorsRequest {
                     expressions: fetched,
@@ -300,7 +300,7 @@ impl MainCommandHandler for RemoveFluidArgs {
             let _ = ensure_removal();
         }
         let req = RemoveFluidRegulatorRequest { fr_id: id };
-        let mut open_conn = options.connect().await?;
+        let mut open_conn = options.connect_to_udm().await?;
         let response = open_conn.remove_fluid_regulator(req).await;
         tracing::debug!("Got response {:?}", response);
         match response {

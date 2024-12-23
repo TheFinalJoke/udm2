@@ -19,6 +19,8 @@ pub enum UdmError {
     ParsingError(#[from] RegexError),
     #[error("Error Setting Up Logger: {0}")]
     LoggerError(String),
+    #[error("Error collecting GpioPin: {0}")]
+    GpioError(String),
 }
 
 impl From<String> for UdmError {

@@ -89,7 +89,7 @@ impl MainCommandHandler for AddInstructionArgs {
             tracing::error!("{}", e);
             std::process::exit(2)
         });
-        let mut open_connection = options.connect().await?;
+        let mut open_connection = options.connect_to_udm().await?;
         let response = open_connection
             .add_instruction(AddInstructionRequest {
                 instruction: Some(instruction),
@@ -129,7 +129,7 @@ impl MainCommandHandler for ShowInstructionArgs {
                     std::process::exit(1)
                 }
             };
-            let mut open_connection = options.connect().await?;
+            let mut open_connection = options.connect_to_udm().await?;
             let response = open_connection
                 .collect_instructions(CollectInstructionRequest {
                     expressions: fetched,
@@ -217,7 +217,7 @@ impl MainCommandHandler for RemoveInstructionArgs {
             let _ = ensure_removal();
         }
         let req = RemoveInstructionRequest { instruction_id: id };
-        let mut open_conn = options.connect().await?;
+        let mut open_conn = options.connect_to_udm().await?;
         let response = open_conn.remove_instruction(req).await;
         tracing::debug!("Got response {:?}", response);
         match response {
@@ -288,7 +288,7 @@ impl MainCommandHandler for UpdateInstructionArgs {
             tracing::error!("{}", e);
             std::process::exit(2)
         });
-        let mut open_connection = options.connect().await?;
+        let mut open_connection = options.connect_to_udm().await?;
         let response = open_connection
             .update_instruction(ModifyInstructionRequest {
                 instruction: Some(instruction),

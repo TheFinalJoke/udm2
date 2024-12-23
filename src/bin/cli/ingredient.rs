@@ -107,7 +107,7 @@ impl MainCommandHandler for AddIngredientArgs {
             tracing::error!("{}", e);
             std::process::exit(2)
         });
-        let mut open_connection = options.connect().await?;
+        let mut open_connection = options.connect_to_udm().await?;
         let response = open_connection
             .add_ingredient(AddIngredientRequest {
                 ingredient: Some(ingredient),
@@ -247,7 +247,7 @@ impl MainCommandHandler for UpdateIngredientArgs {
             tracing::error!("{}", e);
             std::process::exit(2)
         });
-        let mut open_connection = options.connect().await?;
+        let mut open_connection = options.connect_to_udm().await?;
         let response = open_connection
             .update_ingredient(ModifyIngredientRequest {
                 ingredient: Some(ingredient),
@@ -336,7 +336,7 @@ impl MainCommandHandler for ShowIngredientArgs {
             Ok(())
         } else {
             let fetched = self.sanatize_input()?;
-            let mut open_connection = options.connect().await?;
+            let mut open_connection = options.connect_to_udm().await?;
             let response = open_connection
                 .collect_ingredients(CollectIngredientRequest {
                     expressions: fetched,
@@ -445,7 +445,7 @@ impl MainCommandHandler for RemoveIngredientArgs {
         let req = RemoveIngredientRequest {
             ingredient_id: self.ingredient_id,
         };
-        let mut open_conn = options.connect().await?;
+        let mut open_conn = options.connect_to_udm().await?;
         let response = open_conn.remove_ingredient(req).await;
         tracing::debug!("Got response {:?}", response);
         match response {

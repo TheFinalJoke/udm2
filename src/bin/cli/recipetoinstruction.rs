@@ -94,7 +94,7 @@ impl MainCommandHandler for UpdateInstructionOrderArgs {
             tracing::error!("{}", e);
             std::process::exit(2)
         });
-        let mut open_connection = options.connect().await?;
+        let mut open_connection = options.connect_to_udm().await?;
         let response = open_connection
             .update_recipe_instruction_order(UpdateRecipeInstOrderRequest {
                 recipe_orders: [recipe_order].to_vec(),
@@ -194,7 +194,7 @@ impl MainCommandHandler for AddInstructionOrderArgs {
             tracing::error!("{}", e);
             std::process::exit(2)
         });
-        let mut open_connection = options.connect().await?;
+        let mut open_connection = options.connect_to_udm().await?;
         let response = open_connection
             .add_recipe_instruction_order(AddRecipeInstOrderRequest {
                 recipe_orders: [instruct_recipe].to_vec(),
@@ -277,7 +277,7 @@ impl MainCommandHandler for ShowInstructionOrderArgs {
             Ok(())
         } else {
             let fetched = self.sanatize_input()?;
-            let mut open_connection = options.connect().await?;
+            let mut open_connection = options.connect_to_udm().await?;
             let response = open_connection
                 .collect_recipe_instruction_order(CollectRecipeInstOrderRequest {
                     expressions: fetched,
@@ -365,7 +365,7 @@ impl MainCommandHandler for RemoveInstructionOrderArgs {
             let _ = ensure_removal();
         }
         let req = RemoveRecipeInstOrderRequest { id: self.id };
-        let mut open_conn = options.connect().await?;
+        let mut open_conn = options.connect_to_udm().await?;
         let response = open_conn.remove_recipe_instruction_order(req).await;
         tracing::debug!("Got response {:?}", response);
         match response {

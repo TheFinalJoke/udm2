@@ -1,6 +1,7 @@
 use clap::Args;
 use clap::Parser;
 use clap::Subcommand;
+pub mod drink_server;
 pub mod fluid;
 pub mod helpers;
 pub mod ingredient;
@@ -37,6 +38,20 @@ pub struct UdmCli {
         default_value = "19211"
     )]
     pub udm_port: i64,
+    #[arg(
+        short = 'd',
+        long,
+        help = "Ip for drink controller server",
+        default_value = "127.0.0.1"
+    )]
+    pub drink_server: std::net::Ipv4Addr,
+    #[arg(
+        short = 'c',
+        long,
+        help = "Connect to drink controller port",
+        default_value = "53049"
+    )]
+    pub drink_ctrl_port: i64,
     #[command(subcommand)]
     pub command: Option<UdmCommand>,
 }
@@ -46,6 +61,8 @@ impl Default for UdmCli {
             verbose: Verbosity::default(),
             udm_server: std::net::Ipv4Addr::new(127, 0, 0, 1),
             udm_port: 19211,
+            drink_server: std::net::Ipv4Addr::new(127, 0, 0, 1),
+            drink_ctrl_port: 53049,
             command: None,
         }
     }
@@ -57,6 +74,8 @@ impl UdmCli {
             verbose: verbosity,
             udm_server: std::net::Ipv4Addr::new(127, 0, 0, 1),
             udm_port: 19211,
+            drink_server: std::net::Ipv4Addr::new(127, 0, 0, 1),
+            drink_ctrl_port: 53049,
             command: None,
         }
     }
@@ -97,7 +116,7 @@ impl MainCommandHandler for ResetCommands {
                 }
             },
         };
-        let mut connection = options.connect().await?;
+        let mut connection = options.connect_to_udm().await?;
         let reset = connection
             .reset_db(req)
             .await
