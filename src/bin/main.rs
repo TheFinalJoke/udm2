@@ -49,6 +49,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
             cli::UdmCommand::Reset(user_input) => {
                 let _ = user_input.handle_command(server_options).await;
             }
+            cli::UdmCommand::Drink(user_input) => {
+                let _ = user_input.handle_command(server_options).await;
+            }
         }
     }
     Ok(())

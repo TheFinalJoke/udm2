@@ -69,6 +69,7 @@ use signal_hook_tokio::SignalsInfo;
 use std::collections::HashSet;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use tokio::sync::Notify;
 use tonic::transport::Server;
 use tonic::IntoRequest;
 use tonic::Request;
@@ -96,7 +97,6 @@ impl DaemonServerContext {
 
 #[async_trait]
 pub trait GrpcServerFactory<T> {
-    fn new(config: Arc<UdmConfigurer>, addr: SocketAddr) -> Self;
     async fn build_context(&self) -> T;
     async fn start_server(&self) -> UdmResult<()>;
     async fn start_server_with_signal(&self, mut signal: SignalsInfo) -> UdmResult<()>;
@@ -814,16 +814,25 @@ impl DaemonServerContext {
 pub struct SqlDaemonServer {
     configuration: Arc<UdmConfigurer>,
     addr: SocketAddr,
+    notify: Option<Arc<Notify>>,
 }
-
-#[async_trait]
-impl GrpcServerFactory<DaemonServerContext> for SqlDaemonServer {
-    fn new(config: Arc<UdmConfigurer>, addr: SocketAddr) -> Self {
+impl SqlDaemonServer {
+    pub fn new(config: Arc<UdmConfigurer>, addr: SocketAddr, notify: Option<Arc<Notify>>) -> Self {
         Self {
             configuration: config,
             addr,
+            notify,
         }
     }
+    async fn send_notify(&self) {
+        if self.notify.is_some() {
+            tracing::info!("Sending notification that server is ready");
+            self.notify.clone().unwrap().notify_one();
+        }
+    }
+}
+#[async_trait]
+impl GrpcServerFactory<DaemonServerContext> for SqlDaemonServer {
     async fn build_context(&self) -> DaemonServerContext {
         let db_type = Arc::new(DbType::load_db(Arc::clone(&self.configuration)));
         let mut connection = db_type.establish_connection().await;
@@ -840,6 +849,7 @@ impl GrpcServerFactory<DaemonServerContext> for SqlDaemonServer {
         let daemon_server = self.build_context().await;
         let udm_service = UdmServiceServer::new(daemon_server);
         tracing::info!("Running Udm Sql Daemon Service on {:?}", self.addr);
+        self.send_notify().await;
         let _ = Server::builder()
             .add_service(udm_service)
             .serve(self.addr)
@@ -850,6 +860,7 @@ impl GrpcServerFactory<DaemonServerContext> for SqlDaemonServer {
         let daemon_server = self.build_context().await;
         let udm_service = UdmServiceServer::new(daemon_server);
         tracing::info!("Running Udm Sql Daemon Service on {:?}", self.addr);
+        self.send_notify().await;
         let _ = Server::builder()
             .add_service(udm_service)
             .serve_with_shutdown(self.addr, async {

@@ -72,14 +72,16 @@ pub struct DrinkControllerServer {
     configuration: Arc<UdmConfigurer>,
     addr: SocketAddr,
 }
-#[async_trait::async_trait]
-impl GrpcServerFactory<DrinkControllerContext> for DrinkControllerServer {
-    fn new(config: Arc<UdmConfigurer>, addr: SocketAddr) -> Self {
+impl DrinkControllerServer {
+    pub fn new(config: Arc<UdmConfigurer>, addr: SocketAddr) -> Self {
         Self {
             configuration: config,
             addr,
         }
     }
+}
+#[async_trait::async_trait]
+impl GrpcServerFactory<DrinkControllerContext> for DrinkControllerServer {
     async fn build_context(&self) -> DrinkControllerContext {
         let db_type = Arc::new(DbType::load_db(Arc::clone(&self.configuration)));
         let mut connection = db_type.establish_connection().await;

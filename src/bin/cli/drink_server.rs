@@ -1,11 +1,11 @@
 use crate::cli::helpers::MainCommandHandler;
+use async_trait::async_trait;
 use clap::Args;
 use clap::Subcommand;
 use lib::error::UdmError;
 use lib::rpc_types::drink_ctrl_types::GetPumpGpioInfoRequest;
 use lib::rpc_types::fhs_types::FluidRegulator;
 use lib::UdmResult;
-use tonic::async_trait;
 
 use super::helpers::UdmServerOptions;
 
@@ -15,10 +15,20 @@ pub enum DrinkServer {
     CollectPump(CollectPumpInfoArgs),
 }
 
+#[async_trait]
+impl MainCommandHandler for DrinkServer {
+    async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()> {
+        match self {
+            DrinkServer::CollectPump(user_input) => user_input.handle_command(options).await,
+        }
+    }
+}
 // Args
 #[derive(Args, Debug)]
 pub struct CollectPumpInfoArgs {
+    #[arg(short = 'p', long, help = "Pump Number to Collect", exclusive = true)]
     pub pump_number: Option<i32>,
+    #[arg(short = 'g', long, help = "Gpio Pin to Collect", exclusive = true)]
     pub gpio_pin: Option<i32>,
 }
 

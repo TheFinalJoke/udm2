@@ -95,6 +95,8 @@ pub enum UdmCommand {
     RecipeToInstruction(recipetoinstruction::RecipeToInstructionCommands),
     #[command(about = "Reset all tables in the database")]
     Reset(ResetCommands),
+    #[command(about = "To interact with drink ctrl server", subcommand)]
+    Drink(drink_server::DrinkServer),
 }
 
 #[derive(Args, Debug)]

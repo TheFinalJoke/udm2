@@ -42,6 +42,7 @@ impl GenerateDrinkControllerServer {
             &drink_controller_conf
         );
         self.notify.notified().await;
+        tracing::info!("Recieved Notification to start Drink Server, because SQL Server is up");
         let drink_controller =
             DrinkControllerServer::new(self.configerator.clone(), drink_controller_conf);
         let _ = drink_controller.start_server().await;
@@ -69,8 +70,11 @@ impl GenerateSqlDaemonServer {
             "Attempting to start Sql Daemon Server on {}",
             &sql_daemon_addr
         );
-        let sql_daemon_server = SqlDaemonServer::new(self.configerator.clone(), sql_daemon_addr);
-        self.notify.notify_one();
+        let sql_daemon_server = SqlDaemonServer::new(
+            self.configerator.clone(),
+            sql_daemon_addr,
+            Some(self.notify.clone()),
+        );
         let _ = sql_daemon_server.start_server().await;
     }
 }
