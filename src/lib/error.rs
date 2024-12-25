@@ -1,6 +1,7 @@
 use regex::Error as RegexError;
 use rusqlite::Error as rusqlite_error;
 use std::error::Error as GenericError;
+use std::fmt::Display;
 use thiserror::Error;
 use tokio_postgres::Error as PostgresError;
 #[derive(Error, Debug)]
@@ -34,4 +35,13 @@ impl UdmError {
         tracing::error!("{}", format!("{}", msg));
         std::process::exit(exit_code)
     }
+    pub fn log(&self) {
+        tracing::error!("{}", self);
+    }
+}
+
+pub fn trace_log_error<T: Display>(error: T) -> T {
+    let temp_error = error;
+    tracing::error!("{}", temp_error);
+    temp_error
 }

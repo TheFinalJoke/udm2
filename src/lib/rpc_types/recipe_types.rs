@@ -8,6 +8,7 @@ use crate::db::IngredientSchema;
 use crate::db::InstructionSchema;
 use crate::db::InstructionToRecipeSchema;
 use crate::db::RecipeSchema;
+use crate::error::trace_log_error;
 use crate::error::UdmError;
 use crate::rpc_types::service_types::InstructionToRecipeMetadata;
 use crate::rpc_types::FieldValidation;
@@ -26,18 +27,18 @@ use sea_query::UpdateStatement;
 impl FieldValidation for Instruction {
     fn validate_all_fields(&self) -> UdmResult<()> {
         if self.id == 0 || self.instruction_name.is_empty() || self.instruction_detail.is_empty() {
-            return Err(UdmError::InvalidInput(String::from(
+            return Err(trace_log_error(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",
-            )));
+            ))));
         }
         Ok(())
     }
 
     fn validate_without_id_fields(&self) -> UdmResult<()> {
         if self.instruction_name.is_empty() || self.instruction_detail.is_empty() {
-            return Err(UdmError::InvalidInput(String::from(
+            return Err(trace_log_error(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",
-            )));
+            ))));
         }
         Ok(())
     }

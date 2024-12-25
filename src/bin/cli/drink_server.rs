@@ -2,6 +2,7 @@ use crate::cli::helpers::MainCommandHandler;
 use async_trait::async_trait;
 use clap::Args;
 use clap::Subcommand;
+use lib::error::trace_log_error;
 use lib::error::UdmError;
 use lib::rpc_types::drink_ctrl_types::GetPumpGpioInfoRequest;
 use lib::rpc_types::fhs_types::FluidRegulator;
@@ -41,11 +42,13 @@ impl MainCommandHandler for CollectPumpInfoArgs {
             ..Default::default()
         };
         let req = GetPumpGpioInfoRequest { fr: Some(fr) };
+        tracing::info!("Collected Request {:?}", req);
         let mut open_connection = options.connect_to_drink_server().await?; // How do i open up a a drink controller
-        let response = open_connection
-            .get_pump_gpio_info(req)
-            .await
-            .map_err(|e| UdmError::ApiFailure(format!("Fatal Failure on server: {}", e)))?;
+        tracing::debug!("Opened connection with Drink Server, Sending request to collect Pump info and current state");
+        let response = open_connection.get_pump_gpio_info(req).await.map_err(|e| {
+            let message = format!("Fatal Failure on server: {}", e);
+            trace_log_error(UdmError::ApiFailure(message.clone()))
+        })?;
         tracing::debug!("Raw Response: {:?} ", &response);
         println!("{}", response.into_inner());
         Ok(())

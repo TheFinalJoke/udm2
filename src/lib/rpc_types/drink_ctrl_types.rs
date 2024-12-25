@@ -87,6 +87,7 @@ pub(crate) struct PumpLogger {
 impl PumpLogger {
     pub(crate) fn new(req_id: Option<Uuid>, req_type: ReqType, fluid_id: Option<i32>) -> Self {
         let req_id = req_id.unwrap_or(Uuid::new_v4());
+        tracing::info!("Created UUID {} for {}", req_id, req_type);
         Self {
             req_id,
             req_type,
@@ -95,6 +96,7 @@ impl PumpLogger {
     }
     pub(crate) async fn publish(&self, connection: &dyn DbConnection) -> UdmResult<Uuid> {
         let query = self.gen_insert_query().to_string(PostgresQueryBuilder);
+
         let uuid = connection.insert_with_uuid(query).await?;
         Ok(uuid)
     }

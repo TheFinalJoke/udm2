@@ -1,6 +1,7 @@
 use clap::Args;
 use clap::Parser;
 use clap::Subcommand;
+use lib::error::trace_log_error;
 pub mod drink_server;
 pub mod fluid;
 pub mod helpers;
@@ -122,7 +123,7 @@ impl MainCommandHandler for ResetCommands {
         let reset = connection
             .reset_db(req)
             .await
-            .map_err(|e| UdmError::ApiFailure(format!("{}", e)));
+            .map_err(|e| trace_log_error(trace_log_error(UdmError::ApiFailure(format!("{}", e)))));
         match reset {
             Ok(_) => {
                 tracing::info!("Successfully reset the tables");

@@ -10,6 +10,7 @@ use cli_table::Style;
 use cli_table::Table;
 use cli_table::TableStruct;
 use lib::db::FluidRegulationSchema;
+use lib::error::trace_log_error;
 use lib::error::UdmError;
 use lib::rpc_types::fhs_types::FluidRegulator;
 use lib::rpc_types::fhs_types::RegulatorType;
@@ -77,15 +78,16 @@ impl UdmGrpcActions<FluidRegulator> for AddFluidArgs {
     fn sanatize_input(&self) -> UdmResult<FluidRegulator> {
         if let Some(raw_input) = &self.raw {
             tracing::debug!("Json passed: {}", &raw_input);
-            let fluid: FluidRegulator = serde_json::from_str(raw_input)
-                .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
+            let fluid: FluidRegulator = serde_json::from_str(raw_input).map_err(|_| {
+                trace_log_error(UdmError::InvalidInput(String::from("Failed to parse json")))
+            })?;
             fluid.validate_without_id_fields()?;
             return Ok(fluid);
         }
         if self.reg_type.is_none() || self.gpio_pin.is_none() {
-            return Err(UdmError::InvalidInput(String::from(
+            return Err(trace_log_error(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",
-            )));
+            ))));
         }
         Ok(FluidRegulator {
             fr_id: self.fr_id,
@@ -110,7 +112,7 @@ impl MainCommandHandler for AddFluidArgs {
         let response = open_connection
             .add_fluid_regulator(AddFluidRegulatorRequest { fluid: Some(fr) })
             .await
-            .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
+            .map_err(|e| trace_log_error(UdmError::ApiFailure(format!("{}", e))))?;
         tracing::debug!("Got response {:?}", response);
         tracing::info!(
             "Inserted into database, got ID back {}",
@@ -145,15 +147,16 @@ impl UdmGrpcActions<FluidRegulator> for UpdateFluidArgs {
     fn sanatize_input(&self) -> UdmResult<FluidRegulator> {
         if let Some(raw_input) = &self.raw {
             tracing::debug!("Json passed: {}", &raw_input);
-            let fluid: FluidRegulator = serde_json::from_str(raw_input)
-                .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
+            let fluid: FluidRegulator = serde_json::from_str(raw_input).map_err(|_| {
+                trace_log_error(UdmError::InvalidInput(String::from("Failed to parse json")))
+            })?;
             fluid.validate_all_fields()?;
             return Ok(fluid);
         }
         if self.fr_id.is_none() || self.reg_type.is_none() || self.gpio_pin.is_none() {
-            return Err(UdmError::InvalidInput(String::from(
+            return Err(trace_log_error(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",
-            )));
+            ))));
         }
         Ok(FluidRegulator {
             fr_id: self.fr_id,
@@ -178,7 +181,7 @@ impl MainCommandHandler for UpdateFluidArgs {
         let response = open_connection
             .update_fluid_regulator(ModifyFluidRegulatorRequest { fluid: Some(fr) })
             .await
-            .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
+            .map_err(|e| trace_log_error(UdmError::ApiFailure(format!("{}", e))))?;
         tracing::debug!("Got response {:?}", response);
         tracing::info!(
             "Updated database, got ID back {}",
@@ -212,7 +215,7 @@ impl MainCommandHandler for ShowFluidArgs {
                     expressions: fetched,
                 })
                 .await
-                .map_err(|e| UdmError::ApiFailure(format!("{}", e)));
+                .map_err(|e| trace_log_error(UdmError::ApiFailure(format!("{}", e))));
             match response {
                 Ok(response) => {
                     tracing::debug!("Got response {:?}", &response);
@@ -294,7 +297,9 @@ pub struct RemoveFluidArgs {
 impl MainCommandHandler for RemoveFluidArgs {
     async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()> {
         let id = self.fr_id.ok_or_else(|| {
-            UdmError::InvalidInput("Invalid input to remove fluid regulator".to_string())
+            trace_log_error(UdmError::InvalidInput(
+                "Invalid input to remove fluid regulator".to_string(),
+            ))
         })?;
         if !self.yes {
             let _ = ensure_removal();

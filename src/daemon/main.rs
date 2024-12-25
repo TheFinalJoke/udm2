@@ -85,10 +85,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let config_file = FileRetrieve::new(cli_opts.config_file.clone()).retreieve::<Config>()?;
     let configerator = Arc::new(config_file.try_deserialize::<UdmConfigurer>()?);
     UdmLogger::init(
-        UdmLoggerType::Main,
+        UdmLoggerType::Daemon,
         cli_opts.verbose,
         Some(configerator.daemon.log_file_path.as_str()),
-        cli_opts.test,
     )?;
     info!(
         "Initialized logger, collected Config File {}",
@@ -110,9 +109,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()?;
     tracing::debug!("Finished runtime {:?}", &runtime);
     let notify = Arc::new(Notify::new());
-    // build signals
-    // let mut signals = runtime.block_on(async move { Signals::new([SIGINT, SIGTERM, SIGABRT]) })?;
-    // let signal_handler = signals.handle();
     // Spawn Sql Daemon Server
     runtime.block_on(async move {
         let sql_server = Arc::new(GenerateSqlDaemonServer::new(

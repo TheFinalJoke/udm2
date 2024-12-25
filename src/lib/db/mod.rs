@@ -1,3 +1,4 @@
+use crate::error::trace_log_error;
 use crate::error::UdmError;
 use crate::parsers::settings;
 use crate::rpc_types::fhs_types::RegulatorType;
@@ -199,7 +200,9 @@ impl TryFrom<String> for FluidRegulationSchema {
             "gpio_pin" => Ok(FluidRegulationSchema::GpioPin),
             "regulator_type" => Ok(FluidRegulationSchema::RegulatorType),
             "pump_num" => Ok(FluidRegulationSchema::PumpNum),
-            _ => Err(UdmError::ApiFailure("Failed to collect Column".to_string())),
+            _ => Err(trace_log_error(trace_log_error(UdmError::ApiFailure(
+                "Failed to collect Column".to_string(),
+            )))),
         }
     }
 }
@@ -276,7 +279,9 @@ impl TryFrom<String> for PumpLogSchema {
             "ReqId" => Ok(PumpLogSchema::ReqId),
             "ReqType" => Ok(PumpLogSchema::ReqType),
             "FluidId" => Ok(PumpLogSchema::FluidId),
-            _ => Err(UdmError::ApiFailure("Failed to collect Column".to_string())),
+            _ => Err(trace_log_error(UdmError::ApiFailure(
+                "Failed to collect Column".to_string(),
+            ))),
         }
     }
 }
@@ -357,9 +362,9 @@ impl TryFrom<String> for IngredientSchema {
             "ingredient_type" => Ok(Self::IngredientType),
             "fr_id" => Ok(Self::FrId),
             "instruction_id" => Ok(Self::InstructionId),
-            _ => Err(UdmError::ApiFailure(
+            _ => Err(trace_log_error(UdmError::ApiFailure(
                 "Failed to collect IngredientSchema Column".to_string(),
-            )),
+            ))),
         }
     }
 }
@@ -475,9 +480,9 @@ impl TryFrom<String> for InstructionSchema {
             "instruction_id" => Ok(Self::InstructionId),
             "instruction_detail" => Ok(Self::InstructionDetail),
             "instruction_name" => Ok(Self::InstructionName),
-            _ => Err(UdmError::ApiFailure(
+            _ => Err(trace_log_error(UdmError::ApiFailure(
                 "Failed to collect InstructionSchema column".to_string(),
-            )),
+            ))),
         }
     }
 }
@@ -561,9 +566,9 @@ impl TryFrom<String> for InstructionToRecipeSchema {
             "recipe_id" => Ok(Self::RecipeId),
             "instruction_id" => Ok(Self::InstructionId),
             "instruction_order" => Ok(Self::InstructionOrder),
-            _ => Err(UdmError::ApiFailure(
+            _ => Err(trace_log_error(UdmError::ApiFailure(
                 "Failed to collect InstructionToRecipeSchema Column".to_string(),
-            )),
+            ))),
         }
     }
 }

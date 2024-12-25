@@ -9,6 +9,7 @@ use cli_table::Style;
 use cli_table::Table;
 use cli_table::TableStruct;
 use lib::db::RecipeSchema;
+use lib::error::trace_log_error;
 use lib::error::UdmError;
 use lib::rpc_types::recipe_types::DrinkSize;
 use lib::rpc_types::recipe_types::Recipe;
@@ -81,15 +82,16 @@ impl UdmGrpcActions<Recipe> for AddRecipeArgs {
     fn sanatize_input(&self) -> UdmResult<Recipe> {
         if !&self.raw.is_empty() {
             tracing::debug!("Json passed: {}", &self.raw);
-            let recipe: Recipe = serde_json::from_str(&self.raw)
-                .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
+            let recipe: Recipe = serde_json::from_str(&self.raw).map_err(|_| {
+                trace_log_error(UdmError::InvalidInput(String::from("Failed to parse json")))
+            })?;
             return Ok(recipe);
         }
 
         if self.name.is_empty() || self.description.is_empty() {
-            return Err(UdmError::InvalidInput(String::from(
+            return Err(trace_log_error(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",
-            )));
+            ))));
         }
         Ok(Recipe {
             id: 0,
@@ -118,7 +120,7 @@ impl MainCommandHandler for AddRecipeArgs {
             .await
             .map_err(|e| {
                 tracing::error!("Error occured: {:?}", e);
-                UdmError::ApiFailure(format!("{}", e))
+                trace_log_error(UdmError::ApiFailure(format!("{}", e)))
             })?;
         tracing::debug!("Got response {:?}", response);
         tracing::info!(
@@ -160,7 +162,7 @@ impl MainCommandHandler for ShowRecipeArgs {
                     expressions: fetched,
                 })
                 .await
-                .map_err(|e| UdmError::ApiFailure(format!("{}", e)));
+                .map_err(|e| trace_log_error(UdmError::ApiFailure(format!("{}", e))));
             match response {
                 Ok(response) => {
                     tracing::debug!("Got response {:?}", &response);
@@ -217,9 +219,9 @@ impl ShowHandler<Recipe> for ShowRecipeArgs {
     }
     fn sanatize_input(&self) -> UdmResult<Vec<FetchData>> {
         if self.query_options.is_none() {
-            return Err(UdmError::InvalidInput(
+            return Err(trace_log_error(UdmError::InvalidInput(
                 "Error while parsing query".to_string(),
-            ));
+            )));
         }
         let collected_queries =
             FetchData::to_fetch_data_vec(self.query_options.clone().unwrap().as_str())?;
@@ -242,7 +244,9 @@ pub struct RemoveRecipeArgs {
 impl MainCommandHandler for RemoveRecipeArgs {
     async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()> {
         let id = self.recipe_id.ok_or_else(|| {
-            UdmError::InvalidInput("Invalid input to remove fluid regulator".to_string())
+            trace_log_error(UdmError::InvalidInput(
+                "Invalid input to remove fluid regulator".to_string(),
+            ))
         })?;
         if !self.yes {
             let _ = ensure_removal();
@@ -304,7 +308,7 @@ impl MainCommandHandler for UpdateRecipeArgs {
                 recipe: Some(recipe),
             })
             .await
-            .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
+            .map_err(|e| trace_log_error(UdmError::ApiFailure(format!("{}", e))))?;
         tracing::debug!("Got response {:?}", response);
         tracing::info!(
             "Inserted into database, got ID back {}",
@@ -317,8 +321,9 @@ impl UdmGrpcActions<Recipe> for UpdateRecipeArgs {
     fn sanatize_input(&self) -> UdmResult<Recipe> {
         if !self.raw.is_empty() {
             tracing::debug!("Json passed: {}", &self.raw);
-            let ingredient: Recipe = serde_json::from_str(&self.raw)
-                .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
+            let ingredient: Recipe = serde_json::from_str(&self.raw).map_err(|_| {
+                trace_log_error(UdmError::InvalidInput(String::from("Failed to parse json")))
+            })?;
             ingredient.validate_without_id_fields()?;
             return Ok(ingredient);
         }
@@ -329,7 +334,9 @@ impl UdmGrpcActions<Recipe> for UpdateRecipeArgs {
 impl FieldValidation for UpdateRecipeArgs {
     fn validate_all_fields(&self) -> UdmResult<()> {
         if self.recipe_id == 0 {
-            return Err(UdmError::InvalidInput("Recipe ID is not set".to_string()));
+            return Err(trace_log_error(UdmError::InvalidInput(
+                "Recipe ID is not set".to_string(),
+            )));
         }
         Ok(())
     }

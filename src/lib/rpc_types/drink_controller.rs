@@ -10,6 +10,7 @@ use std::net::Ipv4Addr;
 use crate::db::DbConnection;
 use crate::db::DbMetaData;
 use crate::db::DbType;
+use crate::error::trace_log_error;
 use crate::parsers::settings::UdmConfigurer;
 use crate::rpc_types::drink_ctrl_types::DispenseDrinkRequest;
 use crate::rpc_types::drink_ctrl_types::DispenseDrinkResponse;
@@ -151,10 +152,13 @@ impl DrinkControllerService for DrinkControllerContext {
         &self,
         request: Request<GetPumpGpioInfoRequest>,
     ) -> Result<Response<GetPumpGpioInfoResponse>, Status> {
-        tracing::debug!("Got request {request:?}");
-        let fr = request.get_ref().fr.ok_or(Status::invalid_argument(
-            "Missing Fluid regulator".to_string(),
-        ))?;
+        tracing::info!("Got request {request:?}");
+        let fr = request
+            .get_ref()
+            .fr
+            .ok_or(trace_log_error(Status::invalid_argument(
+                "Missing Fluid regulator".to_string(),
+            )))?;
         let uuid = PumpLogger::new(None, ReqType::GetPumpInfo, fr.fr_id)
             .publish(&*self.connection)
             .await
@@ -181,7 +185,10 @@ impl DrinkControllerService for DrinkControllerContext {
         let mut sql_client = self.sql_udm_client.clone().unwrap();
         let result = sql_client.collect_fluid_regulators(fetch_query).await?;
         if result.get_ref().fluids.is_empty() || result.get_ref().fluids.len() > 2 {
-            return Err(Status::aborted("Returned no data or too much data"));
+            return Err(Status::aborted(format!(
+                "Returned no data or too much data {:?}",
+                result
+            )));
         }
         let pin = result.get_ref().fluids[0]
             .gpio_pin

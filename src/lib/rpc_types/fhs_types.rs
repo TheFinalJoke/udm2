@@ -1,5 +1,6 @@
 use crate::db::executor::GenQueries;
 use crate::db::FluidRegulationSchema;
+use crate::error::trace_log_error;
 use crate::error::UdmError;
 use crate::rpc_types::FieldValidation;
 use crate::rpc_types::MultipleValues;
@@ -54,17 +55,17 @@ impl GenQueries for FluidRegulator {
 impl FieldValidation for FluidRegulator {
     fn validate_all_fields(&self) -> UdmResult<()> {
         if self.fr_id.is_none() || self.regulator_type.is_none() || self.gpio_pin.is_none() {
-            return Err(UdmError::InvalidInput(String::from(
+            return Err(trace_log_error(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",
-            )));
+            ))));
         }
         Ok(())
     }
     fn validate_without_id_fields(&self) -> UdmResult<()> {
         if self.regulator_type.is_none() || self.gpio_pin.is_none() {
-            return Err(UdmError::InvalidInput(String::from(
+            return Err(trace_log_error(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",
-            )));
+            ))));
         }
         Ok(())
     }

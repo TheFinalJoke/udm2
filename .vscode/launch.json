@@ -25,7 +25,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'daemon'",
+            "name": "Debug executable 'daemon' FULL VERBOSE",
             "cargo": {
                 "args": [
                     "build",
@@ -41,6 +41,60 @@
                 "--config-file",
                 ".config/local.toml",
                 "-vvvv",
+                "--test"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "UDM_POSTGRES_PW": "postgres"
+            },
+            "sourceLanguages": ["rust"]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'daemon' DEBUG VERBOSE",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=daemon",
+                    "--package=udm"
+                ],
+                "filter": {
+                    "name": "daemon",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--config-file",
+                ".config/local.toml",
+                "-vvv",
+                "--test"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "UDM_POSTGRES_PW": "postgres"
+            },
+            "sourceLanguages": ["rust"]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'daemon' INFO Verbose",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=daemon",
+                    "--package=udm"
+                ],
+                "filter": {
+                    "name": "daemon",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--config-file",
+                ".config/local.toml",
+                "-vv",
                 "--test"
             ],
             "cwd": "${workspaceFolder}",

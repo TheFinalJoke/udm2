@@ -7,6 +7,7 @@ use cli_table::Style;
 use cli_table::Table;
 use cli_table::TableStruct;
 use lib::db::InstructionSchema;
+use lib::error::trace_log_error;
 use lib::error::UdmError;
 use lib::rpc_types::recipe_types::Instruction;
 use lib::rpc_types::service_types::AddInstructionRequest;
@@ -64,16 +65,17 @@ impl UdmGrpcActions<Instruction> for AddInstructionArgs {
     fn sanatize_input(&self) -> UdmResult<Instruction> {
         if let Some(raw) = &self.raw {
             tracing::debug!("Json passed: {}", raw);
-            let instruction: Instruction = serde_json::from_str(raw)
-                .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
+            let instruction: Instruction = serde_json::from_str(raw).map_err(|_| {
+                trace_log_error(UdmError::InvalidInput(String::from("Failed to parse json")))
+            })?;
             instruction.validate_without_id_fields()?;
             return Ok(instruction);
         }
 
         if self.instruction_name.is_none() || self.instruction_detail.is_none() {
-            return Err(UdmError::InvalidInput(String::from(
+            return Err(trace_log_error(UdmError::InvalidInput(String::from(
                 "`Not all required fields were passed`",
-            )));
+            ))));
         }
         Ok(Instruction {
             id: 0,
@@ -95,7 +97,7 @@ impl MainCommandHandler for AddInstructionArgs {
                 instruction: Some(instruction),
             })
             .await
-            .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
+            .map_err(|e| trace_log_error(UdmError::ApiFailure(format!("{}", e))))?;
         tracing::debug!("Got response {:?}", response);
         tracing::info!(
             "Inserted into database, got ID back {}",
@@ -135,7 +137,7 @@ impl MainCommandHandler for ShowInstructionArgs {
                     expressions: fetched,
                 })
                 .await
-                .map_err(|e| UdmError::ApiFailure(format!("{}", e)));
+                .map_err(|e| trace_log_error(UdmError::ApiFailure(format!("{}", e))));
             match response {
                 Ok(response) => {
                     tracing::debug!("Got response {:?}", &response);
@@ -186,9 +188,9 @@ impl ShowHandler<Instruction> for ShowInstructionArgs {
     }
     fn sanatize_input(&self) -> UdmResult<Vec<FetchData>> {
         if self.query_options.is_none() {
-            return Err(UdmError::InvalidInput(
+            return Err(trace_log_error(UdmError::InvalidInput(
                 "Error while parsing query".to_string(),
-            ));
+            )));
         }
         let collected_queries =
             FetchData::to_fetch_data_vec(self.query_options.clone().unwrap().as_str())?;
@@ -211,7 +213,9 @@ pub struct RemoveInstructionArgs {
 impl MainCommandHandler for RemoveInstructionArgs {
     async fn handle_command(&self, options: UdmServerOptions) -> UdmResult<()> {
         let id = self.instruction_id.ok_or_else(|| {
-            UdmError::InvalidInput("Invalid input to remove Instruction".to_string())
+            trace_log_error(UdmError::InvalidInput(
+                "Invalid input to remove Instruction".to_string(),
+            ))
         })?;
         if !self.yes {
             let _ = ensure_removal();
@@ -247,8 +251,9 @@ impl UdmGrpcActions<Instruction> for UpdateInstructionArgs {
     fn sanatize_input(&self) -> UdmResult<Instruction> {
         if !self.raw.is_empty() {
             tracing::debug!("Json passed: {}", &self.raw);
-            let instruction: Instruction = serde_json::from_str(&self.raw)
-                .map_err(|_| UdmError::InvalidInput(String::from("Failed to parse json")))?;
+            let instruction: Instruction = serde_json::from_str(&self.raw).map_err(|_| {
+                trace_log_error(UdmError::InvalidInput(String::from("Failed to parse json")))
+            })?;
             instruction.validate_all_fields()?;
             return Ok(instruction);
         }
@@ -270,9 +275,9 @@ impl TryFrom<&UpdateInstructionArgs> for Instruction {
 impl FieldValidation for UpdateInstructionArgs {
     fn validate_all_fields(&self) -> UdmResult<()> {
         if self.instruction_id == 0 {
-            return Err(UdmError::InvalidInput(
+            return Err(trace_log_error(UdmError::InvalidInput(
                 "Ingredient ID is not set".to_string(),
-            ));
+            )));
         }
         Ok(())
     }
@@ -294,7 +299,7 @@ impl MainCommandHandler for UpdateInstructionArgs {
                 instruction: Some(instruction),
             })
             .await
-            .map_err(|e| UdmError::ApiFailure(format!("{}", e)))?;
+            .map_err(|e| trace_log_error(UdmError::ApiFailure(format!("{}", e))))?;
         tracing::debug!("Got response {:?}", response);
         tracing::info!(
             "Updated database, got ID back {}",

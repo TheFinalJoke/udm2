@@ -16,7 +16,7 @@ pub mod cli;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let cli_opts = cli::UdmCli::parse();
-    UdmLogger::init(UdmLoggerType::Bin, cli_opts.verbose, None, false)?;
+    UdmLogger::init(UdmLoggerType::Bin, cli_opts.verbose, None)?;
     tracing::info!("Initialized logger");
     let server_options = UdmServerOptions {
         sql_udm_server: SqlUdmServerCliOptions::new(

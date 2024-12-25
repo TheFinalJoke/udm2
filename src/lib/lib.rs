@@ -6,6 +6,7 @@ use std::result;
 pub mod db;
 pub mod error;
 pub mod logger;
+pub mod macros;
 pub mod parsers;
 pub mod rpc_types;
 pub mod system;

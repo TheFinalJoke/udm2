@@ -1,3 +1,4 @@
+use crate::error::trace_log_error;
 use crate::error::UdmError;
 use crate::rpc_types::gpio_types;
 use crate::UdmResult;
@@ -21,7 +22,7 @@ impl PollGpio {
             gpio_pin: pin,
             pin_info: Some(
                 gpio.get(pin)
-                    .map_err(|e| UdmError::GpioError(e.to_string()))?,
+                    .map_err(|e| trace_log_error(UdmError::GpioError(e.to_string())))?,
             ),
         })
     }
